@@ -1,5 +1,7 @@
 // app/chat/page.tsx
 
+"use client"; // Mark this as a client component
+
 import { useState, useEffect } from 'react';
 import ChatMessages from './ChatMessages'; // Ensure path is correct
 import socket from '../../lib/socket'; // Ensure socket.ts is correctly implemented
