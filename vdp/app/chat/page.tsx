@@ -1,48 +1,75 @@
-'use client'
+// app/chat/page.tsx
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect } from 'react';
+import ChatMessages from './ChatMessages'; // Ensure path is correct
+import socket from '../../lib/socket'; // Ensure socket.ts is correctly implemented
+
+// Define the message type for better TypeScript handling
+type Message = {
+    id: number;
+    text: string;
+    user: string;
+};
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<{ user: string; text: string }[]>([])
-  const [newMessage, setNewMessage] = useState('')
+    const [input, setInput] = useState<string>(''); // Explicit type annotation
+    const [messages, setMessages] = useState<Message[]>([]); // Type for messages array
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newMessage.trim()) {
-      setMessages([...messages, { user: 'You', text: newMessage }])
-      setNewMessage('')
-    }
-  }
+    useEffect(() => {
+        // Fetch initial messages
+        const fetchMessages = async () => {
+            try {
+                const res = await fetch('/api/chat');
+                if (!res.ok) throw new Error('Failed to fetch messages');
+                
+                const data: Message[] = await res.json();
+                setMessages(data);
+            } catch (error) {
+                console.error("Error fetching messages:", error);
+            }
+        };
+        
+        fetchMessages();
 
-  return (
-    <Card className="h-[calc(100vh-200px)] flex flex-col">
-      <CardHeader>
-        <CardTitle>Community Chat</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow overflow-auto">
-        <div className="space-y-4">
-          {messages.map((message, index) => (
-            <div key={index} className="bg-gray-100 p-2 rounded">
-              <strong>{message.user}:</strong> {message.text}
-            </div>
-          ))}
+        // Listen for incoming messages via WebSocket
+        socket.on('message', (message: Message) => {
+            setMessages((prev) => [...prev, message]);
+        });
+
+        return () => {
+            socket.off('message');
+        };
+    }, []);
+
+    // Handle message sending
+    const sendMessage = async () => {
+        if (!input.trim()) return;
+
+        const message = { text: input, user: 'Anonymous' };
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(message),
+            });
+            if (!res.ok) throw new Error('Failed to send message');
+
+            setInput(''); // Clear input on success
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
+    };
+
+    return (
+        <div>
+            <ChatMessages messages={messages} /> {/* Ensure ChatMessages component is imported */}
+            <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type a message"
+            />
+            <button onClick={sendMessage}>Send</button>
         </div>
-      </CardContent>
-      <div className="p-4 border-t">
-        <form onSubmit={handleSendMessage} className="flex space-x-2">
-          <Input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-grow"
-          />
-          <Button type="submit">Send</Button>
-        </form>
-      </div>
-    </Card>
-  )
+    );
 }
