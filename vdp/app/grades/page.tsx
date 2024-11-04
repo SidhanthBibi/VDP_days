@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function GradesPage() {
   const [courses, setCourses] = useState<{ name: string; grade: number; credits: number }[]>([])
@@ -66,13 +67,16 @@ export default function GradesPage() {
           {courses.map((course, index) => (
             <div key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded">
               <span>{course.name}</span>
-              <span>Grade: {course.grade.toFixed(1)} | Credits: {course.credits}</span>
+              <div>
+                <Badge variant="secondary" className="mr-2">Grade: {course.grade.toFixed(1)}</Badge>
+                <Badge variant="outline">Credits: {course.credits}</Badge>
+              </div>
             </div>
           ))}
         </div>
         {courses.length > 0 && (
           <div className="mt-4 text-xl font-bold">
-            GPA: {calculateGPA().toFixed(2)}
+            GPA: <Badge variant="default">{calculateGPA().toFixed(2)}</Badge>
           </div>
         )}
       </CardContent>

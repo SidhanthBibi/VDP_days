@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function AttendancePage() {
   const [courses, setCourses] = useState<{ name: string; attended: number; total: number }[]>([])
@@ -71,16 +72,16 @@ export default function AttendancePage() {
           {courses.map((course, index) => (
             <div key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded">
               <span>{course.name}</span>
-              <span>
+              <Badge variant="secondary">
                 Attendance: {calculateAttendance(course.attended, course.total)}% 
                 ({course.attended}/{course.total})
-              </span>
+              </Badge>
             </div>
           ))}
         </div>
         {courses.length > 0 && (
           <div className="mt-4 text-xl font-bold">
-            Overall Attendance: {calculateOverallAttendance()}%
+            Overall Attendance: <Badge variant="default">{calculateOverallAttendance()}%</Badge>
           </div>
         )}
       </CardContent>

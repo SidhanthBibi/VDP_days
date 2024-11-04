@@ -112,7 +112,9 @@ export default function TimetablePage() {
                     <TableCell>{item.day}</TableCell>
                     <TableCell>{item.time}</TableCell>
                     <TableCell>{item.course}</TableCell>
-                    <TableCell>{item.attendees}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{item.attendees}</Badge>
+                    </TableCell>
                     <TableCell>
                       <Button 
                         onClick={() => handleRSVP(index)}
@@ -139,7 +141,7 @@ export default function TimetablePage() {
               {projects.map((project, index) => (
                 <li key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded">
                   <span>{project.name}</span>
-                  <span>{project.date}</span>
+                  <Badge variant="outline">{project.date}</Badge>
                 </li>
               ))}
             </ul>
