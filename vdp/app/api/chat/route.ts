@@ -1,7 +1,7 @@
 // app/api/chat/route.ts
 import { NextResponse } from 'next/server';
 
-let messages: { id: number; text: string; user: string }[] = [];
+const messages: { id: number; text: string; user: string }[] = []; // Use const instead of let
 
 export async function GET() {
     return NextResponse.json(messages);
