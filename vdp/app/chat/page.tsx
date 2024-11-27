@@ -1,12 +1,10 @@
 // app/chat/page.tsx
-
-"use client"; // Mark this as a client component
+"use client"; // Ensure client component
 
 import { useState, useEffect } from 'react';
-import ChatMessages from './chatmessages'; // Ensure path is correct
-import socket from '../../lib/socket'; // Ensure socket.ts is correctly implemented
+import ChatMessages from './ChatMessages';
+import socket from '../../lib/socket';
 
-// Define the message type for better TypeScript handling
 type Message = {
     id: number;
     text: string;
@@ -14,57 +12,39 @@ type Message = {
 };
 
 export default function ChatPage() {
-    const [input, setInput] = useState<string>(''); // Explicit type annotation
-    const [messages, setMessages] = useState<Message[]>([]); // Type for messages array
+    const [input, setInput] = useState<string>('');
+    const [messages, setMessages] = useState<Message[]>([]);
 
     useEffect(() => {
-        // Fetch initial messages
-        const fetchMessages = async () => {
-            try {
-                const res = await fetch('/api/chat');
-                if (!res.ok) throw new Error('Failed to fetch messages');
-                
-                const data: Message[] = await res.json();
-                setMessages(data);
-            } catch (error) {
-                console.error("Error fetching messages:", error);
-            }
-        };
-        
-        fetchMessages();
-
-        // Listen for incoming messages via WebSocket
-        socket.on('message', (message: Message) => {
-            setMessages((prev) => [...prev, message]);
+        // Listen for initial messages
+        socket.on('loadMessages', (loadedMessages: Message[]) => {
+            setMessages(loadedMessages);
         });
 
+        // Listen for new messages
+        socket.on('receiveMessage', (message: Message) => {
+            setMessages((prevMessages) => [...prevMessages, message]);
+        });
+
+        // Clear messages on page unload
         return () => {
-            socket.off('message');
+            socket.off('loadMessages');
+            socket.off('receiveMessage');
+            setMessages([]); // Clear messages on unmount
         };
     }, []);
 
-    // Handle message sending
-    const sendMessage = async () => {
+    const sendMessage = () => {
         if (!input.trim()) return;
 
-        const message = { text: input, user: 'Anonymous' };
-        try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(message),
-            });
-            if (!res.ok) throw new Error('Failed to send message');
-
-            setInput(''); // Clear input on success
-        } catch (error) {
-            console.error("Error sending message:", error);
-        }
+        const message = { id: Date.now(), text: input, user: 'Anonymous' };
+        socket.emit('sendMessage', message); // Send message to server
+        setInput(''); // Clear input field
     };
 
     return (
         <div>
-            <ChatMessages messages={messages} /> {/* Ensure ChatMessages component is imported */}
+            <ChatMessages messages={messages} />
             <input
                 type="text"
                 value={input}
