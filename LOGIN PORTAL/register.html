@@ -20,7 +20,7 @@
       <!-- Email Input -->
       <div class="input-group">
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        <input type="email" id="email" name="email" placeholder="Enter your email (@srmist.edu.in)" required>
       </div>
 
       <!-- OTP Generation Button -->
@@ -56,12 +56,19 @@
   </div>
 
   <script>
+    // Function to validate email domain
+    function validateEmailDomain(email) {
+      const domain = "@srmist.edu.in";
+      return email.endsWith(domain);
+    }
+
     // Function to generate OTP
     async function generateOtp() {
       const email = document.getElementById('email').value;
 
-      if (!email) {
-        alert('Please enter a valid email address.');
+      // Validate email domain
+      if (!validateEmailDomain(email)) {
+        alert('Only email IDs with the domain @srmist.edu.in are accepted.');
         return;
       }
 
@@ -92,7 +99,7 @@
         return;
       }
 
-      // Send OTP validation request to the server
+      // Validate OTP request to the server
       const response = await fetch('/validate-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
