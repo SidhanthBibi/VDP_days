@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+  <div class="register-container">
+    <form class="register-form" id="registerForm">
+      <h2>Register</h2>
+
+      <!-- Username Input -->
+      <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+      </div>
+
+      <!-- Email Input -->
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      </div>
+
+      <!-- OTP Generation Button -->
+      <div class="input-group">
+        <button type="button" id="generateOtpBtn" class="otp-button" onclick="generateOtp()">Generate OTP</button>
+      </div>
+
+      <!-- OTP Input -->
+      <div class="input-group">
+        <label for="otp">OTP</label>
+        <input type="text" id="otp" name="otp" placeholder="Enter OTP" required disabled>
+      </div>
+
+      <!-- Password Input -->
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      </div>
+
+      <!-- Confirm Password Input -->
+      <div class="input-group">
+        <label for="confirm-password">Confirm Password</label>
+        <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="button" class="register-button" id="submitBtn" onclick="validateOtp()" disabled>Register</button>
+
+      <div class="options">
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Function to generate OTP
+    async function generateOtp() {
+      const email = document.getElementById('email').value;
+
+      if (!email) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      // Send OTP request to the server
+      const response = await fetch('/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('OTP has been sent to your email.');
+        document.getElementById('otp').disabled = false;
+        document.getElementById('submitBtn').disabled = false;
+      } else {
+        alert('Failed to send OTP. Please try again.');
+      }
+    }
+
+    // Function to validate OTP
+    async function validateOtp() {
+      const email = document.getElementById('email').value;
+      const otp = document.getElementById('otp').value;
+
+      if (!email || !otp) {
+        alert('Please fill in both the email and OTP.');
+        return;
+      }
+
+      // Send OTP validation request to the server
+      const response = await fetch('/validate-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('OTP validated successfully. You are now registered!');
+        // Here, you can send the rest of the form data to your backend for registration
+        document.getElementById('registerForm').submit();
+      } else {
+        alert('Invalid OTP. Please try again.');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="login-container">
+    <form id="loginForm">
+      <h2>Login</h2>
+      <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      </div>
+      <div class="input-group">
+        <label for="deviceInfo">Device Info</label>
+        <input type="text" id="deviceInfo" name="deviceInfo" placeholder="E.g., Chrome on Windows">
+      </div>
+      <button type="submit" class="login-button">Login</button>
+      <p>Don't have an account? <a href="register.html">Register here</a></p>
+    </form>
+  </div>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const deviceInfo = document.getElementById("deviceInfo").value;
+
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, deviceInfo }),
+      });
+
+      const data = await response.json();
+      alert(data.message);
+
+      if (data.activeSessions) {
+        console.log("Active sessions:", data.activeSessions);
+      }
+    });
+  </script>
+</body>
+</html>
