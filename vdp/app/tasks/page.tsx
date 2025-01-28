@@ -1,64 +1,114 @@
-'use client'
+import { useState, useEffect } from 'react'
+import './App.css'
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
+interface Todo {
+  id: number;
+  text: string;
+  completed: boolean;
+  createdAt: string;
+}
 
-export default function TasksPage() {
-  const [tasks, setTasks] = useState<{ id: number; text: string; completed: boolean }[]>([])
-  const [newTask, setNewTask] = useState('')
+function App(): JSX.Element {
+  const [todos, setTodos] = useState<Todo[]>(() => {
+    // Initialize todos from localStorage
+    const savedTodos = localStorage.getItem('todos')
+    return savedTodos ? JSON.parse(savedTodos) : []
+  })
+  const [inputValue, setInputValue] = useState<string>('')
+  const [showCompleted, setShowCompleted] = useState<boolean>(false)
 
-  const handleAddTask = (e: React.FormEvent) => {
+  // Save todos to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos))
+  }, [todos])
+
+  const activeTodos = todos.filter(todo => !todo.completed)
+  const completedTodos = todos.filter(todo => todo.completed)
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault()
-    if (newTask.trim()) {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false }])
-      setNewTask('')
+    if (inputValue.trim() === '') return
+    
+    const newTodo: Todo = {
+      id: Date.now(),
+      text: inputValue,
+      completed: false,
+      createdAt: new Date().toISOString()
     }
+    
+    setTodos([newTodo, ...todos])
+    setInputValue('')
   }
 
-  const toggleTask = (id: number) => {
-    
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
+  const toggleTodo = (id: number): void => {
+    setTodos(todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
     ))
   }
 
+  const deleteTodo = (id: number): void => {
+    setTodos(todos.filter(todo => todo.id !== id))
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Task Manager</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleAddTask} className="flex space-x-2 mb-4">
-          <Input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="Add a new task..."
-            className="flex-grow"
-          />
-          <Button type="submit">Add Task</Button>
-        </form>
-        <ul className="space-y-2">
-          {tasks.map(task => (
-            <li key={task.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`task-${task.id}`}
-                checked={task.completed}
-                onCheckedChange={() => toggleTask(task.id)}
+    <div className="app">
+      <h1>Todo List</h1>
+      
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
+          placeholder="Add a new todo..."
+        />
+        <button type="submit">Add</button>
+      </form>
+
+      <div className="todos-container">
+        <h2>Active Tasks</h2>
+        <ul className="todo-list">
+          {activeTodos.map(todo => (
+            <li key={todo.id}>
+              <input
+                type="checkbox"
+                checked={todo.completed}
+                onChange={() => toggleTodo(todo.id)}
               />
-              <label
-                htmlFor={`task-${task.id}`}
-                className={`flex-grow ${task.completed ? 'line-through text-gray-500' : ''}`}
-              >
-                {task.text}
-              </label>
+              <span>{todo.text}</span>
+              <button onClick={() => deleteTodo(todo.id)}>Delete</button>
             </li>
           ))}
         </ul>
-      </CardContent>
-    </Card>
+
+        {completedTodos.length > 0 && (
+          <div className="completed-section">
+            <button 
+              className="completed-toggle"
+              onClick={() => setShowCompleted(!showCompleted)}
+            >
+              Completed Tasks ({completedTodos.length}) {showCompleted ? '▼' : '▶'}
+            </button>
+            
+            {showCompleted && (
+              <ul className="todo-list completed-list">
+                {completedTodos.map(todo => (
+                  <li key={todo.id} className="completed">
+                    <input
+                      type="checkbox"
+                      checked={todo.completed}
+                      onChange={() => toggleTodo(todo.id)}
+                    />
+                    <span>{todo.text}</span>
+                    <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
+
+export default App 
