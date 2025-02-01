@@ -2,32 +2,32 @@
 
 ## Project Structure
 
- vdp/ <br>
-###### ├── client/                 # Frontend React application
-###### │   ├── public/             # Static files
-###### │   │   └── index.html      # Main HTML file
-###### │   ├── src/                # Source files
-###### │   │   ├── components/     # Reusable React components
-###### │   │   │   └── Club.jsx    # Club component
-###### │   │   ├── pages/          # Page components
-###### │   │   │   └── ClubPage.jsx# Club page component
-###### │   │   ├── App.js          # Main application component
-###### │   │   ├── index.js        # Entry point
-###### │   │   └── App.css         # CSS styles
-###### │   ├── package.json        # Frontend dependencies
-###### │   └── README.md           # Frontend README
-###### │
-###### └── server/                 # Backend Node.js application
-######     ├── src/                # Source files
-######     │   ├── controllers/    # Route controllers
-######     │   │   └── clubController.js # Club controller
-######     │   ├── models/         # Database models
-######     │   │   └── clubModel.js# Club model
-######     │   ├── routes/         # API routes
-######     │   │   └── clubRoutes.js# Club routes
-######     │   └── index.js        # Entry point
-######     ├── package.json        # Backend dependencies
-######     └── README.md           # Backend README
+vdp/ <br>
+├── client/                 # Frontend React application <br>
+│   ├── public/             # Static files <br>
+│   │   └── index.html      # Main HTML file <br>
+│   ├── src/                # Source files <br>
+│   │   ├── components/     # Reusable React components <br>
+│   │   │   └── Club.jsx    # Club component <br>
+│   │   ├── pages/          # Page components <br>
+│   │   │   └── ClubPage.jsx# Club page component <br>
+│   │   ├── App.js          # Main application component <br>
+│   │   ├── index.js        # Entry point <br>
+│   │   └── App.css         # CSS styles <br>
+│   ├── package.json        # Frontend dependencies <br>
+│   └── README.md           # Frontend README <br>
+│ <br>
+└── server/                 # Backend Node.js application <br>
+    ├── src/                # Source files <br>
+    │   ├── controllers/    # Route controllers <br>
+    │   │   └── clubController.js # Club controller <br>
+    │   ├── models/         # Database models <br>
+    │   │   └── clubModel.js# Club model <br>
+    │   ├── routes/         # API routes <br>
+    │   │   └── clubRoutes.js# Club routes <br>
+    │   └── index.js        # Entry point <br>
+    ├── package.json        # Backend dependencies <br>
+    └── README.md           # Backend README <br>
 
 ## Setup Instructions
 
