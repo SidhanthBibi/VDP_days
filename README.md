@@ -2,7 +2,7 @@
 
 ## Project Structure
 
-###### vdp/ <br>
+ vdp/ <br>
 ###### ├── client/                 # Frontend React application
 ###### │   ├── public/             # Static files
 ###### │   │   └── index.html      # Main HTML file
