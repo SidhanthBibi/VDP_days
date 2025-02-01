@@ -2,32 +2,32 @@
 
 ## Project Structure
 
-vdp/
-├── client/                 # Frontend React application
-│   ├── public/             # Static files
-│   │   └── index.html      # Main HTML file
-│   ├── src/                # Source files
-│   │   ├── components/     # Reusable React components
-│   │   │   └── Club.jsx    # Club component
-│   │   ├── pages/          # Page components
-│   │   │   └── ClubPage.jsx# Club page component
-│   │   ├── App.js          # Main application component
-│   │   ├── index.js        # Entry point
-│   │   └── App.css         # CSS styles
-│   ├── package.json        # Frontend dependencies
-│   └── README.md           # Frontend README
-│
-└── server/                 # Backend Node.js application
-    ├── src/                # Source files
-    │   ├── controllers/    # Route controllers
-    │   │   └── clubController.js # Club controller
-    │   ├── models/         # Database models
-    │   │   └── clubModel.js# Club model
-    │   ├── routes/         # API routes
-    │   │   └── clubRoutes.js# Club routes
-    │   └── index.js        # Entry point
-    ├── package.json        # Backend dependencies
-    └── README.md           # Backend README
+###### vdp/ 
+###### ├── client/                 # Frontend React application
+###### │   ├── public/             # Static files
+###### │   │   └── index.html      # Main HTML file
+###### │   ├── src/                # Source files
+###### │   │   ├── components/     # Reusable React components
+###### │   │   │   └── Club.jsx    # Club component
+###### │   │   ├── pages/          # Page components
+###### │   │   │   └── ClubPage.jsx# Club page component
+###### │   │   ├── App.js          # Main application component
+###### │   │   ├── index.js        # Entry point
+###### │   │   └── App.css         # CSS styles
+###### │   ├── package.json        # Frontend dependencies
+###### │   └── README.md           # Frontend README
+###### │
+###### └── server/                 # Backend Node.js application
+######     ├── src/                # Source files
+######     │   ├── controllers/    # Route controllers
+######     │   │   └── clubController.js # Club controller
+######     │   ├── models/         # Database models
+######     │   │   └── clubModel.js# Club model
+######     │   ├── routes/         # API routes
+######     │   │   └── clubRoutes.js# Club routes
+######     │   └── index.js        # Entry point
+######     ├── package.json        # Backend dependencies
+######     └── README.md           # Backend README
 
 ## Setup Instructions
 
@@ -89,6 +89,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 For more information, please contact the project maintainers at [sidhanthbibi@gmail.com](mailto:sidhanthbibi@gmail.com)
 
 ## Credits
-@SidhanthBibi : Sidhanth Bibi
-@Quadr1on : Adorn S George
+###### @SidhanthBibi : Sidhanth Bibi
+###### @Quadr1on : Adorn S George
 
