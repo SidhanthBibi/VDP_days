@@ -1,18 +1,19 @@
 import './App.css'
-import LandingPage from './components/Landing'
-import AuthComponent from './components/Login'
+import LandingPage from './pages/Landing'
+import AuthComponent from './pages/Login'
+import Navbar from './components/Navbar'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 function App() {
-
   return (
     <BrowserRouter>
-    <Routes>
+      <Navbar />
+      <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path='/login' element={<AuthComponent/>}/>
-    </Routes>
+        <Route path='/login' element={<AuthComponent />} />
+      </Routes>
     </BrowserRouter>
   )
 }
 
-export default App
+export default App;
