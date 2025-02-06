@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import poster from '../assets/testposter.jpg';
+import poster2 from '../assets/Hackforge.jpg'
 import { Calendar, Users, Clock, MapPin } from 'lucide-react';
 
 const LandingPage = () => {
   const [activeCard, setActiveCard] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const handleSearch = () => {
+      const query = document.getElementById('search-bar').value;
+      setSearchQuery(query);
+    };
+
+    document.getElementById('search-bar').addEventListener('input', handleSearch);
+    return () => {
+      document.getElementById('search-bar').removeEventListener('input', handleSearch);
+    };
+  }, []);
 
   const events = [
     {
@@ -24,7 +38,7 @@ const LandingPage = () => {
       time: "3:30 PM",
       location: "Creative Studio",
       description: "Explore the principles of design thinking and apply them to real-world problems.",
-      image: "/api/placeholder/360/640"
+      image: poster2
     },
     {
       id: 3,
@@ -34,7 +48,7 @@ const LandingPage = () => {
       time: "6:00 PM",
       location: "Main Auditorium",
       description: "Watch innovative startup pitches from student entrepreneurs and network with investors.",
-      image: "/api/placeholder/360/640"
+      image: poster
     },
     {
       id: 4,
@@ -44,7 +58,7 @@ const LandingPage = () => {
       time: "11:00 AM",
       location: "Campus Ground",
       description: "Celebrate diversity through music, dance, and food from around the world.",
-      image: "/api/placeholder/360/640"
+      image: poster2
     },
     {
       id: 5,
@@ -54,7 +68,7 @@ const LandingPage = () => {
       time: "9:00 AM",
       location: "CS Building",
       description: "24-hour coding challenge with amazing prizes and opportunities.",
-      image: "/api/placeholder/360/640"
+      image: poster
     },
     {
       id: 6,
@@ -64,7 +78,7 @@ const LandingPage = () => {
       time: "10:00 AM",
       location: "Art Gallery",
       description: "Annual photography exhibition showcasing the best works from our talented members.",
-      image: "/api/placeholder/360/640"
+      image: poster2
     },
     {
       id: 7,
@@ -98,6 +112,39 @@ const LandingPage = () => {
     }
   ];
 
+  const monthMap = {
+    january: '01', february: '02', march: '03', april: '04', may: '05', june: '06',
+    july: '07', august: '08', september: '09', october: '10', november: '11', december: '12',
+    jan: '01', feb: '02', mar: '03', apr: '04', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+  };
+
+  const normalizeDate = (date) => {
+    const lowerDate = date.toLowerCase();
+    for (const [key, value] of Object.entries(monthMap)) {
+      if (lowerDate.includes(key)) {
+        return lowerDate.replace(key, value);
+      }
+    }
+    return lowerDate;
+  };
+
+  const formatDateString = (dateString) => {
+    const parts = dateString.split(' ');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month}-${day}`;
+    }
+    return dateString;
+  };
+
+  const filteredEvents = events.filter(event => 
+    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.club.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    normalizeDate(event.date).includes(normalizeDate(searchQuery)) ||
+    event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.date.includes(formatDateString(searchQuery))
+  );
+
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8">
       {/* Neon Circle Accent */}
@@ -113,12 +160,18 @@ const LandingPage = () => {
           <p className="text-xl text-gray-400 mb-8">
             Discover and join amazing events from university clubs
           </p>
+          <input
+            id="search-bar"
+            type="text"
+            placeholder="Search events..."
+            className="w-full px-4 py-2 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
       </div>
 
       {/* 3x3 Grid Layout with 9:16 aspect ratio */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-        {events.map((event) => (
+        {filteredEvents.map((event) => (
           <div 
             key={event.id}
             className="relative group cursor-pointer aspect-[3/4] w-full"
