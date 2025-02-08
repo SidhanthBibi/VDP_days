@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from './App.jsx';
 
-const ClientID = '1028081832518-6gsauhqpour4leftuksrog95fc76a1r9.apps.googleusercontent.com'
+const ClientID = '1028081832518-6gsauhqpour4leftuksrog95fc76a1r9.apps.googleusercontent.com';
 
 const Root = () => {
   return(
