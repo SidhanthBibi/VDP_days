@@ -8,7 +8,7 @@ const About = () => {
   const teamMembers = [
     {
       id: 1,
-      name: "Siddharth Bibi",
+      name: "Sidhanth Bibi",
       role: "Developer",
       image: Sidh
     },
