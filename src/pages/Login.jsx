@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, User, Users, Link, Building, Mail, Image } from 'lucide-react';
 
 const AuthComponent = ({ onSuccessfulAuth }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const [isClub, setIsClub] = useState(false);
   const [showClubForm, setShowClubForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

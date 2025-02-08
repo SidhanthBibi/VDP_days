@@ -1,9 +1,10 @@
 import './App.css'
 import LandingPage from './pages/Events'
-import AuthComponent from './pages/Login'
+import Login from './pages/Login'
 import Navbar from './components/Navbar'
-import Home from './pages/home'
-import Home2 from './pages/Home2'
+import Home from './pages/Home'
+import Clubs from './pages/Clubs'
+import About from './pages/About'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 
@@ -13,9 +14,11 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home2 />} />
+        <Route path="/" element={<Home />} />
         <Route path="/events" element={<LandingPage />} />
-        <Route path='/login' element={<AuthComponent />} />
+        <Route path='/clubs' element={<Clubs />} />
+        <Route path='/about' element={<About />} />
+        <Route path='/login' element={<Login />} />
       </Routes>
     </BrowserRouter>
 

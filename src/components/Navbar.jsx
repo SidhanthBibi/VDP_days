@@ -3,21 +3,46 @@ import { UserCircle } from 'lucide-react';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState('Events');
+  const [activePath, setActivePath] = useState('/');
 
-  // Navigation items
-  const navItems = ['Events', 'Clubs','About'];
-
-  // Handle scroll
   useEffect(() => {
     const handleScroll = () => {
-      const offset = window.scrollY;
-      setScrolled(offset > 50);
+      setScrolled(window.scrollY > 50);
     };
+
+    // Set initial active path
+    setActivePath(window.location.pathname);
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const NavLink = ({ href, children }) => {
+    const isActive = activePath === href;
+    
+    return (
+      <a 
+        href={href} 
+        onClick={() => setActivePath(href)}
+        className={`
+          relative px-2 py-1 text-gray-400 hover:text-white transition-colors
+          ${scrolled ? 'text-sm' : 'text-base'}
+          ${isActive ? 'text-white' : ''}
+          group
+        `}
+      >
+        {children}
+        <span 
+          className={`
+            absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-purple-600
+            transform origin-left transition-transform duration-300
+            ${isActive ? 'scale-x-100' : 'scale-x-0'}
+            group-hover:scale-x-100
+          `}
+        />
+      </a>
+    );
+  };
 
   return (
     <nav 
@@ -37,7 +62,7 @@ const Navbar = () => {
           <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 cursor-pointer">
             <a href="/">UniClub</a>
           </span>
-          <div className="w-8"></div> {/* Spacer for centering */}
+          <div className="w-8"></div>
         </div>
 
         <div className="flex items-center justify-between">
@@ -49,24 +74,13 @@ const Navbar = () => {
             </span>
           </div>
 
-
           {/* Navigation Links */}
           <div className={`flex items-center justify-around w-full md:w-auto md:gap-8 transition-all duration-500
             ${scrolled ? 'scale-95' : 'scale-100'}`}>
-            {navItems.map((item) => (
-              <button
-                key={item}
-                onClick={() => setActiveTab(item)}
-                className={`relative px-2 py-1 text-sm font-medium transition-colors
-                  ${activeTab === item ? 'text-white' : 'text-gray-400 hover:text-white'}
-                  ${scrolled ? 'text-sm' : 'text-base'}`}
-              >
-                {item}
-                {activeTab === item && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full" />
-                )}
-              </button>
-            ))}
+            <NavLink href="/">Home</NavLink>
+            <NavLink href="/events">Events</NavLink>
+            <NavLink href="/clubs">Clubs</NavLink>
+            <NavLink href="/about">About</NavLink>
           </div>
 
           {/* Desktop User Profile */}
@@ -77,7 +91,6 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-
       </div>
     </nav>
   );
