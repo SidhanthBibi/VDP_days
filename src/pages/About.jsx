@@ -1,5 +1,7 @@
 import React from 'react';
-import poster from '../assets/testposter.jpg';
+import Sidh from '../assets/Sidh.jpg';
+import Adron from '../assets/Adron.jpg';
+import Lenny from '../assets/Lenny.jpg';
 import { Building2, Mail, Phone, Globe } from 'lucide-react';
 
 const About = () => {
@@ -7,20 +9,20 @@ const About = () => {
     {
       id: 1,
       name: "Siddharth Bibi",
-      role: "Seinor Developer",
-      image: poster
+      role: "Developer",
+      image: Sidh
     },
     {
       id: 2,
       name: "Adorn S George",
-      role: "Vice President",
-      image: "/api/placeholder/360/360"
+      role: "Developer",
+      image: Adron
     },
     {
       id: 3,
       name: "Lenny Dany Derek",
-      role: "Junior Developer",
-      image: "/api/placeholder/360/360"
+      role: "Developer",
+      image: Lenny
     }
   ];
 
