@@ -118,42 +118,32 @@ const LandingPage = () => {
     jan: '01', feb: '02', mar: '03', apr: '04', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
   };
 
-  const normalizeDate = (dateStr) => {
-    const lowerDate = dateStr.toLowerCase().trim();
-    // Return early if empty string
-    if (!lowerDate) return '';
-    
-    // Check if it's just a month name
+  const normalizeDate = (date) => {
+    const lowerDate = date.toLowerCase();
     for (const [key, value] of Object.entries(monthMap)) {
-      if (key === lowerDate) {
-        return value;
-      }
-    }
-    
-    // Parse the full date
-    const parts = lowerDate.split(' ');
-    if (parts.length >= 2) {
-      const month = parts[0];
-      for (const [key, value] of Object.entries(monthMap)) {
-        if (month === key) {
-          return value;
-        }
+      if (lowerDate.includes(key)) {
+        return lowerDate.replace(key, value);
       }
     }
     return lowerDate;
   };
 
-  const filteredEvents = events.filter(event => {
-    const searchLower = searchQuery.toLowerCase().trim();
-    if (!searchLower) return true;
+  const formatDateString = (dateString) => {
+    const parts = dateString.split(' ');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month}-${day}`;
+    }
+    return dateString;
+  };
 
-    return (
-      event.title.toLowerCase().includes(searchLower) ||
-      event.club.toLowerCase().includes(searchLower) ||
-      event.location.toLowerCase().includes(searchLower) ||
-      normalizeDate(event.date) === normalizeDate(searchQuery)
-    );
-  });
+  const filteredEvents = events.filter(event => 
+    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.club.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    normalizeDate(event.date).includes(normalizeDate(searchQuery)) ||
+    event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.date.includes(formatDateString(searchQuery))
+  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8">
