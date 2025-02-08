@@ -44,7 +44,7 @@ const LoginPage = ({ onSuccessfulAuth }) => {
             <div className="bg-white p-6 rounded-2xl shadow-lg max-w-sm w-full text-center">
               <h2 className="text-2xl font-semibold text-gray-700">Welcome Back!</h2>
               <p className="text-gray-500 mt-2">Sign in with Google to continue</p>
-              <div className="mt-6">
+              <div className="mt-6 ">
                 <GoogleLogin
                   onSuccess={Success}
                   onError={Error}
