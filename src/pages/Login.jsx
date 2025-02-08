@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Users, Link, Building, Mail, Image } from 'lucide-react';
 
 const AuthComponent = ({ onSuccessfulAuth }) => {
@@ -6,7 +8,35 @@ const AuthComponent = ({ onSuccessfulAuth }) => {
   const [isClub, setIsClub] = useState(false);
   const [showClubForm, setShowClubForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
   
+  function decodeJWT(value){
+    const base64payload = value.split('.')[1];
+    const payload = atob(base64payload);
+    return JSON.parse(payload);
+  }
+
+  function Success(responce){
+      console.log(responce);
+      const token = responce.credential;
+
+      const userData = decodeJWT(token);
+      console.log(`Decode Value : `,userData);
+
+      localStorage.setItem('Google_Token',token);
+      localStorage.setItem('userName',userData.name);
+      localStorage.setItem('userEmail',userData.email);
+      localStorage.setItem('userImage',userData.picture);
+
+      navigate('/events');
+
+  }
+
+  function Error(responce){
+    console.log('Login Failed');
+  }
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -162,7 +192,10 @@ const AuthComponent = ({ onSuccessfulAuth }) => {
                   shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
               >
                 {isLogin ? 'Login' : 'Sign Up'}
-              </button>
+              </button><br /><br />
+              <div>
+                  <GoogleLogin onSuccess={Success} onError={Error} width= '250px'/>
+              </div>
             </form>
           </div>
         ) : (
