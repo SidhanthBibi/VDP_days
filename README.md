@@ -91,4 +91,4 @@ For more information, please contact the project maintainers at [sidhanthbibi@gm
 ## Credits
 ###### @SidhanthBibi : Sidhanth Bibi
 ###### @Quadr1on : Adorn S George
-###### Lenny Dany Derek D
+###### @LennyDany-03 : Lenny Dany Derek D
