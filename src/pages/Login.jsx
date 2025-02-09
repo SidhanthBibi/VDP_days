@@ -33,7 +33,7 @@ const LoginPage = ({ onSuccessfulAuth }) => {
           localStorage.setItem('userEmail', userData.email);
           localStorage.setItem('userImage', userData.picture);
 
-          navigate('/events');
+          navigate('/clubs');
         })
         .catch(error => {
           console.error('Error fetching user data:', error);

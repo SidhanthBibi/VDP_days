@@ -32,7 +32,7 @@ const SignUpPage = ({ onSuccessfulAuth }) => {
           if (isClub) {
             navigate('/clubDetail');
           } else {
-            navigate('/events');
+            navigate('/clubs');
           }
         })
         .catch(error => {
