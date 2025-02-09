@@ -1,6 +1,9 @@
 // Clubs.jsx
 import React, { useState } from 'react';
 import ClubCard from '../components/ClubCard';
+import Arrow from '../assets/ArrowDev.jpg';
+import NIC from '../assets/NIC.jpg';
+
 
 const Clubs = () => {
   const [activeCard, setActiveCard] = useState(null);
@@ -8,12 +11,12 @@ const Clubs = () => {
   const clubs = [
     {
       id: 1,
-      name: "Tech Society",
+      name: "Next-gen intelligence",
       category: "Technology",
       members: 120,
       achievements: "15+ Hackathons Organized",
       description: "A community of tech enthusiasts exploring cutting-edge technologies through workshops, hackathons, and collaborative projects.",
-      image: "/api/placeholder/360/640",
+      image: Arrow,
       stats: {
         events: "25+",
         projects: "40+",
@@ -22,12 +25,12 @@ const Clubs = () => {
     },
     {
       id: 2,
-      name: "Design Club",
+      name: "White Hat Hackers Club",
       category: "Arts & Design",
       members: 85,
       achievements: "Best Club Award 2024",
       description: "Bringing together creative minds to explore various aspects of design including UI/UX, graphic design, and product design.",
-      image: "/api/placeholder/360/640",
+      image: NIC,
       stats: {
         events: "20+",
         projects: "35+",
@@ -89,6 +92,20 @@ const Clubs = () => {
         projects: "45+",
         competitions: "7+"
       }
+    },
+    {
+      id: 6,
+      name: "Photography Club",
+      category: "Arts",
+      members: 75,
+      achievements: "City-wide Exhibition",
+      description: "Capturing moments and sharing stories through the lens, organizing photography walks and exhibitions.",
+      image: "/api/placeholder/360/640",
+      stats: {
+        events: "18+",
+        projects: "45+",
+        competitions: "7+"
+      }
     }
   ];
 
@@ -119,7 +136,7 @@ const Clubs = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className=" relative z-50 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {clubs.map((club) => (
           <ClubCard key={club.id} club={club} activeCard={activeCard} setActiveCard={setActiveCard} />
         ))}
