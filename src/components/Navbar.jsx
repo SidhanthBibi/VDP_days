@@ -60,7 +60,7 @@ const Navbar = () => {
             </button>
           </div>
           <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 cursor-pointer">
-            <a href="/">UniClub</a>
+            <a href="/">ClubSphere</a>
           </span>
           <div className="w-8"></div>
         </div>
@@ -70,7 +70,7 @@ const Navbar = () => {
           <div className={`hidden md:block transition-all duration-500 ease-[cubic-bezier(0.4, 0, 0.2, 1)]
             ${scrolled ? 'scale-90' : 'scale-100'}`}>
             <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-              <a href="/">UniClub</a>
+              <a href="/">ClubSphere</a>
             </span>
           </div>
 
