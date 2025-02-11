@@ -11,6 +11,7 @@ import ClubDetailForm from './pages/ClubDetailForm'
 import CreateEvent from './pages/CreateNewEvent'
 import ClubDetail from './pages/ClubDetail'
 import { ClubProvider } from './context/ClubContext';
+import SignUpSuccess from './pages/SignUpSuccess'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path='/about' element={<About />} />
           <Route path='/login' element={<Login />} />
+          <Route path='/signup_success' element={<SignUpSuccess />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path='/clubDetailform' element={<ClubDetailForm />} />
           <Route path='/clubDetail/:id' element={<ClubDetail />} />
