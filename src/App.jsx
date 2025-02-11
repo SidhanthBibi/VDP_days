@@ -15,10 +15,13 @@ import { Analytics } from "@vercel/analytics/react"
 
 function App() {
   return (
-    
+
     <BrowserRouter>
-      <Analytics />
-      <SpeedInsights />
+      <div>
+          {/* ... */}
+        <Analytics />
+        <SpeedInsights />
+      </div>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -32,7 +35,7 @@ function App() {
       </Routes>
     </BrowserRouter>
 
-  )
+  );
 }
 
 export default App;
