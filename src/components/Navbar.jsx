@@ -1,43 +1,48 @@
+"use client"
 import React, { useState, useEffect } from 'react';
-import { UserCircle } from 'lucide-react';
+import { UserCircle, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState('/');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-
-    // Set initial active path
     setActivePath(window.location.pathname);
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const NavLink = ({ href, children }) => {
+  const NavLink = ({ href, children, isMobile }) => {
     const isActive = activePath === href;
     
     return (
       <a 
         href={href} 
-        onClick={() => setActivePath(href)}
+        onClick={() => {
+          setActivePath(href);
+          if (isMobile) setIsMenuOpen(false);
+        }}
         className={`
-          relative px-2 py-1 text-gray-400 hover:text-white transition-colors
+          relative px-3 py-2 rounded-lg text-gray-400 hover:text-white
+          transition-all duration-300 hover:bg-white/10
           ${scrolled ? 'text-sm' : 'text-base'}
-          ${isActive ? 'text-white' : ''}
+          ${isActive ? 'text-white bg-white/5' : ''}
+          ${isMobile ? 'text-lg w-full text-center' : ''}
           group
         `}
       >
         {children}
         <span 
           className={`
-            absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-purple-600
-            transform origin-left transition-transform duration-300
-            ${isActive ? 'scale-x-100' : 'scale-x-0'}
-            group-hover:scale-x-100
+            absolute bottom-0 left-1/2 w-1/2 h-0.5
+            bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500
+            transform -translate-x-1/2 transition-all duration-300
+            ${isActive ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'}
+            group-hover:scale-x-100 group-hover:opacity-100
           `}
         />
       </a>
@@ -45,54 +50,101 @@ const Navbar = () => {
   };
 
   return (
-    <nav 
-      className={`w-full z-50 transition-all duration-500 ease-[cubic-bezier(0.4, 0, 0.2, 1)]
-        ${scrolled ? 'py-2 bg-gray-900 backdrop-blur-lg' : 'py-4 bg-gray-900'}
-        md:relative h-auto`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Mobile Logo */}
-        <div className="md:hidden flex justify-between items-center mb-2">
-          <div className={`transition-all duration-500 ease-[cubic-bezier(0.4, 0, 0.2, 1)]
-              ${scrolled ? 'scale-90' : 'scale-100'}`}>
-            <button className="p-1 rounded-full hover:bg-gray-800 transition-colors">
-              <a href="/login"><UserCircle className="w-8 h-8 text-gray-300" /></a>
-            </button>
+    <>
+      {/* Fixed height spacer div */}
+      <div className="h-16" />
+      
+      <nav 
+        className={`
+          fixed top-0 left-0 right-0 z-50 
+          transition-all duration-500
+          ${scrolled 
+            ? 'h-16 bg-[#15134a]/70 backdrop-blur-lg shadow-lg' 
+            : 'h-18 bg-gradient-to-r from-[#0b1727] to-[#1d1d4b]'}
+        `}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex items-center justify-between h-full">
+            {/* Logo */}
+            <div className={`
+              transition-all duration-500 flex items-center gap-2
+              ${scrolled ? 'scale-95' : 'scale-100'}
+            `}>
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-0.5">
+                <div className="h-full w-full rounded-xl bg-[#0d0a48] flex items-center justify-center">
+                  <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                    C
+                  </span>
+                </div>
+              </div>
+                <a href="/">
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                  ClubSphere
+                </span>
+                </a>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className={`
+              hidden md:flex items-center gap-6 transition-all duration-500
+              ${scrolled ? 'scale-95' : 'scale-100'}
+            `}>
+              <NavLink href="/">Home</NavLink>
+              <NavLink href="/events">Events</NavLink>
+              <NavLink href="/clubs">Clubs</NavLink>
+              <NavLink href="/about">About</NavLink>
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center gap-4">
+              <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+                <UserCircle className="h-6 w-6 text-gray-300" />
+              </button>
+
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <Menu className="h-6 w-6 text-gray-300" />
+              </button>
+            </div>
           </div>
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 cursor-pointer">
-            <a href="/">ClubSphere</a>
-          </span>
-          <div className="w-8"></div>
         </div>
+      </nav>
 
-        <div className="flex items-center justify-between">
-          {/* Desktop Logo */}
-          <div className={`hidden md:block transition-all duration-500 ease-[cubic-bezier(0.4, 0, 0.2, 1)]
-            ${scrolled ? 'scale-90' : 'scale-100'}`}>
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-              <a href="/">ClubSphere</a>
-            </span>
-          </div>
+      {/* Mobile Menu Overlay */}
+      <div 
+        className={`
+          fixed inset-0 bg-[#0d0a48]/50 backdrop-blur-sm z-40 md:hidden
+          transition-opacity duration-300
+          ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+        `}
+        onClick={() => setIsMenuOpen(false)}
+      />
 
-          {/* Navigation Links */}
-          <div className={`flex items-center justify-around w-full md:w-auto md:gap-8 transition-all duration-500
-            ${scrolled ? 'scale-95' : 'scale-100'}`}>
-            <NavLink href="/">Home</NavLink>
-            <NavLink href="/events">Events</NavLink>
-            <NavLink href="/clubs">Clubs</NavLink>
-            <NavLink href="/about">About</NavLink>
-          </div>
+      {/* Mobile Menu Panel */}
+      <div 
+        className={`
+          fixed top-0 right-0 h-full w-64 bg-[#0d0a48] z-50 md:hidden
+          transform transition-transform duration-300 ease-in-out
+          ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+        `}
+      >
+        <button 
+          onClick={() => setIsMenuOpen(false)}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/5 transition-colors"
+        >
+          <X className="h-6 w-6 text-gray-300" />
+        </button>
 
-          {/* Desktop User Profile */}
-          <div className={`hidden md:block transition-all duration-500 ease-[cubic-bezier(0.4, 0, 0.2, 1)]
-            ${scrolled ? 'scale-90' : 'scale-100'}`}>
-            <button className="p-1 rounded-full hover:bg-gray-800 transition-colors">
-              <a href="/login"><UserCircle className="w-8 h-8 text-gray-300" /></a>
-            </button>
-          </div>
+        <div className="flex flex-col items-center pt-20 gap-6">
+          <NavLink href="/" isMobile>Home</NavLink>
+          <NavLink href="/events" isMobile>Events</NavLink>
+          <NavLink href="/clubs" isMobile>Clubs</NavLink>
+          <NavLink href="/about" isMobile>About</NavLink>
         </div>
       </div>
-    </nav>
+    </>
   );
 };
 

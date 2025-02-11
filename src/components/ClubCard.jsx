@@ -1,7 +1,7 @@
 import React from 'react';
 import { Users, Trophy, Calendar, Folder, Award } from 'lucide-react';
 
-const ClubCard = ({ club, activeCard, setActiveCard }) => {
+const ClubCard = ({ club, activeCard, setActiveCard, onViewClub }) => {
   const isActive = activeCard === club.id;
 
   // Define logo styles based on club category
@@ -26,7 +26,6 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
       onMouseLeave={() => setActiveCard(null)}
     >
       <section className="bg-gray-700/50 rounded-t-[18px] p-6 text-sm ">
-        {/* Enhanced Logo Section */}
         <div className="absolute -top-[-15px] right-4 h-[70px] w-[70px] flex justify-center items-center">
           <div className={`w-16 h-16 rounded-xl overflow-hidden border-4 border-gray-800 ${getLogoStyles(club.category)} flex items-center justify-center`}>
             {club.image ? (
@@ -47,7 +46,6 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
           <span className={`${getLogoStyles(club.category)}/20 text-${getLogoStyles(club.category).replace('bg-', '')} px-3 py-1 rounded-full`}>
             {club.category}
           </span>
-          
         </header>
         
         <div className="my-6">
@@ -60,9 +58,9 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
           <span className="text-sm">{club.achievements}</span>
         </div>
         <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-gray-400">{club.members} members</span>
-          </div>
+          <Users className="h-4 w-4 text-gray-400" />
+          <span className="text-gray-400">{club.members} members</span>
+        </div>
       </section>
       
       <footer className="p-4 space-y-4">
@@ -90,7 +88,10 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
           </div>
         </div>
         
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl transition-colors duration-300">
+        <button 
+          onClick={() => onViewClub(club)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl transition-colors duration-300"
+        >
           View Club
         </button>
       </footer>

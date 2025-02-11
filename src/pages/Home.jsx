@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Globe, Award, Zap, Calendar, BookOpen, 
   ArrowRight, Rocket, Network, MessageCircle, 
-  ChevronDown, Star 
+  ChevronDown, Settings, Shield, Target 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -28,23 +28,6 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const testimonials = [
-    {
-      name: "Alex Rodriguez",
-      role: "Computer Science Student",
-      quote: "UniClub transformed my university experience by connecting me with amazing tech communities.",
-      avatar: "/api/placeholder/100/100",
-      rating: 5
-    },
-    {
-      name: "Emma Thompson",
-      role: "Design Club President",
-      quote: "Our club's visibility and member engagement skyrocketed after joining UniClub.",
-      avatar: "/api/placeholder/100/100",
-      rating: 5
-    }
-  ];
-
   const keyFeatures = [
     {
       icon: <Network className="w-12 h-12 text-blue-400" />,
@@ -60,6 +43,27 @@ const Home = () => {
       icon: <Rocket className="w-12 h-12 text-blue-500" />,
       title: "Club Management",
       description: "Comprehensive tools for club leaders to manage and grow their communities"
+    }
+  ];
+
+  const engagementFeatures = [
+    {
+      icon: <Target className="w-16 h-16 text-blue-400" />,
+      title: "Goal Tracking",
+      description: "Set and track club goals, measure success metrics, and celebrate achievements",
+      benefits: ["Progress visualization", "Achievement badges", "Performance insights"]
+    },
+    {
+      icon: <Shield className="w-16 h-16 text-purple-400" />,
+      title: "Resource Management",
+      description: "Efficiently manage club resources, budgets, and assets in one place",
+      benefits: ["Budget tracking", "Asset inventory", "Resource scheduling"]
+    },
+    {
+      icon: <Settings className="w-16 h-16 text-pink-400" />,
+      title: "Automation Tools",
+      description: "Streamline club operations with powerful automation features",
+      benefits: ["Event scheduling", "Member notifications", "Task automation"]
     }
   ];
 
@@ -113,7 +117,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Modified Features Section */}
+      {/* Features Section */}
       <section id="features" className="py-24 bg-gray-800/30 backdrop-blur-xl animate-on-scroll">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
@@ -135,38 +139,32 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 animate-on-scroll">
-        <div className="max-w-4xl mx-auto px-4">
+      {/* New Enhanced Features Section (Replacing Testimonials) */}
+      <section id="enhanced-features" className="py-24 animate-on-scroll">
+        <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-            What Our Users Say
+            Enhanced Club Management
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {engagementFeatures.map((feature, index) => (
               <div 
                 key={index}
                 className="group bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700
                   transform transition-all duration-500 hover:scale-105 hover:shadow-2xl"
               >
-                <div className="flex items-center mb-6">
-                  <div className="relative">
-                    <img 
-                      src={testimonial.avatar} 
-                      alt={testimonial.name} 
-                      className="w-16 h-16 rounded-full mr-4 transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-bold">{testimonial.name}</h4>
-                    <p className="text-gray-400">{testimonial.role}</p>
-                    <div className="flex mt-1">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                  </div>
+                <div className="mb-6 transform transition-transform duration-300 group-hover:scale-110">
+                  {feature.icon}
                 </div>
-                <p className="text-gray-300 italic">{testimonial.quote}</p>
+                <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
+                <p className="text-gray-300 mb-6">{feature.description}</p>
+                <ul className="space-y-2">
+                  {feature.benefits.map((benefit, i) => (
+                    <li key={i} className="flex items-center text-gray-400">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                      {benefit}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import Sidh from '../assets/Sidh.jpg';
 import Adron from '../assets/Adron.jpg';
 import Lenny from '../assets/Lenny.jpg';
+import Arindan from '../assets/Aridam.jpg';
 import { Building2, Mail, Phone, Globe } from 'lucide-react';
 
 const About = () => {
@@ -23,6 +24,12 @@ const About = () => {
       name: "Lenny Dany Derek",
       role: "Developer",
       image: Lenny
+    },
+    {
+      id: 4,
+      name: "Arindan Jamiman",
+      role: "Developer",
+      image: Arindan
     }
   ];
 

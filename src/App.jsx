@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Clubs from './pages/Clubs'
 import About from './pages/About'
 import ClubDetail from './pages/ClubDetail'
+import CreateEvent from './pages/CreateNewEvent'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/events" element={<LandingPage />} />
+        <Route path="/create_event" element={<CreateEvent />} />
         <Route path='/clubs' element={<Clubs />} />
         <Route path='/about' element={<About />} />
         <Route path='/login' element={<Login />} />
