@@ -98,14 +98,14 @@ const Home = () => {
           </p>
           
           <div className="flex justify-center space-x-6 opacity-0 animate-fade-in-up delay-700">
-            <Link to="/login">
+            <a href="/explore">
               <button className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full 
                 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
                 shadow-[0_0_25px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.5)]">
                 Get Started 
                 <ArrowRight className="inline ml-2 transform group-hover:translate-x-1 transition-transform" />
               </button>
-            </Link>
+            </a>
             <button 
               onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
               className="text-gray-300 hover:text-white flex items-center transition-colors"

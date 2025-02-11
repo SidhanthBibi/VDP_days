@@ -1,13 +1,11 @@
 "use client"
 import { useState } from "react"
 import ClubCard from "../components/ClubCard"
-import ClubDetailPopup from "../components/ClubDetailPopup"
 import Arrow from "../assets/ArrowDev.jpg"
 import NIC from "../assets/NIC.jpg"
 
 const Clubs = () => {
   const [activeCard, setActiveCard] = useState(null)
-  const [selectedClub, setSelectedClub] = useState(null)
 
   const clubs = [
     {
@@ -46,32 +44,27 @@ const Clubs = () => {
 
   const categories = [...new Set(clubs.map((club) => club.category))]
 
-  const handleViewClub = (club) => {
-    setSelectedClub(club)
-  }
-
-  const handleClosePopup = () => {
-    setSelectedClub(null)
-  }
-
   return (
     <main className="min-h-screen bg-gray-900 text-white">
-      {/* Add padding-top to account for navbar height */}
-      <div className="pt-24 px-4 pb-8">
-        <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-        <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 pb-8">
+        {/* Background effects with responsive positioning */}
+        <div className="fixed top-20 right-4 sm:right-20 w-32 sm:w-64 h-32 sm:h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="fixed bottom-20 left-4 sm:left-20 w-48 sm:w-96 h-48 sm:h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
 
-        <div className="max-w-7xl mx-auto mb-16 text-center">
-          <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+        <div className="max-w-7xl mx-auto mb-8 sm:mb-12 lg:mb-16 text-center">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
             Our Clubs
           </h1>
-          <p className="text-xl text-gray-400 mb-8">Join our diverse community of passionate individuals</p>
+          <p className="text-lg sm:text-xl text-gray-400 mb-6 sm:mb-8">
+            Join our diverse community of passionate individuals
+          </p>
 
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          {/* Category filters with better spacing on mobile */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
             {categories.map((category, index) => (
               <span
                 key={index}
-                className="px-4 py-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 cursor-pointer transition-all duration-300"
+                className="px-3 sm:px-4 py-1 sm:py-2 text-sm sm:text-base rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 cursor-pointer transition-all duration-300"
               >
                 {category}
               </span>
@@ -79,19 +72,17 @@ const Clubs = () => {
           </div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Card grid with improved responsive layout */}
+        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {clubs.map((club) => (
             <ClubCard
               key={club.id}
               club={club}
               activeCard={activeCard}
               setActiveCard={setActiveCard}
-              onViewClub={() => handleViewClub(club)}
             />
           ))}
         </div>
-
-        {selectedClub && <ClubDetailPopup club={selectedClub} onClose={handleClosePopup} />}
       </div>
     </main>
   )

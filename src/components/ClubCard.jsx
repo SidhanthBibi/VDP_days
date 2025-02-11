@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Trophy, Calendar, Folder, Award } from 'lucide-react';
 
-const ClubCard = ({ club, activeCard, setActiveCard, onViewClub }) => {
+const ClubCard = ({ club, activeCard, setActiveCard }) => {
+  const navigate = useNavigate();
   const isActive = activeCard === club.id;
 
   // Define logo styles based on club category
@@ -15,6 +17,10 @@ const ClubCard = ({ club, activeCard, setActiveCard, onViewClub }) => {
       Arts: 'bg-pink-500'
     };
     return styles[category] || 'bg-gray-500';
+  };
+
+  const handleViewClub = () => {
+    navigate(`/clubDetail/${club.id}`);
   };
 
   return (
@@ -89,7 +95,7 @@ const ClubCard = ({ club, activeCard, setActiveCard, onViewClub }) => {
         </div>
         
         <button 
-          onClick={() => onViewClub(club)}
+          onClick={handleViewClub}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl transition-colors duration-300"
         >
           View Club
