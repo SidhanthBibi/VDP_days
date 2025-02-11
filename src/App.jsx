@@ -9,7 +9,8 @@ import About from './pages/About'
 import ClubDetail from './pages/ClubDetail'
 import CreateEvent from './pages/CreateNewEvent'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
-import { SpeedInsights } from "@vercel/speed-insights/react";
+import { SpeedInsights } from "@vercel/speed-insights/react"
+import { Analytics } from "@vercel/analytics/react"
 
 
 function App() {
