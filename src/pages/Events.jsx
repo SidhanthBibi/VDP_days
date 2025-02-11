@@ -1,23 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import poster from '../assets/testposter.jpg';
 import poster2 from '../assets/Hackforge.jpg'
 import { Calendar, Users, Clock, MapPin } from 'lucide-react';
 
 const LandingPage = () => {
+  const location = useLocation();
   const [activeCard, setActiveCard] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
 
+  // Restore state from session storage on component mount and location change
   useEffect(() => {
-    const handleSearch = () => {
-      const query = document.getElementById('search-bar').value;
-      setSearchQuery(query);
-    };
+    // Reset loading state
+    setIsLoaded(false);
+    
+    // Restore search query
+    const savedSearchQuery = sessionStorage.getItem('eventSearchQuery');
+    if (savedSearchQuery) {
+      setSearchQuery(savedSearchQuery);
+    }
 
-    document.getElementById('search-bar').addEventListener('input', handleSearch);
-    return () => {
-      document.getElementById('search-bar').removeEventListener('input', handleSearch);
-    };
+    // Restore active card
+    const savedActiveCard = sessionStorage.getItem('eventActiveCard');
+    if (savedActiveCard) {
+      setActiveCard(parseInt(savedActiveCard, 10));
+    }
+
+    // Smooth loading transition
+    const timer = requestAnimationFrame(() => {
+      setIsLoaded(true);
+    });
+
+    return () => cancelAnimationFrame(timer);
+  }, [location.pathname]);
+
+  // Handle search query change
+  const handleSearchChange = useCallback((query) => {
+    setSearchQuery(query);
+    sessionStorage.setItem('eventSearchQuery', query);
   }, []);
+
+  // Handle card click with state persistence
+  const handleCardClick = useCallback((cardId) => {
+    const newActiveCard = activeCard === cardId ? null : cardId;
+    setActiveCard(newActiveCard);
+    
+    if (newActiveCard !== null) {
+      sessionStorage.setItem('eventActiveCard', newActiveCard.toString());
+    } else {
+      sessionStorage.removeItem('eventActiveCard');
+    }
+  }, [activeCard]);
 
   const events = [
     {
@@ -156,7 +190,9 @@ const LandingPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 py-8">
+    <div className={`min-h-screen bg-gray-900 text-white px-4 py-8 transition-all duration-700 ${
+      isLoaded ? 'opacity-100' : 'opacity-0'
+    }`}>
       {/* Neon Circle Accent */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
@@ -174,6 +210,8 @@ const LandingPage = () => {
             id="search-bar"
             type="text"
             placeholder="Search events..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full px-4 py-2 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -185,7 +223,7 @@ const LandingPage = () => {
           <div 
             key={event.id}
             className="relative group cursor-pointer aspect-[3/4] w-full"
-            onClick={() => setActiveCard(activeCard === event.id ? null : event.id)}
+            onClick={() => handleCardClick(event.id)}
           >
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 opacity-60 rounded-xl z-10"></div>
             <img 
