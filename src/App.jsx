@@ -8,34 +8,28 @@ import Clubs from './pages/Clubs'
 import About from './pages/About'
 import ClubDetail from './pages/ClubDetail'
 import CreateEvent from './pages/CreateNewEvent'
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
-import { SpeedInsights } from "@vercel/speed-insights/react"
-import { Analytics } from "@vercel/analytics/react"
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
 
 function App() {
   return (
-
     <BrowserRouter>
-      <div>
-          {/* ... */}
-        <Analytics />
-        <SpeedInsights />
-      </div>
+      <Analytics />
+      <SpeedInsights />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/events" element={<LandingPage />} />
         <Route path="/create_event" element={<CreateEvent />} />
-        <Route path='/clubs' element={<Clubs />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/login' element={<Login />} />
+        <Route path="/clubs" element={<Clubs />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path='/clubDetail' element={<ClubDetail />} />
+        <Route path="/clubDetail" element={<ClubDetail />} />
       </Routes>
     </BrowserRouter>
-
-  );
+  )
 }
 
-export default App;
+export default App
