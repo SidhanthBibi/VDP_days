@@ -181,7 +181,7 @@ const Home = () => {
           <p className="text-xl text-gray-300 mb-12">
             Join UniClub and unlock a world of opportunities, connections, and growth.
           </p>
-          <Link to="/login">
+          <Link to="/signup">
             <button className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-10 py-5 rounded-full 
               hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
               shadow-[0_0_25px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.5)]">
