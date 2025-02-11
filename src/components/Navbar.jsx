@@ -97,9 +97,11 @@ const Navbar = () => {
 
             {/* Right Section */}
             <div className="flex items-center gap-4">
-              <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
-                <UserCircle className="h-6 w-6 text-gray-300" />
-              </button>
+              <a href="/login">
+                <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <UserCircle className="h-6 w-6 text-gray-300" />
+                </button>
+              </a>
 
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}

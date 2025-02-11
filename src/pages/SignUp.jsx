@@ -1,51 +1,146 @@
 import React, { useState } from 'react';
-import { User, Users } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
+import { User, Users, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from "@react-oauth/google";
+import { createClient } from '@supabase/supabase-js';
 
-const SignUpPage = ({ onSuccessfulAuth }) => {
+// Initialize Supabase client
+const supabase = createClient(
+  'https://uzecuccnvrjjrfsftarx.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6ZWN1Y2NudnJqanJmc2Z0YXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNzg4MDgsImV4cCI6MjA1NDg1NDgwOH0.p7ucVwNv6umkgNx82fjtrGW1gaybSrNMhojTR2vD2XM'
+);
+
+const SignUpPage = () => {
   const [isClub, setIsClub] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
+  const checkUserExists = async (email, userType) => {
+    try {
+      const { data, error } = await supabase
+        .from(userType === 'club' ? 'clubs' : 'students')
+        .select('club_email, userEmail')  // Check both possible column names
+        .or(`club_email.eq.${email},userEmail.eq.${email}`);
+
+      if (error) throw error;
+      return data && data.length > 0;
+    } catch (error) {
+      console.error('Error checking user:', error);
+      return false;
+    }
+  };
+
+  const saveUserToSupabase = async (userData, userType) => {
+    try {
+      // Check if user exists first
+      const exists = await checkUserExists(userData.email, userType);
+      if (exists) {
+        throw new Error('Account already exists with this email. Please login instead.');
+      }
+
+      let insertData;
+      if (userType === 'club') {
+        insertData = {
+          club_name: userData.name,
+          club_email: userData.email,
+          club_image: userData.picture,
+          google_id: userData.sub,
+          created_at: new Date().toISOString()
+        };
+      } else {
+        insertData = {
+          name: userData.name,
+          email: userData.email,
+          profile_picture: userData.picture,
+          google_id: userData.sub,
+          created_at: new Date().toISOString()
+        };
+      }
+
+      const { data, error } = await supabase
+        .from(userType === 'club' ? 'clubs' : 'students')
+        .insert([insertData]);
+
+      if (error) {
+        console.error('Supabase insertion error:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error saving to Supabase:', error);
+      throw error;
+    }
+  };
+
   const login = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      console.log(tokenResponse);
-      const token = tokenResponse.access_token;
-
-      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then(response => response.json())
-        .then(userData => {
-          console.log('User Data:', userData);
-          
-          localStorage.setItem('Google_Token', token);
-          localStorage.setItem('userName', userData.name);
-          localStorage.setItem('userEmail', userData.email);
-          localStorage.setItem('userImage', userData.picture);
-          localStorage.setItem('userType', isClub ? 'club' : 'student');
-
-          // Redirect based on user type
-          if (isClub) {
-            navigate('/clubDetail');
-          } else {
-            navigate('/clubs');
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching user data:', error);
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Get user data from Google
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
         });
+        const userData = await response.json();
+
+        // Try saving to Supabase first
+        await saveUserToSupabase(userData, isClub ? 'club' : 'student');
+
+        // If successful, save to localStorage
+        localStorage.setItem('Google_Token', tokenResponse.access_token);
+        localStorage.setItem('userName', userData.name);
+        localStorage.setItem('userEmail', userData.email);
+        localStorage.setItem('userImage', userData.picture);
+        localStorage.setItem('userType', isClub ? 'club' : 'student');
+
+        if (!isClub) {
+          navigate('/signup_success');
+        } else {
+          navigate('/clubDetail');
+        }
+      } catch (error) {
+        console.error('Error during signup:', error);
+        setErrorMessage(error.message || 'An error occurred during signup');
+        setShowError(true);
+        setTimeout(() => {
+          setShowError(false);
+        }, 5000);
+      }
     },
     onError: () => {
-      console.log('Login Failed');
+      setErrorMessage('Login Failed');
+      setShowError(true);
+      setTimeout(() => {
+        setShowError(false);
+      }, 5000);
     }
   });
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8 flex items-center justify-center">
+      {/* Error Alert */}
+      {showError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm">
+          <div className="mx-4 bg-gray-800 border border-red-500/50 rounded-lg shadow-lg backdrop-blur-xl">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex-1">
+                <div className="text-red-400 mb-1 font-medium">Error</div>
+                <div className="text-sm text-gray-300">{errorMessage}</div>
+              </div>
+              <button 
+                onClick={() => setShowError(false)}
+                className="ml-4 text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Background Elements */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
 

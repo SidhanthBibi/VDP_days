@@ -1,51 +1,122 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Link } from 'react-router-dom';
+import { X } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
-const LoginPage = ({ onSuccessfulAuth }) => {
+// Initialize Supabase client
+const supabase = createClient(
+  'https://uzecuccnvrjjrfsftarx.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6ZWN1Y2NudnJqanJmc2Z0YXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNzg4MDgsImV4cCI6MjA1NDg1NDgwOH0.p7ucVwNv6umkgNx82fjtrGW1gaybSrNMhojTR2vD2XM'
+);
+
+const LoginPage = () => {
   const navigate = useNavigate();
-  
-  function decodeJWT(value) {
-    const base64payload = value.split('.')[1];
-    const payload = atob(base64payload);
-    return JSON.parse(payload);
-  }
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const checkUserExists = async (email) => {
+    try {
+      // Check in both students and clubs tables
+      const { data: studentData } = await supabase
+        .from('students')
+        .select('email')
+        .eq('email', email)
+        .single();
+
+      const { data: clubData } = await supabase
+        .from('clubs')
+        .select('email')
+        .eq('email', email)
+        .single();
+
+      return !!studentData || !!clubData;
+    } catch (error) {
+      return false;
+    }
+  };
 
   const login = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      console.log(tokenResponse);
-      const token = tokenResponse.access_token;
-
-      // Note: JWT decoding won't work with access_token
-      // You'll need to make a request to Google's userinfo endpoint
-      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then(response => response.json())
-        .then(userData => {
-          console.log('User Data:', userData);
-          
-          localStorage.setItem('Google_Token', token);
-          localStorage.setItem('userName', userData.name);
-          localStorage.setItem('userEmail', userData.email);
-          localStorage.setItem('userImage', userData.picture);
-
-          navigate('/clubs');
-        })
-        .catch(error => {
-          console.error('Error fetching user data:', error);
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Get user data from Google
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
         });
+        const userData = await response.json();
+
+        // Check if user exists in database
+        const userExists = await checkUserExists(userData.email);
+
+        if (!userExists) {
+          setErrorMessage("Account not found. Please sign up first.");
+          setShowError(true);
+          setTimeout(() => {
+            setShowError(false);
+          }, 5000);
+          return;
+        }
+
+        // If user exists, proceed with login
+        localStorage.setItem('Google_Token', tokenResponse.access_token);
+        localStorage.setItem('userName', userData.name);
+        localStorage.setItem('userEmail', userData.email);
+        localStorage.setItem('userImage', userData.picture);
+
+        navigate('/clubs');
+      } catch (error) {
+        console.error('Error during login:', error);
+        setErrorMessage('Login failed. Please try again.');
+        setShowError(true);
+        setTimeout(() => {
+          setShowError(false);
+        }, 5000);
+      }
     },
     onError: () => {
-      console.log('Login Failed');
+      setErrorMessage('Login Failed');
+      setShowError(true);
+      setTimeout(() => {
+        setShowError(false);
+      }, 5000);
     }
   });
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8 flex items-center justify-center">
+      {/* Custom Error Alert */}
+      {showError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm">
+          <div className="mx-4 bg-gray-800 border border-red-500/50 rounded-lg shadow-lg backdrop-blur-xl">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex-1">
+                <div className="text-red-400 mb-1 font-medium">Error</div>
+                <div className="text-sm text-gray-300">
+                  {errorMessage}
+                  {errorMessage.includes("sign up") && (
+                    <Link 
+                      to="/signup" 
+                      className="ml-2 text-blue-400 hover:text-blue-300 underline"
+                    >
+                      Sign up here
+                    </Link>
+                  )}
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowError(false)}
+                className="ml-4 text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Animated background elements */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
@@ -56,16 +127,14 @@ const LoginPage = ({ onSuccessfulAuth }) => {
 
           <div className="flex items-center justify-center">
             <div className="w-full p-6 rounded-2xl max-w-sm text-center">
-              <p className="text-gray-300 mb-6">login with Google to continue</p>
+              <p className="text-gray-300 mb-6">Login with Google to continue</p>
               
-              {/* Custom styled Google login button */}
               <button
                 onClick={() => login()}
                 className="w-full px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg 
                          flex items-center justify-center gap-3 hover:bg-gray-100 
                          transition-all duration-300 border border-gray-300 shadow-md"
               >
-                {/* Google Icon SVG */}
                 <svg
                   className="w-5 h-5"
                   viewBox="0 0 24 24"

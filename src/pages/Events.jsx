@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import poster from '../assets/testposter.jpg';
 import poster2 from '../assets/Hackforge.jpg'
-import { Calendar, Users, Clock, MapPin } from 'lucide-react';
+import { Calendar, Users, Clock, MapPin, CircleDollarSign } from 'lucide-react';
 
 const LandingPage = () => {
   const location = useLocation();
@@ -62,6 +62,7 @@ const LandingPage = () => {
       time: "2:00 PM",
       location: "Innovation Lab",
       description: "Join us for an immersive workshop on AI and Machine Learning. Learn from industry experts and get hands-on experience with cutting-edge technology.",
+      price: 'Free',
       image: poster
     },
     {
@@ -72,6 +73,7 @@ const LandingPage = () => {
       time: "3:30 PM",
       location: "Creative Studio",
       description: "Explore the principles of design thinking and apply them to real-world problems.",
+      price: 'Free',
       image: poster2
     },
     {
@@ -82,6 +84,7 @@ const LandingPage = () => {
       time: "6:00 PM",
       location: "Main Auditorium",
       description: "Watch innovative startup pitches from student entrepreneurs and network with investors.",
+      price: 'Free',
       image: poster
     },
     {
@@ -132,6 +135,7 @@ const LandingPage = () => {
       time: "5:00 PM",
       location: "Open Air Theatre",
       description: "End of semester musical extravaganza featuring student bands and performances.",
+      price: 'Free',
       image: "/api/placeholder/360/640"
     },
     {
@@ -142,6 +146,7 @@ const LandingPage = () => {
       time: "10:00 AM",
       location: "Science Complex",
       description: "Annual science fair showcasing innovative projects and experiments.",
+      price: 'Free',
       image: "/api/placeholder/360/640"
     }
   ];
@@ -255,6 +260,10 @@ const LandingPage = () => {
                     <div className="flex items-center text-gray-300">
                       <MapPin className="w-4 h-4 mr-2" />
                       <span>{event.location}</span>
+                    </div>
+                    <div className="flex items-center text-gray-300">
+                      <CircleDollarSign className="w-4 h-4 mr-2" />
+                      <span>{event.price}</span>
                     </div>
                   </div>
                 </div>
