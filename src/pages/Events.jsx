@@ -158,7 +158,7 @@ const LandingPage = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 opacity-60 rounded-xl z-10"></div>
               <img
-                src={event.image}
+                src={event.poster}
                 alt={event.event_name}
                 className="w-full h-full object-cover rounded-xl"
               />

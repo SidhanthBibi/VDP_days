@@ -12,7 +12,8 @@ import {
   Mail,
   ArrowLeft,
   Share2,
-  Heart
+  Heart,
+  Plus
 } from 'lucide-react';
 
 const ClubDetail = () => {
@@ -95,6 +96,12 @@ const ClubDetail = () => {
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-colors">
                   Join Club
                 </button>
+                <button 
+                  onClick={() => navigate('/create_event')}
+                  className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
                 <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
                   <Share2 className="w-5 h-5" />
                 </button>
@@ -102,6 +109,7 @@ const ClubDetail = () => {
                   <Heart className="w-5 h-5" />
                 </button>
               </div>
+              
             </div>
           </div>
 
