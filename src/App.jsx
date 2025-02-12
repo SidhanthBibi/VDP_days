@@ -1,7 +1,7 @@
 import './App.css'
 import SignUpPage from './pages/SignUp'
 import LandingPage from './pages/Events'
-import Login from './pages/Login'
+import LoginPage from './pages/Login'  // Changed to LoginPage for consistency
 import Navbar from './components/Navbar'
 import Explore from './pages/Explore'
 import Home from './pages/Home'
@@ -10,9 +10,9 @@ import About from './pages/About'
 import ClubDetailForm from './pages/ClubDetailForm'
 import CreateEvent from './pages/CreateNewEvent'
 import ClubDetail from './pages/ClubDetail'
-import { ClubProvider } from './context/ClubContext';
+import { ClubProvider } from './context/ClubContext'
 import SignUpSuccess from './pages/SignUpSuccess'
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 function App() {
   return (
@@ -20,21 +20,26 @@ function App() {
       <ClubProvider>
         <Navbar />
         <Routes>
+          {/* Main routes */}
           <Route path="/" element={<Home />} />
           <Route path="/events" element={<LandingPage />} />
           <Route path="/create_event" element={<CreateEvent />} />
-          <Route path='/clubs' element={<Clubs />} />
+          <Route path="/clubs" element={<Clubs />} />
           <Route path="/explore" element={<Explore />} />
-          <Route path='/about' element={<About />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/signup_success' element={<SignUpSuccess />} />
+          <Route path="/about" element={<About />} />
+          
+          {/* Authentication routes */}
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
-          <Route path='/clubDetailform' element={<ClubDetailForm />} />
-          <Route path='/clubDetail/:id' element={<ClubDetail />} />
+          <Route path="/signup_success" element={<SignUpSuccess />} />
+          
+          {/* Club-related routes */}
+          <Route path="/clubDetailform" element={<ClubDetailForm />} />
+          <Route path="/clubDetail/:id" element={<ClubDetail />} />
         </Routes>
       </ClubProvider>
     </BrowserRouter>
   )
 }
 
-export default App;
+export default App

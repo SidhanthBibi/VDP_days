@@ -1,21 +1,18 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client'
+import ReactDOM from 'react-dom/client';
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from './App.jsx';
 
-const ClientID = '1028081832518-6gsauhqpour4leftuksrog95fc76a1r9.apps.googleusercontent.com';
+const ClientID = '220301512419-las49tk01j9chkdubbdkp679m44qiu3s.apps.googleusercontent.com';
 
 const Root = () => {
-  return(
-    <GoogleOAuthProvider clientId= {ClientID} >
+  return (
+    <GoogleOAuthProvider clientId={ClientID}>
       <App />
     </GoogleOAuthProvider>
-  ); 
-}
+  );
+};
 
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
-
-root.render(
-  <Root />
-);
+root.render(<Root />);

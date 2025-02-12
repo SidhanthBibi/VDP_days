@@ -1,83 +1,23 @@
-import React, { useState } from 'react';
-import { User, Users, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useGoogleLogin } from "@react-oauth/google";
-import { createClient } from '@supabase/supabase-js';
+import { useNavigate, Link } from "react-router-dom";
+import { X } from 'lucide-react';
 
-// Initialize Supabase client
+import { createClient } from '@supabase/supabase-js'; // Adjust the path based on your file structure
+
 const supabase = createClient(
-  'https://uzecuccnvrjjrfsftarx.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6ZWN1Y2NudnJqanJmc2Z0YXJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNzg4MDgsImV4cCI6MjA1NDg1NDgwOH0.p7ucVwNv6umkgNx82fjtrGW1gaybSrNMhojTR2vD2XM'
+  'https://bszgathwdwnnvgvmvhqy.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzemdhdGh3ZHdubnZndm12aHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzMDM3MDUsImV4cCI6MjA1NDg3OTcwNX0.PrQB-92P6iV_Hr0rN5DzfdRsOr1mFwnOf7-dPq7EZj4'
 );
 
 const SignUpPage = () => {
-  const [isClub, setIsClub] = useState(false);
+  const navigate = useNavigate();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const navigate = useNavigate();
 
-  const checkUserExists = async (email, userType) => {
-    try {
-      const { data, error } = await supabase
-        .from(userType === 'club' ? 'clubs' : 'students')
-        .select('club_email, userEmail')  // Check both possible column names
-        .or(`club_email.eq.${email},userEmail.eq.${email}`);
-
-      if (error) throw error;
-      return data && data.length > 0;
-    } catch (error) {
-      console.error('Error checking user:', error);
-      return false;
-    }
-  };
-
-  const saveUserToSupabase = async (userData, userType) => {
-    try {
-      // Check if user exists first
-      const exists = await checkUserExists(userData.email, userType);
-      if (exists) {
-        throw new Error('Account already exists with this email. Please login instead.');
-      }
-
-      let insertData;
-      if (userType === 'club') {
-        insertData = {
-          club_name: userData.name,
-          club_email: userData.email,
-          club_image: userData.picture,
-          google_id: userData.sub,
-          created_at: new Date().toISOString()
-        };
-      } else {
-        insertData = {
-          name: userData.name,
-          email: userData.email,
-          profile_picture: userData.picture,
-          google_id: userData.sub,
-          created_at: new Date().toISOString()
-        };
-      }
-
-      const { data, error } = await supabase
-        .from(userType === 'club' ? 'clubs' : 'students')
-        .insert([insertData]);
-
-      if (error) {
-        console.error('Supabase insertion error:', error);
-        throw error;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error saving to Supabase:', error);
-      throw error;
-    }
-  };
-
-  const login = useGoogleLogin({
+  const signUp = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        // Get user data from Google
         const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: {
             Authorization: `Bearer ${tokenResponse.access_token}`,
@@ -85,24 +25,28 @@ const SignUpPage = () => {
         });
         const userData = await response.json();
 
-        // Try saving to Supabase first
-        await saveUserToSupabase(userData, isClub ? 'club' : 'student');
+        // Add user to students table
+        const { error } = await supabase
+          .from('students')
+          .insert([
+            {
+              email: userData.email,
+              name: userData.name,
+              avatar_url: userData.picture
+            }
+          ]);
 
-        // If successful, save to localStorage
+        if (error) throw error;
+
+        // Store user data
         localStorage.setItem('Google_Token', tokenResponse.access_token);
         localStorage.setItem('userName', userData.name);
         localStorage.setItem('userEmail', userData.email);
         localStorage.setItem('userImage', userData.picture);
-        localStorage.setItem('userType', isClub ? 'club' : 'student');
 
-        if (!isClub) {
-          navigate('/signup_success');
-        } else {
-          navigate('/clubDetail');
-        }
+        navigate('/signup_success');
       } catch (error) {
-        console.error('Error during signup:', error);
-        setErrorMessage(error.message || 'An error occurred during signup');
+        setErrorMessage(error.message);
         setShowError(true);
         setTimeout(() => {
           setShowError(false);
@@ -110,7 +54,7 @@ const SignUpPage = () => {
       }
     },
     onError: () => {
-      setErrorMessage('Login Failed');
+      setErrorMessage('Sign up failed');
       setShowError(true);
       setTimeout(() => {
         setShowError(false);
@@ -140,7 +84,7 @@ const SignUpPage = () => {
         </div>
       )}
 
-      {/* Background Elements */}
+      {/* Animated background */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
 
@@ -150,48 +94,10 @@ const SignUpPage = () => {
 
           <div className="flex items-center justify-center">
             <div className="w-full p-6 rounded-2xl max-w-sm text-center">
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <div className="flex items-center gap-2 bg-gray-700/50 p-2 rounded-lg">
-                    <button
-                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
-                        !isClub ? 'bg-blue-600 ring-2 ring-blue-400' : 'hover:bg-gray-600'
-                      }`}
-                      onClick={() => setIsClub(false)}
-                    >
-                      <User size={16} />
-                      Student
-                    </button>
-                    <button
-                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
-                        isClub ? 'bg-blue-600 ring-2 ring-blue-400' : 'hover:bg-gray-600'
-                      }`}
-                      onClick={() => setIsClub(true)}
-                    >
-                      <Users size={16} />
-                      Club
-                    </button>
-                  </div>
-                </div>
-                <div className="text-sm text-blue-400 font-medium animate-fade-in">
-                  {isClub ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Users size={14} />
-                      Signing up as a Club
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <User size={14} />
-                      Signing up as a Student
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <p className="text-gray-300 mt-6 mb-6">Sign up with Google to continue</p>
+              <p className="text-gray-300 mb-6">Sign up with your Google account</p>
               
               <button
-                onClick={() => login()}
+                onClick={() => signUp()}
                 className="w-full px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg 
                          flex items-center justify-center gap-3 hover:bg-gray-100 
                          transition-all duration-300 border border-gray-300 shadow-md"
