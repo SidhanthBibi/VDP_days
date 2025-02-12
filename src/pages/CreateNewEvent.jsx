@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Upload } from 'lucide-react';
+import { supabase } from '../supabaseClient';
+import { v4 as uuidv4 } from 'uuid';
 
 const EventForm = () => {
   const [formData, setFormData] = useState({
-    title: '',
-    club: '',
+    event_name: '',
+    club_name: '',
     date: '',
     time: '',
     location: '',
     description: '',
-    image: null
+    price: 0,
+    register_link: ''
   });
 
+  const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,17 +31,99 @@ const EventForm = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({
-        ...prev,
-        image: file
-      }));
+      setImageFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    setLoading(true);
+    setError(null);
+
+    try {
+      let posterUrl = null;
+
+      // Handle image upload if an image is selected
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${uuidv4()}.${fileExt}`;
+        const filePath = `events/${fileName}`;
+
+        // Upload image to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('assets')
+          .upload(filePath, imageFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL - this step is crucial
+        const { data: { publicUrl } } = supabase.storage
+          .from('assets')
+          .getPublicUrl(filePath);
+
+        posterUrl = publicUrl;
+      }
+
+      // Log the data being inserted (for debugging)
+      console.log('Inserting data:', {
+        event_name: formData.event_name,
+        club_name: formData.club_name,
+        description: formData.description,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        price: parseFloat(formData.price) || 0,
+        register_link: formData.register_link,
+        poster: posterUrl
+      });
+
+      // Insert event data into the events table
+      const { error: insertError, data } = await supabase
+        .from('Events')
+        .insert([{  // Changed to array of objects
+          event_name: formData.event_name,
+          club_name: formData.club_name,
+          description: formData.description,
+          date: formData.date,
+          time: formData.time,
+          location: formData.location,
+          price: parseFloat(formData.price) || 0,
+          register_link: formData.register_link,
+          poster: posterUrl
+        }]);
+
+      if (insertError) {
+        console.error('Insert Error:', insertError);
+        throw insertError;
+      }
+
+      console.log('Insert successful:', data);
+
+      // Reset form after successful submission
+      setFormData({
+        event_name: '',
+        club_name: '',
+        date: '',
+        time: '',
+        location: '',
+        description: '',
+        price: 0,
+        register_link: ''
+      });
+      setImageFile(null);
+      setPreviewUrl(null);
+
+      alert('Event created successfully!');
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,7 +139,7 @@ const EventForm = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50">
-            {/* Image Upload - Reduced size */}
+            {/* Image Upload */}
             <div className="mb-8">
               <div 
                 className="w-80 h-100 mx-auto rounded-xl border-2 border-dashed border-gray-700 flex flex-col items-center justify-center cursor-pointer overflow-hidden"
@@ -80,8 +168,8 @@ const EventForm = () => {
             <div className="mb-6">
               <input
                 type="text"
-                name="title"
-                value={formData.title}
+                name="event_name"
+                value={formData.event_name}
                 onChange={handleChange}
                 placeholder="Event Title"
                 className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -93,8 +181,8 @@ const EventForm = () => {
             <div className="mb-6">
               <input
                 type="text"
-                name="club"
-                value={formData.club}
+                name="club_name"
+                value={formData.club_name}
                 placeholder="Organizing Club"
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -142,6 +230,32 @@ const EventForm = () => {
               />
             </div>
 
+            {/* Price */}
+            <div className="mb-6">
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                placeholder="Event Price"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            {/* Register Link */}
+            <div className="mb-6">
+              <input
+                type="url"
+                name="register_link"
+                value={formData.register_link}
+                onChange={handleChange}
+                placeholder="Registration Link"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
             {/* Description */}
             <div className="mb-6">
               <textarea
@@ -155,14 +269,22 @@ const EventForm = () => {
               />
             </div>
 
+            {error && (
+              <div className="mb-4 text-red-500 text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[20px] 
                 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-                shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
+                shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]
+                disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Event
+              {loading ? 'Creating Event...' : 'Create Event'}
             </button>
           </div>
         </form>
