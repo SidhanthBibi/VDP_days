@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
+import { supabase } from '../supabaseClient';
 import { useGoogleLogin } from "@react-oauth/google";
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 
-import { createClient } from '@supabase/supabase-js';  // Adjust the path based on your file structure
 
-// Initialize Supabase client
-const supabase = createClient(
-  'https://bszgathwdwnnvgvmvhqy.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzemdhdGh3ZHdubnZndm12aHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzMDM3MDUsImV4cCI6MjA1NDg3OTcwNX0.PrQB-92P6iV_Hr0rN5DzfdRsOr1mFwnOf7-dPq7EZj4'
-);
 const LoginPage = () => {
   const navigate = useNavigate();
   const [showError, setShowError] = useState(false);
