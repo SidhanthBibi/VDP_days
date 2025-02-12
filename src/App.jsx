@@ -12,6 +12,7 @@ import CreateEvent from './pages/CreateNewEvent'
 import ClubDetail from './pages/ClubDetail'
 import { ClubProvider } from './context/ClubContext'
 import SignUpSuccess from './pages/SignUpSuccess'
+import ExampleComponent from './pages/temp.jsx'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Route path="/clubs" element={<Clubs />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
+          <Route path="/temp" element={<ExampleComponent />} />
           
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
