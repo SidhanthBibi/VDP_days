@@ -42,12 +42,12 @@ const About = () => {
     {
       icon: <Mail className="w-6 h-6" />,
       title: "Email Us",
-      content: "UniClubs@university.edu"
+      content: "as7516@srmist.edu.in"
     },
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Call Us",
-      content: "(+91) 904355XXXX"
+      content: "(+91) 7012081312"
     },
     {
       icon: <Globe className="w-6 h-6" />,
