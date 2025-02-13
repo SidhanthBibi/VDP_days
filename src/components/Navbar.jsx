@@ -70,13 +70,7 @@ const Navbar = () => {
               transition-all duration-500 flex items-center gap-2
               ${scrolled ? 'scale-95' : 'scale-100'}
             `}>
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-0.5">
-                <div className="h-full w-full rounded-xl bg-[#0d0a48] flex items-center justify-center">
-                  <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-                    A
-                  </span>
-                </div>
-              </div>
+                <img className='h-[50px]' src="/clubsphereGradient.png"/>
                 <a href="/">
                 <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
                   ClubSphere
