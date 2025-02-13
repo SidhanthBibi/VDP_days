@@ -73,7 +73,7 @@ const Navbar = () => {
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-0.5">
                 <div className="h-full w-full rounded-xl bg-[#0d0a48] flex items-center justify-center">
                   <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-                    C
+                    A
                   </span>
                 </div>
               </div>
