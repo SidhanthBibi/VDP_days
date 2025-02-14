@@ -5,28 +5,11 @@ import {
   ChevronDown, Settings, Shield, Target 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import '../index.css';  // or './App.css'
 
 const Home = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState({});
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = (window.scrollY / totalHeight) * 100;
-      setScrollProgress(progress);
-
-      const sections = document.querySelectorAll('.animate-on-scroll');
-      sections.forEach((section) => {
-        const rect = section.getBoundingClientRect();
-        const isVisible = rect.top <= window.innerHeight * 0.75; 
-        setIsVisible(prev => ({ ...prev, [section.id]: isVisible }));
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const keyFeatures = [
     {
@@ -67,12 +50,23 @@ const Home = () => {
     }
   ];
 
-  const stats = [
-    { value: "50+", label: "Active Clubs" },
-    { value: "10,000+", label: "Students" },
-    { value: "200+", label: "Events Monthly" },
-    { value: "95%", label: "Satisfaction" }
-  ];
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (window.scrollY / totalHeight) * 100;
+      setScrollProgress(progress);
+
+      const sections = document.querySelectorAll('.animate-on-scroll');
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        const isVisible = rect.top <= window.innerHeight * 0.75; 
+        setIsVisible(prev => ({ ...prev, [section.id]: isVisible }));
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="bg-gray-900 text-white min-h-screen overflow-x-hidden">

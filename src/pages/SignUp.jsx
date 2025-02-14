@@ -1,64 +1,49 @@
-import { useState } from 'react';
-import { useGoogleLogin } from "@react-oauth/google";
-import { useNavigate, Link } from "react-router-dom";
-import { X } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { X, User, Users } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import '../index.css';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
+  const [isClub, setIsClub] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const signUp = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
+  const handleSignUp = async () => {
+    try {
+      // Store user type before OAuth redirect
+      localStorage.setItem('userType', isClub ? 'club' : 'student');
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
           },
-        });
-        const userData = await response.json();
+          redirectTo: `${window.location.origin}/login`
+        }
+      });
 
-        // Add user to students table
-        const { error } = await supabase
-          .from('students')
-          .insert([
-            {
-              email: userData.email,
-              name: userData.name,
-              avatar_url: userData.picture
-            }
-          ]);
-
-        if (error) throw error;
-
-        // Store user data
-        localStorage.setItem('Google_Token', tokenResponse.access_token);
-        localStorage.setItem('userName', userData.name);
-        localStorage.setItem('userEmail', userData.email);
-        localStorage.setItem('userImage', userData.picture);
-
-        navigate('/signup_success');
-      } catch (error) {
-        setErrorMessage(error.message);
+      if (error) {
+        console.error('OAuth Sign Up Error:', error);
+        setErrorMessage('Sign up failed. Please try again.');
         setShowError(true);
-        setTimeout(() => {
-          setShowError(false);
-        }, 5000);
+        setTimeout(() => setShowError(false), 5000);
+        throw error;
       }
-    },
-    onError: () => {
-      setErrorMessage('Sign up failed');
+    } catch (error) {
+      console.error('Sign Up Catch Block Error:', error.message);
+      setErrorMessage('Sign up failed. Please try again.');
       setShowError(true);
-      setTimeout(() => {
-        setShowError(false);
-      }, 5000);
+      setTimeout(() => setShowError(false), 5000);
     }
-  });
+  };
 
+  // Rest of the component remains the same...
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8 flex items-center justify-center">
-      {/* Error Alert */}
       {showError && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm">
           <div className="mx-4 bg-gray-800 border border-red-500/50 rounded-lg shadow-lg backdrop-blur-xl">
@@ -78,20 +63,54 @@ const SignUpPage = () => {
         </div>
       )}
 
-      {/* Animated background */}
-      <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-      <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-
       <div className="w-full max-w-md relative">
         <div className="bg-gray-800/50 backdrop-blur-xl rounded-xl p-10 border border-gray-700">
           <h2 className="text-2xl font-bold text-center mb-2">Create Account</h2>
 
           <div className="flex items-center justify-center">
             <div className="w-full p-6 rounded-2xl max-w-sm text-center">
-              <p className="text-gray-300 mb-6">Sign up with your Google account</p>
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  <div className="flex items-center gap-2 bg-gray-700/50 p-2 rounded-lg">
+                    <button
+                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                        !isClub ? 'bg-blue-600 ring-2 ring-blue-400' : 'hover:bg-gray-600'
+                      }`}
+                      onClick={() => setIsClub(false)}
+                    >
+                      <User size={16} />
+                      Student
+                    </button>
+                    <button
+                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                        isClub ? 'bg-blue-600 ring-2 ring-blue-400' : 'hover:bg-gray-600'
+                      }`}
+                      onClick={() => setIsClub(true)}
+                    >
+                      <Users size={16} />
+                      Club
+                    </button>
+                  </div>
+                </div>
+                <div className="text-sm text-blue-400 font-medium animate-fade-in">
+                  {isClub ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Users size={14} />
+                      Signing up as a Club
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <User size={14} />
+                      Signing up as a Student
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-gray-300 mt-6 mb-6">Sign up with Google to continue</p>
               
               <button
-                onClick={() => signUp()}
+                onClick={handleSignUp}
                 className="w-full px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg 
                          flex items-center justify-center gap-3 hover:bg-gray-100 
                          transition-all duration-300 border border-gray-300 shadow-md"

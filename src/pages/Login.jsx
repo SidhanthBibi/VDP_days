@@ -1,88 +1,162 @@
-import React, { useState } from 'react';
-import { useNavigate } from "react-router-dom";
-import { supabase } from '../supabaseClient';
-import { useGoogleLogin } from "@react-oauth/google";
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { X } from 'lucide-react';
-
+import { supabase } from '../supabaseClient';
+import '../index.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const checkUserExists = async (email) => {
+  // Function to create user in users table if not exists
+  const createUserIfNotExists = async (session) => {
+    const { user } = session;
+    
     try {
-      // Check in both students and clubs tables
-      const { data: studentData } = await supabase
-        .from('students')
-        .select('email')
-        .eq('email', email)
+      // Check if user already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', user.email)
         .single();
 
-      const { data: clubData } = await supabase
-        .from('clubs')
-        .select('email')
-        .eq('email', email)
-        .single();
+      // If user doesn't exist, create a new user
+      if (!existingUser) {
+        const userType = localStorage.getItem('userType') || 'student';
+        
+        const { data: newUser, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            email: user.email,
+            full_name: user.user_metadata.full_name,
+            user_type: userType,
+            avatar_url: user.user_metadata.avatar_url || ''
+          })
+          .select();
 
-      return !!studentData || !!clubData;
+        if (insertError) {
+          console.error('Error creating user:', insertError);
+          throw insertError;
+        }
+
+        // Clear user type after creation
+        localStorage.removeItem('userType');
+
+        return newUser[0];
+      }
+
+      // Clear user type if user exists
+      localStorage.removeItem('userType');
+
+      return existingUser;
     } catch (error) {
-      return false;
+      console.error('Error in createUserIfNotExists:', error);
+      return null;
     }
   };
 
-  const login = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        // Get user data from Google
-        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
-          },
-        });
-        const userData = await response.json();
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        try {
+          const user = await createUserIfNotExists(session);
 
-        // Check if user exists in database
-        const userExists = await checkUserExists(userData.email);
+          if (!user) {
+            setErrorMessage('Failed to create or find user account.');
+            setShowError(true);
+            await supabase.auth.signOut();
+            return;
+          }
 
-        if (!userExists) {
-          setErrorMessage("Account not found. Please sign up first.");
+          // Store user information
+          setUser(session.user);
+          localStorage.setItem('userName', session.user.user_metadata.full_name);
+          localStorage.setItem('userEmail', session.user.email);
+          localStorage.setItem('userImage', session.user.user_metadata.avatar_url || '');
+
+          // Navigate to clubs page
+          navigate('/clubs');
+        } catch (error) {
+          console.error('Authentication error:', error);
+          setErrorMessage('Login failed. Please try again.');
           setShowError(true);
-          setTimeout(() => {
-            setShowError(false);
-          }, 5000);
-          return;
+          await supabase.auth.signOut();
         }
+      }
+    });
 
-        // If user exists, proceed with login
-        localStorage.setItem('Google_Token', tokenResponse.access_token);
-        localStorage.setItem('userName', userData.name);
-        localStorage.setItem('userEmail', userData.email);
-        localStorage.setItem('userImage', userData.picture);
+    // Check existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        try {
+          const user = await createUserIfNotExists(session);
 
-        navigate('/clubs');
-      } catch (error) {
-        console.error('Error during login:', error);
+          if (user) {
+            setUser(session.user);
+            localStorage.setItem('userName', session.user.user_metadata.full_name);
+            localStorage.setItem('userEmail', session.user.email);
+            localStorage.setItem('userImage', session.user.user_metadata.avatar_url || '');
+            navigate('/clubs');
+          } else {
+            setErrorMessage('Login failed. Please try again.');
+            setShowError(true);
+          }
+        } catch (error) {
+          console.error('Session verification error:', error);
+          setErrorMessage('Login failed. Please try again.');
+          setShowError(true);
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      if (authListener) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, [navigate]);
+
+  const handleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          redirectTo: window.location.origin + '/clubs'
+        }
+      });
+      
+      if (error) {
         setErrorMessage('Login failed. Please try again.');
         setShowError(true);
-        setTimeout(() => {
-          setShowError(false);
-        }, 5000);
+        setTimeout(() => setShowError(false), 5000);
+        throw error;
       }
-    },
-    onError: () => {
-      setErrorMessage('Login Failed');
+    } catch (error) {
+      console.error('Error:', error.message);
+      setErrorMessage('Login failed. Please try again.');
       setShowError(true);
-      setTimeout(() => {
-        setShowError(false);
-      }, 5000);
+      setTimeout(() => setShowError(false), 5000);
     }
-  });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8 flex items-center justify-center">
-      {/* Custom Error Alert */}
       {showError && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm">
           <div className="mx-4 bg-gray-800 border border-red-500/50 rounded-lg shadow-lg backdrop-blur-xl">
@@ -112,10 +186,6 @@ const LoginPage = () => {
         </div>
       )}
 
-      {/* Animated background elements */}
-      <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-      <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-
       <div className="w-full max-w-md relative">
         <div className="bg-gray-800/50 backdrop-blur-xl rounded-xl p-10 border border-gray-700">
           <h2 className="text-2xl font-bold text-center mb-2">Welcome Back!</h2>
@@ -125,7 +195,7 @@ const LoginPage = () => {
               <p className="text-gray-300 mb-6">Login with Google to continue</p>
               
               <button
-                onClick={() => login()}
+                onClick={handleSignIn}
                 className="w-full px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg 
                          flex items-center justify-center gap-3 hover:bg-gray-100 
                          transition-all duration-300 border border-gray-300 shadow-md"

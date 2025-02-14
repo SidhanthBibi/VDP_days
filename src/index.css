@@ -1,3 +1,36 @@
-body{
+@import "tailwindcss";
+
+body, html {
     background-color: #101720;
+    min-height: 100vh;
+    color: white;
+}
+
+/* Optional: Ensure full-page background on root and app elements */
+#root, #app {
+    background-color: #101720;
+    min-height: 100vh;
+}
+
+/* Add smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Optional: Custom scrollbar for better aesthetics */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #101720;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #334155;
 }
