@@ -126,7 +126,7 @@ const LoginPage = () => {
         provider: 'google',
         options: {
           queryParams: {
-            access_type: 'offline',
+            access_type: 'online',
             prompt: 'consent',
           },
           redirectTo: import.meta.env.VITE_REDIRECT_URL || window.location.origin + '/clubs'
