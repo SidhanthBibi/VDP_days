@@ -1,18 +1,16 @@
-import './App.css'
-import SignUpPage from './pages/SignUp'
-import LandingPage from './pages/Events'
-import LoginPage from './pages/Login'  // Changed to LoginPage for consistency
-import Navbar from './components/Navbar'
-import Explore from './pages/Explore'
-import Home from './pages/Home'
-import Clubs from './pages/Clubs'
-import About from './pages/About'
-import ClubDetailForm from './pages/ClubDetailForm'
-import CreateEvent from './pages/CreateNewEvent'
-import ClubDetail from './pages/ClubDetail'
-import { ClubProvider } from './context/ClubContext'
-import SignUpSuccess from './pages/SignUpSuccess'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import SignUpPage from './pages/SignUp';
+import LandingPage from './pages/Events';
+import LoginPage from './pages/Login';
+import Navbar from './components/Navbar';
+import Explore from './pages/Explore';
+import Home from './pages/Home';
+import Clubs from './pages/Clubs';
+import About from './pages/About';
+import ClubDetailForm from './pages/ClubDetailForm';
+import CreateEvent from './pages/CreateNewEvent';
+import ClubDetail from './pages/ClubDetail';
+import { ClubProvider } from './context/ClubContext';
 
 function App() {
   return (
@@ -31,7 +29,6 @@ function App() {
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/signup_success" element={<SignUpSuccess />} />
           
           {/* Club-related routes */}
           <Route path="/clubDetailform" element={<ClubDetailForm />} />
@@ -39,7 +36,7 @@ function App() {
         </Routes>
       </ClubProvider>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import poster from '../assets/testposter.jpg';
 import poster2 from '../assets/Hackforge.jpg'
 import { Calendar, Users, Clock, MapPin } from 'lucide-react';
+import '../index.css';  // or './App.css'
 
 const LandingPage = () => {
   const [activeCard, setActiveCard] = useState(null);
