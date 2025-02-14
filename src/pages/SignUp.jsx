@@ -22,7 +22,7 @@ const SignUpPage = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
-          redirectTo: `${window.location.origin}/login`
+          redirectTo: import.meta.env.VITE_REDIRECT_URL || window.location.origin + '/login'
         }
       });
 

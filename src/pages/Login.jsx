@@ -129,7 +129,7 @@ const LoginPage = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
-          redirectTo: window.location.origin + '/clubs'
+          redirectTo: import.meta.env.VITE_REDIRECT_URL || window.location.origin + '/clubs'
         }
       });
       
