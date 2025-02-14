@@ -31,7 +31,7 @@ const LoginPage = () => {
       return false;
     }
   };
-
+  console.log("hello world!")
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
