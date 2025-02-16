@@ -343,6 +343,35 @@ const CyberpunkForm = () => {
                     Registration successful!
                   </div>
                 )}
+                {/* Terms Agreement */}
+                <div className="flex items-start gap-2">
+                <input
+                    type="checkbox"
+                    id="terms"
+                    required
+                    className="mt-1.5"
+                />
+                <label htmlFor="terms" className="text-sm text-gray-400">
+                    I agree to the{' '}
+                    <a 
+                    href="https://lennydany-03.github.io/Policy/terms.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-500 hover:text-green-400"
+                    >
+                    Terms & Conditions
+                    </a>
+                    {' '}and{' '}
+                    <a 
+                    href="https://lennydany-03.github.io/Policy/privacy.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-500 hover:text-green-400"
+                    >
+                    Privacy Policy
+                    </a>
+                </label>
+                </div>
 
                 {/* Submit Button */}
                 <button
@@ -356,7 +385,46 @@ const CyberpunkForm = () => {
                   </span>
                 </button>
               </form>
-
+            {/* Policy Links */}
+            <div className="border-t border-green-500/20 p-6">
+            <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-green-400 mb-4">Important Links</h3>
+                <div className="grid grid-cols-2 gap-4">
+                <a 
+                    href="https://lennydany-03.github.io/Policy/contact.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-green-500 hover:text-green-400 transition-colors"
+                >
+                    Contact Us
+                </a>
+                <a 
+                    href="https://lennydany-03.github.io/Policy/terms.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-green-500 hover:text-green-400 transition-colors"
+                >
+                    Terms & Conditions
+                </a>
+                <a 
+                    href="https://lennydany-03.github.io/Policy/refunds.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-green-500 hover:text-green-400 transition-colors"
+                >
+                    Refund Policy
+                </a>
+                <a 
+                    href="https://lennydany-03.github.io/Policy/privacy.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-green-500 hover:text-green-400 transition-colors"
+                >
+                    Privacy Policy
+                </a>
+                </div>
+            </div>
+            </div>
               {/* Contact Information */}
               <div className="border-t border-green-500/20 p-6">
                 <div className="text-sm text-gray-400">
