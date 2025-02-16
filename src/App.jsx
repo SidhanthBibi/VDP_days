@@ -11,6 +11,7 @@ import ClubDetailForm from './pages/ClubDetailForm';
 import CreateEvent from './pages/CreateNewEvent';
 import ClubDetail from './pages/ClubDetail';
 import { ClubProvider } from './context/ClubContext';
+import CodeTheDark_Reg from './pages/CodeTheDark_RegisterPage.jsx';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/clubs" element={<Clubs />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
+          <Route path="/CodeTheDark" element={<CodeTheDark_Reg />} />
           
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
