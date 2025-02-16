@@ -46,16 +46,23 @@ const CyberpunkForm = () => {
       return;
     }
 
-    // Calculate amount based on number of participants (₹5 for 1 person, ₹10 for 2)
+    // Calculate amount based on number of participants
     const amount = formData.participant_2 ? 10 : 5;
 
     const options = {
-      key: "rzp_test_72S71RvJ1kSI1j",
+      key: process.env.RAZORPAY_LIVE_KEY,
       amount: amount * 100, // Amount in paise
       currency: "INR",
       name: "Technozarre'25",
       description: "Code in the Dark Registration",
       order_id: "", // This should come from your backend
+      redirect: true,
+      notes: {
+        contact: "Event Coordinators: Aayush - 7903543635, Saidivya - 9014867914",
+        terms: "No refunds after registration. Participation is subject to college rules.",
+        refunds: "Refunds available only if event is cancelled",
+        privacy: "Participant data will be used only for event coordination purposes"
+      },
       handler: async function (response) {
         try {
           // Update the registration with payment details
@@ -97,7 +104,7 @@ const CyberpunkForm = () => {
 
     const paymentObject = new window.Razorpay(options);
     paymentObject.open();
-  };
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
