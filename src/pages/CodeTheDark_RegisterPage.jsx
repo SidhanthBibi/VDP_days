@@ -92,7 +92,7 @@ const CyberpunkForm = () => {
       },
       // Add these policy URLs
       policy: {
-        url: "src\assets\policies\privacy.html"  // Replace with your actual policy page URL
+        url: "/policies/privacy.html"  // Replace with your actual policy page URL
       },
       contact_url: "https://lennydany-03.github.io/Policy/contact.html",  // Replace with your contact page URL
       terms_url: "https://lennydany-03.github.io/Policy/terms.html",      // Replace with your terms page URL
