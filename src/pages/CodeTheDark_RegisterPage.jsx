@@ -94,10 +94,10 @@ const CyberpunkForm = () => {
       policy: {
         url: "/policies/privacy.html"  // Replace with your actual policy page URL
       },
-      contact_url: "https://lennydany-03.github.io/Policy/contact.html",  // Replace with your contact page URL
-      terms_url: "https://lennydany-03.github.io/Policy/terms.html",      // Replace with your terms page URL
-      refund_url: "https://lennydany-03.github.io/Policy/refunds.html",    // Replace with your refund policy URL
-      privacy_url: "https://lennydany-03.github.io/Policy/privacy.html"   // Replace with your privacy policy URL
+      contact_url: "/policies/contact.html",  // Replace with your contact page URL
+      terms_url: "/policies/terms.html",      // Replace with your terms page URL
+      refund_url: "/policies/refunds.html",    // Replace with your refund policy URL
+      privacy_url: "/policies/privacy.html"   // Replace with your privacy policy URL
     };
 
     const paymentObject = new window.Razorpay(options);
@@ -354,7 +354,7 @@ const CyberpunkForm = () => {
                 <label htmlFor="terms" className="text-sm text-gray-400">
                     I agree to the{' '}
                     <a 
-                    href="https://lennydany-03.github.io/Policy/terms.html"
+                    href="/policies/terms.html"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-green-500 hover:text-green-400"
@@ -363,7 +363,7 @@ const CyberpunkForm = () => {
                     </a>
                     {' '}and{' '}
                     <a 
-                    href="https://lennydany-03.github.io/Policy/privacy.html"
+                    href="/policies/privacy.html"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-green-500 hover:text-green-400"
@@ -391,7 +391,7 @@ const CyberpunkForm = () => {
                 <h3 className="text-lg font-semibold text-green-400 mb-4">Important Links</h3>
                 <div className="grid grid-cols-2 gap-4">
                 <a 
-                    href="https://lennydany-03.github.io/Policy/contact.html" 
+                    href="/policies/contact.html" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-sm text-green-500 hover:text-green-400 transition-colors"
@@ -399,7 +399,7 @@ const CyberpunkForm = () => {
                     Contact Us
                 </a>
                 <a 
-                    href="https://lennydany-03.github.io/Policy/terms.html" 
+                    href="/policies/terms.html" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-sm text-green-500 hover:text-green-400 transition-colors"
@@ -407,7 +407,7 @@ const CyberpunkForm = () => {
                     Terms & Conditions
                 </a>
                 <a 
-                    href="https://lennydany-03.github.io/Policy/refunds.html" 
+                    href="/policies/refunds.html" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-sm text-green-500 hover:text-green-400 transition-colors"
@@ -415,7 +415,7 @@ const CyberpunkForm = () => {
                     Refund Policy
                 </a>
                 <a 
-                    href="https://lennydany-03.github.io/Policy/privacy.html" 
+                    href="/policies/privacy.html" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-sm text-green-500 hover:text-green-400 transition-colors"
