@@ -88,7 +88,7 @@ const Home = () => {
             Your Campus, Your Community
           </h1>
           <p className="text-2xl text-gray-300 mb-12 opacity-0 animate-fade-in-up delay-300">
-            UniClub: Bridging Passion, Opportunity, and Connection
+            ClubSphere : Bridging Passion, Opportunity, and Connection
           </p>
           
           <div className="flex justify-center space-x-6 opacity-0 animate-fade-in-up delay-700">
