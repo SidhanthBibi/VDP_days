@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Terminal, UserCircle2, Mail, Phone, Calendar, Users, ChevronRight } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import Poster from '../assets/CodeTheDark_Poster.png';
 
 const CyberpunkForm = () => {
   const [formData, setFormData] = useState({
@@ -151,7 +152,7 @@ const CyberpunkForm = () => {
               <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
               <div className="relative">
                 <img 
-                  src="src\assets\CodeTheDark_Poster.png"
+                  src= {Poster}
                   alt="Technozarre'25 - Code in the Dark Event Poster"
                   className="rounded-lg w-full object-cover"
                 />
