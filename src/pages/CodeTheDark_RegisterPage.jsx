@@ -94,10 +94,10 @@ const CyberpunkForm = () => {
       policy: {
         url: "https://yourdomain.com/policies.html"  // Replace with your actual policy page URL
       },
-      contact_url: "https://yourdomain.com/contact.html",  // Replace with your contact page URL
-      terms_url: "https://yourdomain.com/terms.html",      // Replace with your terms page URL
-      refund_url: "https://yourdomain.com/refund.html",    // Replace with your refund policy URL
-      privacy_url: "https://yourdomain.com/privacy.html"   // Replace with your privacy policy URL
+      contact_url: "https://lennydany-03.github.io/Policy/contact.html",  // Replace with your contact page URL
+      terms_url: "https://lennydany-03.github.io/Policy/terms.html",      // Replace with your terms page URL
+      refund_url: "https://lennydany-03.github.io/Policy/refunds.html",    // Replace with your refund policy URL
+      privacy_url: "https://lennydany-03.github.io/Policy/privacy.html"   // Replace with your privacy policy URL
     };
 
     const paymentObject = new window.Razorpay(options);
