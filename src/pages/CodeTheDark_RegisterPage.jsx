@@ -51,21 +51,13 @@ const CyberpunkForm = () => {
 
     const options = {
       key: process.env.RAZORPAY_LIVE_KEY,
-      amount: amount * 100, // Amount in paise
+      amount: amount * 100,
       currency: "INR",
       name: "Technozarre'25",
       description: "Code in the Dark Registration",
-      order_id: "", // This should come from your backend
-      redirect: true,
-      notes: {
-        contact: "Event Coordinators: Aayush - 7903543635, Saidivya - 9014867914",
-        terms: "No refunds after registration. Participation is subject to college rules.",
-        refunds: "Refunds available only if event is cancelled",
-        privacy: "Participant data will be used only for event coordination purposes"
-      },
+      order_id: "",
       handler: async function (response) {
         try {
-          // Update the registration with payment details
           const { error } = await supabase
             .from('registrations')
             .update({
@@ -76,9 +68,7 @@ const CyberpunkForm = () => {
             .eq('id', registrationId);
 
           if (error) throw error;
-          
           setSuccess(true);
-          // Reset form after successful payment
           setFormData({
             team_name: '',
             participant_1: '',
@@ -98,8 +88,16 @@ const CyberpunkForm = () => {
         contact: formData.whatsapp
       },
       theme: {
-        color: "#10B981" // Green-500 color
-      }
+        color: "#10B981"
+      },
+      // Add these policy URLs
+      policy: {
+        url: "https://yourdomain.com/policies.html"  // Replace with your actual policy page URL
+      },
+      contact_url: "https://yourdomain.com/contact.html",  // Replace with your contact page URL
+      terms_url: "https://yourdomain.com/terms.html",      // Replace with your terms page URL
+      refund_url: "https://yourdomain.com/refund.html",    // Replace with your refund policy URL
+      privacy_url: "https://yourdomain.com/privacy.html"   // Replace with your privacy policy URL
     };
 
     const paymentObject = new window.Razorpay(options);
