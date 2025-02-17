@@ -61,7 +61,7 @@ const About = () => {
     },
     {
       id: 5,
-      name: "Ananja J",
+      name: "Ananya Jaiswal",
       role: "Developer",
       image: Ananya,
       bio: "Bringing creative ideas to life through code",
