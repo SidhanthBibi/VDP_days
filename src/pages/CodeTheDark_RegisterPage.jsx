@@ -50,7 +50,8 @@ const CyberpunkForm = () => {
     const amount = formData.participant_2 ? 10 : 5;
 
     const options = {
-      key: process.env.RAZORPAY_LIVE_KEY,
+      //key: process.env.RAZORPAY_LIVE_KEY,
+      key: "rzp_test_72S71RvJ1kSI1j",
       amount: amount * 100,
       currency: "INR",
       name: "Technozarre'25",
