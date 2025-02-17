@@ -33,7 +33,8 @@ const LoginPage = () => {
             email: user.email,
             full_name: user.user_metadata.full_name,
             user_type: userType,
-            avatar_url: user.user_metadata.avatar_url || ''
+            avatar_url: user.user_metadata.avatar_url || '',
+            
           })
           .select();
 
