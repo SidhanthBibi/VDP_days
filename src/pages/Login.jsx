@@ -160,30 +160,6 @@ const LoginPage = () => {
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8 flex items-center justify-center">
       {showError && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm">
-          <div className="mx-4 bg-gray-800 border border-red-500/50 rounded-lg shadow-lg backdrop-blur-xl">
-            <div className="flex items-center justify-between p-4">
-              <div className="flex-1">
-                <div className="text-red-400 mb-1 font-medium">Error</div>
-                <div className="text-sm text-gray-300">
-                  {errorMessage}
-                  {errorMessage.includes("sign up") && (
-                    <Link 
-                      to="/signup" 
-                      className="ml-2 text-blue-400 hover:text-blue-300 underline"
-                    >
-                      Sign up here
-                    </Link>
-                  )}
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowError(false)}
-                className="ml-4 text-gray-400 hover:text-gray-300 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
