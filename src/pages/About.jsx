@@ -107,7 +107,7 @@ const About = () => {
     {
       icon: <Globe className="w-6 h-6" />,
       title: "Follow Us",
-      content: "@UniClubs",
+      content: "@VdpClubSphere",
       color: "from-green-400 to-green-600"
     }
   ];
