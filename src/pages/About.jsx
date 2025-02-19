@@ -40,7 +40,7 @@ const About = () => {
       name: "Lenny Dany Derek",
       role: "Developer",
       image: Lenny,
-      bio: "Focused on creating scalable and maintainable code",
+      bio: "Got it! Your focus on scalability and maintainability will definitely help in building efficient and future-proof applications",
       socials: {
         github: "#",
         linkedin: "#",
