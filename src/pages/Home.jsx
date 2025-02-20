@@ -1,15 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 import { 
   Users, Globe, Award, Zap, Calendar, BookOpen, 
   ArrowRight, Rocket, Network, MessageCircle, 
   ChevronDown, Settings, Shield, Target 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import '../index.css';  // or './App.css'
+import '../index.css';
 
 const Home = () => {
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [isVisible, setIsVisible] = useState({});
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5 }
+    }
+  };
 
   const keyFeatures = [
     {
@@ -50,179 +76,256 @@ const Home = () => {
     }
   ];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = (window.scrollY / totalHeight) * 100;
-      setScrollProgress(progress);
-
-      const sections = document.querySelectorAll('.animate-on-scroll');
-      sections.forEach((section) => {
-        const rect = section.getBoundingClientRect();
-        const isVisible = rect.top <= window.innerHeight * 0.75; 
-        setIsVisible(prev => ({ ...prev, [section.id]: isVisible }));
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
     <div className="bg-gray-900 text-white min-h-screen overflow-x-hidden">
-      {/* Navigation Progress */}
-      <div 
-        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 z-50 transition-all duration-300"
-        style={{ width: `${scrollProgress}%` }}
+      {/* Animated Progress Bar */}
+      <motion.div 
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 origin-left z-50"
+        style={{ scaleX }}
       />
 
       {/* Hero Section */}
-      <section id="hero" className="min-h-screen relative flex items-center justify-center text-center px-4 animate-on-scroll">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-          <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse delay-1000"></div>
-        </div>
+      <section className="min-h-screen relative flex items-center justify-center text-center px-4">
+        {/* Animated Background Elements */}
+        <motion.div 
+          className="absolute inset-0 overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2 }}
+        >
+          <motion.div 
+            className="absolute -top-20 -right-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 0]
+            }}
+            transition={{ 
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div 
+            className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-20"
+            animate={{ 
+              scale: [1.2, 1, 1.2],
+              rotate: [90, 0, 90]
+            }}
+            transition={{ 
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2
+            }}
+          />
+        </motion.div>
 
-        <div className="max-w-4xl relative">
-          <h1 className="text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-fade-in">
+        <motion.div
+          className="max-w-4xl relative z-10"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.h1 
+            className="text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500"
+            variants={itemVariants}
+          >
             Your Campus, Your Community
-          </h1>
-          <p className="text-2xl text-gray-300 mb-12 opacity-0 animate-fade-in-up delay-300">
+          </motion.h1>
+
+          <motion.p 
+            className="text-2xl text-gray-300 mb-12"
+            variants={itemVariants}
+          >
             ClubSphere : Bridging Passion, Opportunity, and Connection
-          </p>
-          
-          <div className="flex justify-center space-x-6 opacity-0 animate-fade-in-up delay-700">
-            <a href="/explore">
-              <button className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full 
-                hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-                shadow-[0_0_25px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.5)]">
+          </motion.p>
+
+          <motion.div 
+            className="flex justify-center space-x-6"
+            variants={itemVariants}
+          >
+            <Link to="/explore">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full 
+                  hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
+                  shadow-[0_0_25px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.5)]"
+              >
                 Get Started 
-                <ArrowRight className="inline ml-2 transform group-hover:translate-x-1 transition-transform" />
-              </button>
-            </a>
-            <button 
+                <motion.span
+                  className="inline-block ml-2"
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight />
+                </motion.span>
+              </motion.button>
+            </Link>
+
+            <motion.button
+              whileHover={{ y: -2 }}
               onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
-              className="text-gray-300 hover:text-white flex items-center transition-colors"
+              className="text-gray-300 hover:text-white flex items-center"
             >
               Learn More
-              <ChevronDown className="ml-2 animate-bounce" />
-            </button>
-          </div>
-        </div>
+              <motion.span
+                animate={{ y: [0, 5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="ml-2"
+              >
+                <ChevronDown />
+              </motion.span>
+            </motion.button>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-gray-800/30 backdrop-blur-xl animate-on-scroll">
+      <motion.section
+        id="features"
+        className="py-24 bg-gray-800/30 backdrop-blur-xl"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={containerVariants}
+      >
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+          <motion.h2 
+            variants={itemVariants}
+            className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600"
+          >
             Key Features
-          </h2>
+          </motion.h2>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {keyFeatures.map((feature, index) => (
-              <div 
+              <motion.div
                 key={index}
+                variants={itemVariants}
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: "0 25px 50px -12px rgba(147, 51, 234, 0.25)"
+                }}
                 className="bg-gray-900/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700 
-                  transform transition-all duration-500 hover:scale-105 hover:shadow-2xl"
+                  transform transition-all duration-300"
               >
-                <div className="mb-6">{feature.icon}</div>
+                <motion.div 
+                  className="mb-6"
+                  whileHover={{ rotate: 5, scale: 1.1 }}
+                >
+                  {feature.icon}
+                </motion.div>
                 <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
                 <p className="text-gray-300">{feature.description}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* New Enhanced Features Section (Replacing Testimonials) */}
-      <section id="enhanced-features" className="py-24 animate-on-scroll">
+      {/* Enhanced Features Section */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={containerVariants}
+        className="py-24"
+      >
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+          <motion.h2 
+            variants={itemVariants}
+            className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600"
+          >
             Enhanced Club Management
-          </h2>
+          </motion.h2>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {engagementFeatures.map((feature, index) => (
-              <div 
+              <motion.div
                 key={index}
-                className="group bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700
-                  transform transition-all duration-500 hover:scale-105 hover:shadow-2xl"
+                variants={itemVariants}
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: "0 25px 50px -12px rgba(147, 51, 234, 0.25)"
+                }}
+                className="group bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700"
               >
-                <div className="mb-6 transform transition-transform duration-300 group-hover:scale-110">
+                <motion.div 
+                  className="mb-6"
+                  whileHover={{ rotate: 5, scale: 1.1 }}
+                >
                   {feature.icon}
-                </div>
+                </motion.div>
                 <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
                 <p className="text-gray-300 mb-6">{feature.description}</p>
                 <ul className="space-y-2">
                   {feature.benefits.map((benefit, i) => (
-                    <li key={i} className="flex items-center text-gray-400">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                    <motion.li 
+                      key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex items-center text-gray-400"
+                    >
+                      <motion.div 
+                        className="w-2 h-2 bg-blue-400 rounded-full mr-2"
+                        whileHover={{ scale: 1.5 }}
+                      />
                       {benefit}
-                    </li>
+                    </motion.li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* CTA Section */}
-      <section id="cta" className="py-24 relative animate-on-scroll">
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={containerVariants}
+        className="py-24 relative"
+      >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-purple-900/20" />
         <div className="max-w-4xl mx-auto px-4 text-center relative">
-          <h2 className="text-4xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+          <motion.h2 
+            variants={itemVariants}
+            className="text-4xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600"
+          >
             Ready to Transform Your Campus Experience?
-          </h2>
-          <p className="text-xl text-gray-300 mb-12">
+          </motion.h2>
+
+          <motion.p 
+            variants={itemVariants}
+            className="text-xl text-gray-300 mb-12"
+          >
             Join UniClub and unlock a world of opportunities, connections, and growth.
-          </p>
+          </motion.p>
+
           <Link to="/signup">
-            <button className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-10 py-5 rounded-full 
-              hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-              shadow-[0_0_25px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.5)]">
+            <motion.button
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-10 py-5 rounded-full 
+                transition-all duration-300 shadow-[0_0_25px_rgba(147,51,234,0.3)]"
+            >
               Create Your Account 
-              <Zap className="inline ml-2 transform group-hover:rotate-12 transition-transform" />
-            </button>
+              <motion.span
+                animate={{ rotate: [0, 15, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="inline-block ml-2"
+              >
+                <Zap />
+              </motion.span>
+            </motion.button>
           </Link>
         </div>
-      </section>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes fade-in-up {
-          from { 
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to { 
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 1s forwards;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 1s forwards;
-        }
-
-        .delay-300 {
-          animation-delay: 300ms;
-        }
-
-        .delay-500 {
-          animation-delay: 500ms;
-        }
-
-        .delay-700 {
-          animation-delay: 700ms;
-        }
-      `}</style>
+      </motion.section>
     </div>
   );
 };
