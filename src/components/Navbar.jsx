@@ -1,20 +1,61 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { UserCircle, Menu, X } from 'lucide-react';
+import { UserCircle, Menu, X, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState('/');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
+    // Handle scroll
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-    setActivePath(window.location.pathname);
     window.addEventListener('scroll', handleScroll);
+
+    // Set active path
+    setActivePath(window.location.pathname);
+
+    // Check for existing profile in localStorage
+    const storedProfile = localStorage.getItem('userProfile');
+    if (storedProfile) {
+      setUserProfile(JSON.parse(storedProfile));
+    }
+
+    // Check Supabase session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const profile = {
+          id: session.user.id,
+          name: session.user.user_metadata.full_name,
+          email: session.user.email,
+          picture: session.user.user_metadata.avatar_url
+        };
+        localStorage.setItem('userProfile', JSON.stringify(profile));
+        setUserProfile(profile);
+      }
+    };
+    checkSession();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem('userProfile');
+      setUserProfile(null);
+      setIsProfileOpen(false);
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const NavLink = ({ href, children, isMobile }) => {
     const isActive = activePath === href;
@@ -70,11 +111,11 @@ const Navbar = () => {
               transition-all duration-500 flex items-center gap-2
               ${scrolled ? 'scale-95' : 'scale-100'}
             `}>
-                <img className='h-[50px]' src="/clubsphereGradient.png"/>
+                <img className='h-[50px]' src="/clubsphereGradient.png" alt="ClubSphere"/>
                 <a href="/">
-                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                  ClubSphere
-                </span>
+                  <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                    ClubSphere
+                  </span>
                 </a>
             </div>
 
@@ -91,11 +132,70 @@ const Navbar = () => {
 
             {/* Right Section */}
             <div className="flex items-center gap-4">
-              <a href="/login">
-                <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
-                  <UserCircle className="h-6 w-6 text-gray-300" />
-                </button>
-              </a>
+              <div className="relative">
+                {userProfile ? (
+                  // Profile Button with Dropdown
+                  <>
+                    <button
+                      onClick={() => setIsProfileOpen(!isProfileOpen)}
+                      className="rounded-full overflow-hidden hover:ring-2 hover:ring-purple-500/30 transition-all duration-300"
+                    >
+                      <img
+                        src={userProfile.picture}
+                        alt={userProfile.name}
+                        className="h-8 w-8 object-cover"
+                      />
+                    </button>
+
+                    {/* Profile Dropdown */}
+                    {isProfileOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsProfileOpen(false)}
+                        />
+                        <div className="absolute right-0 top-12 w-72 bg-gray-800/90 backdrop-blur-xl rounded-xl shadow-xl border border-white/10 z-50 p-4">
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="relative group">
+                              <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/10">
+                                <img
+                                  src={userProfile.picture}
+                                  alt={userProfile.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="text-center">
+                              <h3 className="text-lg font-semibold text-white">
+                                {userProfile.name}
+                              </h3>
+                              <p className="text-sm text-gray-400">
+                                {userProfile.email}
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={handleSignOut}
+                              className="w-full mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center gap-2 group"
+                            >
+                              <LogOut className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                              Sign Out
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  // Login Button
+                  <a href="/login">
+                    <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+                      <UserCircle className="h-6 w-6 text-gray-300" />
+                    </button>
+                  </a>
+                )}
+              </div>
 
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}

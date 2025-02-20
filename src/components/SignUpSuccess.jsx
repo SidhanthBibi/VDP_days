@@ -47,7 +47,7 @@ const SignUpSuccess = () => {
           setIsProcessing(false);
           // Redirect after 1.5 seconds
           setTimeout(() => {
-            navigate(userType === 'student' ? '/events' : '/clubs');
+            navigate(userType === 'student' ? '/events' : '/clubDetailform');
           }, 1500);
         }, 1000);
       } catch (error) {

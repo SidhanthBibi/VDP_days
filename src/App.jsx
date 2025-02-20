@@ -41,7 +41,7 @@ function App() {
           {/*Animation router */}
           <Route path="/signupsuccess" element={<SignupTick />} />
           <Route path="/loginsuccess" element={<LoginSuccess />} />
-
+          
         </Routes>
       </ClubProvider>
     </BrowserRouter>
