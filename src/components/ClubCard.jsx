@@ -24,6 +24,8 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
   };
 
   const handleViewClub = () => {
+    // Using string interpolation to create the dynamic route
+    // This will navigate to /clubDetail/[id] where [id] is the club's ID
     navigate(`/clubDetail/${club.id}`);
   };
 
@@ -52,8 +54,8 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
           </div>
         </div>
 
-        <header className="flex  justify-between items-center flex-nowrap gap-4">
-          <span className= {`${getLogoStyles(club.category)}/20  bg-[#0046ae6b] text-[#155DFC] px-3 py-1 rounded-full`}>
+        <header className="flex justify-between items-center flex-nowrap gap-4">
+          <span className={`${getLogoStyles(club.category)}/20 bg-[#213A62] text-[#4F9EF9] px-3 py-1 rounded-full`}>
             {club.category}
           </span>
         </header>
