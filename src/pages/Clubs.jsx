@@ -1,48 +1,101 @@
-"use client"
-import { useState } from "react"
-import ClubCard from "../components/ClubCard"
-import Arrow from "../assets/ArrowDev.jpg"
-import NIC from "../assets/NIC.jpg"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import ClubCard from "../components/ClubCard";
+import { supabase } from '../lib/supabaseClient';
 
 const Clubs = () => {
-  const [activeCard, setActiveCard] = useState(null)
+  const navigate = useNavigate();
+  const [activeCard, setActiveCard] = useState(null);
+  const [clubs, setClubs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const clubs = [
-    {
-      id: 1,
-      name: "Arrow Dev",
-      category: "Technology",
-      memberCount: 120,
-      followers: 250,
-      achievements: "15+ Hackathons Organized",
-      description:
-        "A community of tech enthusiasts exploring cutting-edge technologies through workshops, hackathons, and collaborative projects.",
-      image: Arrow,
-      stats: {
-        events: "25+",
-        projects: "40+",
-        competitions: "10+",
-      },
-    },
-    {
-      id: 2,
-      name: "Next-gen intelligence",
-      category: "Arts & Design",
-      memberCount: 85,
-      followers: 180,
-      achievements: "Best Club Award 2024",
-      description:
-        "Bringing together creative minds to explore various aspects of design including UI/UX, graphic design, and product design.",
-      image: NIC,
-      stats: {
-        events: "20+",
-        projects: "35+",
-        competitions: "8+",
-      },
-    }
-  ]
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        setIsLoading(true);
+        
+        let query = supabase.from('Clubs').select('*');
+        
+        if (selectedCategory) {
+          query = query.eq('dept', selectedCategory);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        
+        // Transform data to match the expected format
+        const transformedClubs = data.map(club => ({
+          id: club.id,
+          name: club.name || '',
+          category: club.dept || 'Other', // Using department as category
+          memberCount: club.member || 0,
+          followers: club.followers || 0,
+          achievements: club.achievements || 'No achievements yet',
+          description: club.description || 'No description available',
+          image: club.image || null,
+          stats: {
+            events: "0+", // Default value since it's not in the database
+            members: club.member || "0",
+            followers: club.followers || "0"
+          }
+        }));
+        
+        setClubs(transformedClubs);
+        
+        // Extract unique categories (departments)
+        const uniqueCategories = [...new Set(data.map(club => club.dept).filter(Boolean))];
+        setCategories(uniqueCategories);
+        
+      } catch (err) {
+        console.error('Error fetching clubs:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchClubs();
+  }, [selectedCategory]);
 
-  const categories = [...new Set(clubs.map((club) => club.category))]
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category === selectedCategory ? null : category);
+  };
+  
+  const handleCreateClub = () => {
+    navigate('/clubDetailform ');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-xl">Loading clubs...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="bg-red-900/30 border border-red-700 rounded-lg p-6 max-w-md">
+          <h2 className="text-2xl font-bold mb-4">Error Loading Clubs</h2>
+          <p className="mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-900 text-white">
@@ -64,28 +117,48 @@ const Clubs = () => {
             {categories.map((category, index) => (
               <span
                 key={index}
-                className="px-3 sm:px-4 py-1 sm:py-2 text-sm sm:text-base rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 cursor-pointer transition-all duration-300"
+                className={`px-3 sm:px-4 py-1 sm:py-2 text-sm sm:text-base rounded-full 
+                  ${selectedCategory === category ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'} 
+                  cursor-pointer transition-all duration-300`}
+                onClick={() => handleCategoryClick(category)}
               >
                 {category}
               </span>
             ))}
           </div>
+          
+          
         </div>
 
-        {/* Card grid with improved responsive layout */}
-        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {clubs.map((club) => (
-            <ClubCard
-              key={club.id}
-              club={club}
-              activeCard={activeCard}
-              setActiveCard={setActiveCard}
-            />
-          ))}
-        </div>
+        {clubs.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-2xl font-semibold mb-4">No clubs found</h3>
+            {selectedCategory ? (
+              <p className="text-gray-400">
+                No clubs found in the {selectedCategory} category. Try selecting a different category or create a new club.
+              </p>
+            ) : (
+              <p className="text-gray-400">
+                There are no clubs registered yet. Be the first to create one!
+              </p>
+            )}
+          </div>
+        ) : (
+          /* Card grid with improved responsive layout */
+          <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {clubs.map((club) => (
+              <ClubCard
+                key={club.id}
+                club={club}
+                activeCard={activeCard}
+                setActiveCard={setActiveCard}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </main>
-  )
-}
+  );
+};
 
-export default Clubs
+export default Clubs;
