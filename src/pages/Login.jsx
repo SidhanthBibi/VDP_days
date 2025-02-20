@@ -22,7 +22,7 @@ const LoginPage = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/loginsuccess`
         }
       });
 
@@ -33,7 +33,6 @@ const LoginPage = () => {
     } catch (error) {
       console.error('Error during sign in:', error.message);
       toast.error('Failed to sign in with Google');
-    } finally {
       setIsLoading(false);
     }
   };
