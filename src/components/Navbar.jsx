@@ -20,27 +20,34 @@ const Navbar = () => {
     // Set active path
     setActivePath(window.location.pathname);
 
-    // Check for existing profile in localStorage
-    const storedProfile = localStorage.getItem('userProfile');
-    if (storedProfile) {
-      setUserProfile(JSON.parse(storedProfile));
-    }
-
-    // Check Supabase session
-    const checkSession = async () => {
+    // Check Supabase session and fetch user profile
+    const fetchUserProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (session?.user) {
+        // Fetch additional user profile information from Supabase
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
         const profile = {
           id: session.user.id,
-          name: session.user.user_metadata.full_name,
+          name: profileData?.full_name || session.user.user_metadata.full_name,
           email: session.user.email,
-          picture: session.user.user_metadata.avatar_url
+          picture: profileData?.avatar_url || session.user.user_metadata.avatar_url
         };
-        localStorage.setItem('userProfile', JSON.stringify(profile));
+
         setUserProfile(profile);
       }
     };
-    checkSession();
+    fetchUserProfile();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -48,7 +55,6 @@ const Navbar = () => {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem('userProfile');
       setUserProfile(null);
       setIsProfileOpen(false);
       window.location.href = '/login';
