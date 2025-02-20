@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useLocation } from 'react-router-dom';
 import { Calendar, Users, Clock, MapPin, CircleDollarSign } from 'lucide-react';
 

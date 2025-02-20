@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Terminal, UserCircle2, Mail, Phone, Calendar, Users, ChevronRight } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import Poster from '../assets/CodeTheDark_Poster.png';
 
 const CyberpunkForm = () => {
