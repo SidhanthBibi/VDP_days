@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Trophy, Calendar, Folder, Award } from 'lucide-react';
+import { Users, Trophy, Calendar, User, UserPlus } from 'lucide-react';
 
 const ClubCard = ({ club, activeCard, setActiveCard }) => {
   const navigate = useNavigate();
@@ -14,7 +14,11 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
       Business: 'bg-green-500',
       Culture: 'bg-red-500',
       Science: 'bg-yellow-500',
-      Arts: 'bg-pink-500'
+      Arts: 'bg-pink-500',
+      Engineering: 'bg-cyan-500',
+      Sports: 'bg-orange-500',
+      Literature: 'bg-indigo-500',
+      Music: 'bg-rose-500'
     };
     return styles[category] || 'bg-gray-500';
   };
@@ -48,8 +52,8 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
           </div>
         </div>
 
-        <header className="flex justify-between items-center flex-nowrap gap-4">
-          <span className={`${getLogoStyles(club.category)}/20 text-${getLogoStyles(club.category).replace('bg-', '')} px-3 py-1 rounded-full`}>
+        <header className="flex  justify-between items-center flex-nowrap gap-4">
+          <span className= {`${getLogoStyles(club.category)}/20  bg-[#0046ae6b] text-[#155DFC] px-3 py-1 rounded-full`}>
             {club.category}
           </span>
         </header>
@@ -65,7 +69,7 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
         </div>
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-400">{club.members} members</span>
+          <span className="text-gray-400">{club.memberCount} members</span>
         </div>
       </section>
       
@@ -80,17 +84,17 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
           </div>
           <div className="text-center">
             <div className="flex justify-center mb-2">
-              <Folder className="h-5 w-5 text-green-400" />
+              <User className="h-5 w-5 text-green-400" />
             </div>
-            <p className="text-lg font-bold text-green-400">{club.stats.projects}</p>
-            <p className="text-xs text-gray-400">Projects</p>
+            <p className="text-lg font-bold text-green-400">{club.stats.members}</p>
+            <p className="text-xs text-gray-400">Members</p>
           </div>
           <div className="text-center">
             <div className="flex justify-center mb-2">
-              <Award className="h-5 w-5 text-yellow-400" />
+              <UserPlus className="h-5 w-5 text-yellow-400" />
             </div>
-            <p className="text-lg font-bold text-yellow-400">{club.stats.competitions}</p>
-            <p className="text-xs text-gray-400">Competitions</p>
+            <p className="text-lg font-bold text-yellow-400">{club.stats.followers}</p>
+            <p className="text-xs text-gray-400">Followers</p>
           </div>
         </div>
         
