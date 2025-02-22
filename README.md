@@ -2,32 +2,51 @@
 
 ## Project Structure
 
-vdp/ <br>
-├── client/                 # Frontend React application <br>
-│   ├── public/             # Static files <br>
-│   │   └── index.html      # Main HTML file <br>
-│   ├── src/                # Source files <br>
-│   │   ├── components/     # Reusable React components <br>
-│   │   │   └── Club.jsx    # Club component <br>
-│   │   ├── pages/          # Page components <br>
-│   │   │   └── ClubPage.jsx# Club page component <br>
-│   │   ├── App.js          # Main application component <br>
-│   │   ├── index.js        # Entry point <br>
-│   │   └── App.css         # CSS styles <br>
-│   ├── package.json        # Frontend dependencies <br>
-│   └── README.md           # Frontend README <br>
-│ <br>
-└── server/                 # Backend Node.js application <br>
-    ├── src/                # Source files <br>
-    │   ├── controllers/    # Route controllers <br>
-    │   │   └── clubController.js # Club controller <br>
-    │   ├── models/         # Database models <br>
-    │   │   └── clubModel.js# Club model <br>
-    │   ├── routes/         # API routes <br>
-    │   │   └── clubRoutes.js# Club routes <br>
-    │   └── index.js        # Entry point <br>
-    ├── package.json        # Backend dependencies <br>
-    └── README.md           # Backend README <br>
+Directory structure:
+└── sidhanthbibi-vdp_days/
+    ├── README.md
+    ├── LICENSE
+    ├── eslint.config.js
+    ├── index.html
+    ├── package.json
+    ├── vercel.json
+    ├── vite.config.js
+    ├── public/
+    │   └── policies/
+    │       ├── contact.html
+    │       ├── privacy.html
+    │       ├── refunds.html
+    │       └── terms.html
+    └── src/
+        ├── App.css
+        ├── App.jsx
+        ├── index.css
+        ├── main.jsx
+        ├── assets/
+        ├── components/
+        │   ├── ClubCard.jsx
+        │   ├── LoginSuccess.jsx
+        │   ├── Navbar.jsx
+        │   └── SignUpSuccess.jsx
+        ├── context/
+        │   └── ClubContext.jsx
+        ├── lib/
+        │   └── supabaseClient.js
+        └── pages/
+            ├── About.jsx
+            ├── ClubDetail.jsx
+            ├── ClubDetailForm.jsx
+            ├── Clubs.jsx
+            ├── CodeTheDark_RegisterPage.jsx
+            ├── CreateNewEvent.jsx
+            ├── Events.jsx
+            ├── Explore.jsx
+            ├── Home.jsx
+            ├── Landing.jsx
+            ├── Login.jsx
+            ├── NotFound.jsx
+            └── SignUp.jsx
+
 
 ## Setup Instructions
 
