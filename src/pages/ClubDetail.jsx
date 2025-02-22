@@ -1,12 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { 
-  Users, Trophy, Calendar, User, UserPlus,
-  Clock, MapPin, Mail, ArrowLeft, Share2, 
-  Heart, Plus, Globe, Instagram, Linkedin, CircleDollarSign
-} from 'lucide-react';
-
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
+import {
+  Users,
+  Trophy,
+  Calendar,
+  User,
+  UserPlus,
+  Clock,
+  MapPin,
+  Mail,
+  ArrowLeft,
+  Share2,
+  Heart,
+  Plus,
+  Globe,
+  Instagram,
+  Linkedin,
+  CircleDollarSign,
+} from "lucide-react";
 
 const ClubDetail = () => {
   const navigate = useNavigate();
@@ -16,33 +28,68 @@ const ClubDetail = () => {
   const [error, setError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
   const [clubEvents, setClubEvents] = useState([]);
+  const [userType, setUserType] = useState(null);
+
+  // Fetch user type on component mount
+  useEffect(() => {
+    const fetchUserType = async () => {
+      try {
+        // Get current user
+        const {
+          data: { session },
+          error: authError,
+        } = await supabase.auth.getSession();
+        
+        if (authError) throw authError;
+
+        if (session?.user) {
+          // Fetch user type from profiles table
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("user_type")
+            .eq("id", session.user.id)
+            .single();
+          
+          console.log(profileData);
+          if (profileError) throw profileError;
+
+          setUserType(profileData?.user_type || null);
+        }
+      } catch (err) {
+        console.error("Error fetching user type:", err);
+      }
+    };
+
+    fetchUserType();
+  }, []);
 
   const handleLikeClick = async () => {
     try {
       setLoading(true);
-      const newFollowerCount = isLiked ? club.stats.followers - 1 : club.stats.followers + 1;
-      
+      const newFollowerCount = isLiked
+        ? club.stats.followers - 1
+        : club.stats.followers + 1;
+
       // Update the followers count in the database
       const { error: updateError } = await supabase
-        .from('Clubs')
+        .from("Clubs")
         .update({ followers: parseInt(newFollowerCount) })
-        .eq('id', id);
+        .eq("id", id);
 
       if (updateError) throw updateError;
 
       // Update local state
-      setClub(prevClub => ({
+      setClub((prevClub) => ({
         ...prevClub,
         stats: {
           ...prevClub.stats,
-          followers: newFollowerCount.toString()
-        }
+          followers: newFollowerCount.toString(),
+        },
       }));
-      
+
       setIsLiked(!isLiked);
-      
     } catch (err) {
-      console.error('Error updating followers:', err);
+      console.error("Error updating followers:", err);
       // You might want to show an error message to the user here
     } finally {
       setLoading(false);
@@ -53,12 +100,12 @@ const ClubDetail = () => {
     const fetchClubDetails = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch club details
         const { data: clubData, error: clubError } = await supabase
-          .from('Clubs')
-          .select('*')
-          .eq('id', id)
+          .from("Clubs")
+          .select("*")
+          .eq("id", id)
           .single();
 
         if (clubError) throw clubError;
@@ -67,36 +114,35 @@ const ClubDetail = () => {
         const transformedClub = {
           id: clubData.id,
           name: clubData.name,
-          category: clubData.dept || 'Uncategorized',
+          category: clubData.dept || "Uncategorized",
           image: clubData.image,
           description: clubData.description,
-          achievements: clubData.achievements || 'No achievements yet',
+          achievements: clubData.achievements || "No achievements yet",
           memberCount: clubData.member || 0,
           stats: {
-            events: '0+',
-            members: clubData.member?.toString() || '0',
-            followers: clubData.followers?.toString() || '0'
+            events: "0+",
+            members: clubData.member?.toString() || "0",
+            followers: clubData.followers?.toString() || "0",
           },
-          contactEmail: clubData.email || 'No email provided',
+          contactEmail: clubData.email || "No email provided",
           instagram_url: clubData.instagram_url,
           linkedin_url: clubData.linkedin_url,
-          website: clubData.website
+          website: clubData.website,
         };
-        
+
         setClub(transformedClub);
 
         // Fetch events for this club
         const { data: eventsData, error: eventsError } = await supabase
-          .from('Events')
-          .select('*')
-          .eq('club_name', clubData.name);
+          .from("Events")
+          .select("*")
+          .eq("club_name", clubData.name);
 
         if (eventsError) throw eventsError;
-        
+
         setClubEvents(eventsData || []);
-        
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error("Error fetching data:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -126,7 +172,7 @@ const ClubDetail = () => {
           <h1 className="text-3xl font-bold mb-4">Club not found</h1>
           <p className="text-gray-400 mb-4">{error}</p>
           <button
-            onClick={() => navigate('/clubs')}
+            onClick={() => navigate("/clubs")}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-colors"
           >
             Back to Clubs
@@ -141,8 +187,8 @@ const ClubDetail = () => {
       {/* Hero Section */}
       <div className="relative h-72 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="absolute inset-0 bg-black/30"></div>
-        <button 
-          onClick={() => navigate('/clubs')}
+        <button
+          onClick={() => navigate("/clubs")}
           className="absolute top-6 left-6 flex items-center gap-2 text-white bg-black/30 px-4 py-2 rounded-lg hover:bg-black/40 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -157,8 +203,8 @@ const ClubDetail = () => {
             <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
               <div className="w-32 h-32 rounded-2xl bg-blue-500 flex items-center justify-center text-4xl font-bold text-white overflow-hidden">
                 {club.image ? (
-                  <img 
-                    src={club.image} 
+                  <img
+                    src={club.image}
                     alt={`${club.name} logo`}
                     className="w-full h-full object-cover"
                   />
@@ -166,7 +212,7 @@ const ClubDetail = () => {
                   <span>{club.name.charAt(0)}</span>
                 )}
               </div>
-              
+
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                   <h1 className="text-3xl font-bold text-white">{club.name}</h1>
@@ -191,20 +237,27 @@ const ClubDetail = () => {
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-colors">
                   Join Club
                 </button>
+                {/* {userType === "student" && ( */}
+                  <a href="/create_event">
+                    <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </a>
+                {/* )} */}
                 <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
                   <Share2 className="w-5 h-5" />
                 </button>
-                <button 
+                <button
                   onClick={handleLikeClick}
                   className={`${
-                    isLiked 
-                      ? 'bg-red-600 hover:bg-red-700' 
-                      : 'bg-gray-700 hover:bg-gray-600'
+                    isLiked
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-gray-700 hover:bg-gray-600"
                   } text-white p-2 rounded-xl transition-colors relative group`}
                   disabled={loading}
                 >
-                  <Heart 
-                    className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} 
+                  <Heart
+                    className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
                   />
                   {loading && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl">
@@ -221,17 +274,23 @@ const ClubDetail = () => {
             <div className="grid grid-cols-3 divide-x divide-gray-700">
               <div className="p-6 text-center">
                 <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-400">{club.stats.events}</p>
+                <p className="text-2xl font-bold text-blue-400">
+                  {club.stats.events}
+                </p>
                 <p className="text-sm text-gray-400">Events</p>
               </div>
               <div className="p-6 text-center">
                 <User className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-green-400">{club.stats.members}</p>
+                <p className="text-2xl font-bold text-green-400">
+                  {club.stats.members}
+                </p>
                 <p className="text-sm text-gray-400">Members</p>
               </div>
               <div className="p-6 text-center">
                 <UserPlus className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-yellow-400">{club.stats.followers}</p>
+                <p className="text-2xl font-bold text-yellow-400">
+                  {club.stats.followers}
+                </p>
                 <p className="text-sm text-gray-400">Followers</p>
               </div>
             </div>
@@ -251,10 +310,10 @@ const ClubDetail = () => {
             <h2 className="text-xl font-bold text-white mb-4">Club Info</h2>
             <div className="space-y-4">
               {club.website && (
-                <a 
+                <a
                   href={club.website}
                   target="_blank"
-                  rel="noopener noreferrer" 
+                  rel="noopener noreferrer"
                   className="flex items-center gap-3 text-gray-400 hover:text-blue-400 transition-colors"
                 >
                   <Globe className="w-5 h-5" />
@@ -262,7 +321,7 @@ const ClubDetail = () => {
                 </a>
               )}
               {club.instagram_url && (
-                <a 
+                <a
                   href={club.instagram_url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -273,7 +332,7 @@ const ClubDetail = () => {
                 </a>
               )}
               {club.linkedin_url && (
-                <a 
+                <a
                   href={club.linkedin_url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -290,7 +349,7 @@ const ClubDetail = () => {
         {/* Events Section */}
         <div className="bg-gray-800 rounded-2xl p-6 mt-6 mb-8">
           <h2 className="text-xl font-bold text-white mb-6">Events Hosted</h2>
-          
+
           {clubEvents.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-400">No events hosted yet</p>
@@ -310,13 +369,17 @@ const ClubDetail = () => {
                       alt={event.event_name}
                       className="w-full h-full object-cover"
                     />
-                    
+
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between">
                       <div>
-                        <h3 className="text-xl font-bold mb-2">{event.event_name}</h3>
-                        <p className="text-gray-300 line-clamp-3 mb-4">{event.description}</p>
-                        
+                        <h3 className="text-xl font-bold mb-2">
+                          {event.event_name}
+                        </h3>
+                        <p className="text-gray-300 line-clamp-3 mb-4">
+                          {event.description}
+                        </p>
+
                         <div className="space-y-2">
                           <div className="flex items-center text-gray-300">
                             <Calendar className="w-4 h-4 mr-2" />
@@ -332,11 +395,11 @@ const ClubDetail = () => {
                           </div>
                           <div className="flex items-center text-gray-300">
                             <CircleDollarSign className="w-4 h-4 mr-2" />
-                            <span>{event.price || 'Free'}</span>
+                            <span>{event.price || "Free"}</span>
                           </div>
                         </div>
                       </div>
-{/* 
+                      {/* 
                       <a
                         href={event.register_link}
                         target="_blank"
@@ -352,7 +415,9 @@ const ClubDetail = () => {
 
                   {/* Title visible without hover */}
                   <div className="flex flex-col justify-end absolute h-30 bottom-0 left-0 right-0 p-4 z-30 bg-gradient-to-t from-black to-transparent">
-                    <h3 className="text-lg font-semibold text-white truncate">{event.event_name}</h3>
+                    <h3 className="text-lg font-semibold text-white truncate">
+                      {event.event_name}
+                    </h3>
                     <p className="text-gray-300 text-sm">{event.date}</p>
                   </div>
                 </div>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Building2, Mail, Phone, Globe, ChevronRight, Github, Linkedin, Twitter } from 'lucide-react';
+import { Building2, Mail, Phone, Globe, ChevronRight, Github, Linkedin, Instagram } from 'lucide-react';
 import Sidh from '../assets/Sidh.jpg';
 import Adron from '../assets/Adron.jpg';
 import Lenny from '../assets/Lenny.jpg';
 import Arindan from '../assets/Aridam.jpg';
 import Ananya from '../assets/Ananya.jpg';
 import Ashish from '../assets/AshishRanjan.jpg';
+import Arpita from '../assets/Arpita.jpg'
 
 const About = () => {
   const [hoveredMember, setHoveredMember] = useState(null);
@@ -49,7 +50,7 @@ const About = () => {
     },
     {
       id: 4,
-      name: "Arindan Jamiman",
+      name: "Arindam Jaiman",
       role: "Developer",
       image: Arindan,
       bio: "Building the future of student communities",
@@ -79,10 +80,21 @@ const About = () => {
       bio: "Dedicated to crafting exceptional web experiences",
       socials: {
         github: "#",
+        linkedin: "https://www.linkedin.com/in/ashish-ranjan-670780322",
+        twitter: "https://www.instagram.com/m_.one._y"
+      }
+    },
+    {
+      id: 7,
+      name: "Arpita Biswal",
+      role: "Designer",
+      image: Arpita,
+      bio: "Turning ideas into success with innovation and preciion",
+      socials: {
+        github: "#",
         linkedin: "#",
         twitter: "#"
-      }
-    }
+      }}
   ];
 
   const contactInfo = [
@@ -197,14 +209,14 @@ const About = () => {
                 <div className={`flex space-x-4 transition-opacity duration-300 ${
                   hoveredMember === member.id ? 'opacity-100' : 'opacity-0'
                 }`}>
-                  <a href={member.socials.github} className="text-gray-400 hover:text-white">
+                  <a href={member.socials.github} target='_blank' className="text-gray-400 hover:text-white">
                     <Github className="w-5 h-5" />
                   </a>
-                  <a href={member.socials.linkedin} className="text-gray-400 hover:text-white">
+                  <a href={member.socials.linkedin} target='_blank' className="text-gray-400 hover:text-white">
                     <Linkedin className="w-5 h-5" />
                   </a>
-                  <a href={member.socials.twitter} className="text-gray-400 hover:text-white">
-                    <Twitter className="w-5 h-5" />
+                  <a href={member.socials.twitter}  target='_blank' className="text-gray-400 hover:text-white">
+                    <Instagram className="w-5 h-5" />
                   </a>
                 </div>
               </div>
