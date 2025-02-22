@@ -18,6 +18,9 @@ import {
   Instagram,
   Linkedin,
   CircleDollarSign,
+  Check,
+  CircleCheck,
+  Settings,
 } from "lucide-react";
 
 const ClubDetail = () => {
@@ -27,72 +30,70 @@ const ClubDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [clubEvents, setClubEvents] = useState([]);
-  const [userType, setUserType] = useState(null);
+  const [isHiring, setIsHiring] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
+  const [isCoordinator, setIsCoordinator] = useState(false);
 
-  // Fetch user type on component mount
+  // Authentication check
   useEffect(() => {
-    const fetchUserType = async () => {
+    const checkAuth = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        navigate("/login", {
+          state: {
+            returnUrl: `/clubs/${id}`, // Store the current URL to redirect back after login
+          },
+        });
+      }
+    };
+
+    checkAuth();
+  }, [navigate, id]);
+
+  // Fetch current user's email
+  useEffect(() => {
+    const fetchUserEmail = async () => {
       try {
-        // Get current user
         const {
           data: { session },
           error: authError,
         } = await supabase.auth.getSession();
-        
         if (authError) throw authError;
 
-        if (session?.user) {
-          // Fetch user type from profiles table
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("user_type")
-            .eq("id", session.user.id)
-            .single();
-          
-          console.log(profileData);
-          if (profileError) throw profileError;
-
-          setUserType(profileData?.user_type || null);
+        if (session?.user?.email) {
+          setCurrentUserEmail(session.user.email);
         }
       } catch (err) {
-        console.error("Error fetching user type:", err);
+        console.error("Error fetching user email:", err);
       }
     };
 
-    fetchUserType();
+    fetchUserEmail();
   }, []);
 
-  const handleLikeClick = async () => {
+  const handleCopy = async () => {
     try {
-      setLoading(true);
-      const newFollowerCount = isLiked
-        ? club.stats.followers - 1
-        : club.stats.followers + 1;
+      // Get the current URL
+      const currentUrl = window.location.href;
 
-      // Update the followers count in the database
-      const { error: updateError } = await supabase
-        .from("Clubs")
-        .update({ followers: parseInt(newFollowerCount) })
-        .eq("id", id);
+      // Copy to clipboard
+      await navigator.clipboard.writeText(currentUrl);
 
-      if (updateError) throw updateError;
+      // Show success state
+      setCopied(true);
 
-      // Update local state
-      setClub((prevClub) => ({
-        ...prevClub,
-        stats: {
-          ...prevClub.stats,
-          followers: newFollowerCount.toString(),
-        },
-      }));
-
-      setIsLiked(!isLiked);
+      // Reset after 2 seconds
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
     } catch (err) {
-      console.error("Error updating followers:", err);
-      // You might want to show an error message to the user here
-    } finally {
-      setLoading(false);
+      console.error("Failed to copy URL:", err);
     }
   };
 
@@ -101,10 +102,10 @@ const ClubDetail = () => {
       try {
         setLoading(true);
 
-        // Fetch club details
+        // Fetch club details including Club_Coordinator
         const { data: clubData, error: clubError } = await supabase
           .from("Clubs")
-          .select("*")
+          .select("*, Club_Coordinator") // Explicitly select Club_Coordinator
           .eq("id", id)
           .single();
 
@@ -128,9 +129,18 @@ const ClubDetail = () => {
           instagram_url: clubData.instagram_url,
           linkedin_url: clubData.linkedin_url,
           website: clubData.website,
+          Club_Coordinator: clubData.Club_Coordinator, // Add coordinator email
         };
 
         setClub(transformedClub);
+
+        // Check if current user is the coordinator
+        if (
+          currentUserEmail &&
+          clubData.Club_Coordinator === currentUserEmail
+        ) {
+          setIsCoordinator(true);
+        }
 
         // Fetch events for this club
         const { data: eventsData, error: eventsError } = await supabase
@@ -149,10 +159,10 @@ const ClubDetail = () => {
       }
     };
 
-    if (id) {
+    if (id && currentUserEmail) {
       fetchClubDetails();
     }
-  }, [id]);
+  }, [id, currentUserEmail]); // Added currentUserEmail as dependency
 
   if (loading) {
     return (
@@ -234,21 +244,54 @@ const ClubDetail = () => {
               </div>
 
               <div className="flex gap-3">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-colors">
-                  Join Club
-                </button>
-                {/* {userType === "student" && ( */}
+                {isCoordinator? (
+                  <button className="border-1 border-gray-600 text-gray-400 px-6 py-2 rounded-xl transition-colors">
+                    Join Club
+                  </button>
+                ) : isHiring ? (
+                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-colors">
+                    Join Club
+                  </button>
+                ) : (
+                  <button className="border-1 border-gray-600  text-white px-6 py-2 rounded-xl transition-colors">
+                    Not Hiring
+                  </button>
+                )}
+                
+                {isCoordinator && (
                   <a href="/create_event">
                     <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
-                      <Plus className="w-5 h-5" />
+                      <Plus className="w-5 h-6" />
                     </button>
                   </a>
-                {/* )} */}
-                <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
-                  <Share2 className="w-5 h-5" />
-                </button>
+                )}
                 <button
-                  onClick={handleLikeClick}
+                  onClick={handleCopy}
+                  className="bg-gray-700 hover:bg-gray-600 flex justify-center items-center gap-1 text-white p-2 rounded-xl transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <span>
+                        <CircleCheck className="w-5 h-5" />
+                      </span>
+                      Link Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+
+                {isCoordinator && (
+                  <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
+                    <Settings className="w-5 h-6" />
+                  </button>
+                )}
+
+                {/*like button code*/}
+                {/* <button
+                  // onClick={handleLikeClick}
                   className={`${
                     isLiked
                       ? "bg-red-600 hover:bg-red-700"
@@ -260,11 +303,11 @@ const ClubDetail = () => {
                     className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
                   />
                   {loading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl">
+                    <div className="border absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     </div>
                   )}
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
