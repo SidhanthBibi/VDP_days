@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,27 @@ const ClubDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [userSession, setUserSession] = useState(null);
+
+  // Fetch user session when component mounts
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        setError('Please login to create a club');
+        navigate('/login');
+        return;
+      }
+      if (!session) {
+        setError('Please login to create a club');
+        navigate('/login');
+        return;
+      }
+      setUserSession(session);
+    };
+
+    getSession();
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -42,6 +63,13 @@ const ClubDetail = () => {
     setSuccess('');
     
     try {
+      if (!userSession?.user) {
+        throw new Error('Please login to create a club');
+      }
+
+      // Get user email from session
+      const userEmail = userSession.user.email;
+      
       // 1. Upload image to storage if there is one
       let imageUrl = null;
       if (logoFile) {
@@ -79,8 +107,8 @@ const ClubDetail = () => {
           
         imageUrl = urlData.publicUrl;
       }
-      
-      // 2. Insert record into Clubs table
+  
+      // 2. Insert record into Clubs table with coordinator email
       const { error: insertError } = await supabase
         .from('Clubs')
         .insert({
@@ -93,7 +121,8 @@ const ClubDetail = () => {
           website: formData.website || null,
           achievements: formData.achievements || null,
           member: formData.member || 0,
-          followers: 0 // Default value
+          followers: 0,
+          Club_Coordinator: userEmail // Add the coordinator's email
         });
         
       if (insertError) throw insertError;
@@ -149,6 +178,7 @@ const ClubDetail = () => {
           )}
           
           <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* Your existing form fields */}
             <div>
               <label className="block text-sm font-medium mb-1">Club Name</label>
               <input
