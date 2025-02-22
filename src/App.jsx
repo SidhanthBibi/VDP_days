@@ -14,6 +14,7 @@ import SignupTick from './components/SignUpSuccess.jsx'
 import { ClubProvider } from './context/ClubContext';
 import CodeTheDark_Reg from './pages/CodeTheDark_RegisterPage.jsx';
 import LoginSuccess from './components/LoginSuccess.jsx';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
           <Route path="/CodeTheDark" element={<CodeTheDark_Reg />} />
+          <Route path="*" element={<NotFound />} />
           
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -41,7 +43,7 @@ function App() {
           {/*Animation router */}
           <Route path="/signupsuccess" element={<SignupTick />} />
           <Route path="/loginsuccess" element={<LoginSuccess />} />
-          
+
         </Routes>
       </ClubProvider>
     </BrowserRouter>
