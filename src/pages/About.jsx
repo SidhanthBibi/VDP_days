@@ -75,7 +75,7 @@ const About = () => {
     {
       id: 6,
       name: "Ashish Ranjan",
-      role: "Developer",
+      role: "Designer",
       image: Ashish,
       bio: "Dedicated to crafting exceptional web experiences",
       socials: {
