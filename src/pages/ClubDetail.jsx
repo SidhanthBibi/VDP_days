@@ -240,7 +240,7 @@ const ClubDetail = () => {
           achievements: clubData.achievements || "No achievements yet",
           memberCount: clubData.member || 0,
           stats: {
-            events: "0+",
+            events: clubData.events?.toString() || "0+",
             members: clubData.member?.toString() || "0",
             followers: clubData.followers?.toString() || "0",
           },
@@ -248,7 +248,8 @@ const ClubDetail = () => {
           instagram_url: clubData.instagram_url,
           linkedin_url: clubData.linkedin_url,
           website: clubData.website,
-          Club_Coordinator: clubData.Club_Coordinator, // Add coordinator email
+          Club_Coordinator: clubData.Club_Coordinator,
+           // Add coordinator email
         };
 
         setClub(transformedClub);
