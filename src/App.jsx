@@ -20,6 +20,11 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function App() {
   return (
+    <>
+    {/* Vercel Analytics */}
+    <Analytics />
+          <SpeedInsights />
+
     <BrowserRouter>
       <ClubProvider>
         <Navbar />
@@ -38,10 +43,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
 
-         {/* Vercel Analytics */}
-          <Analytics />
-          <SpeedInsights />
-
+         
           
           {/* Club-related routes */}
           <Route path="/clubDetailform" element={<ClubDetailForm />} />
@@ -54,6 +56,8 @@ function App() {
         </Routes>
       </ClubProvider>
     </BrowserRouter>
+    
+    </>
   );
 }
 
