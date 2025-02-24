@@ -21,6 +21,7 @@ import {
   Check,
   CircleCheck,
   Settings,
+  Upload,
 } from "lucide-react";
 
 const ClubDetail = () => {
@@ -35,6 +36,16 @@ const ClubDetail = () => {
   const [isHiring, setIsHiring] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
   const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [newLogoFile, setNewLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
+    website: "",
+    instagram_url: "",
+    linkedin_url: "",
+  });
 
   // Authentication check
   useEffect(() => {
@@ -97,17 +108,125 @@ const ClubDetail = () => {
     }
   };
 
+  // Add this function to handle logo file changes
+  const handleUpdateClubDetails = async () => {
+    try {
+      setLoading(true);
+
+      // First update the logo if there's a new one
+      let imageUrl = club.image;
+      if (newLogoFile) {
+        const fileExt = newLogoFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 7)}.${fileExt}`;
+        const filePath = `clubs/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("assets")
+          .upload(filePath, newLogoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
+
+        imageUrl = data.publicUrl;
+      }
+
+      // Update club details
+      const { error: updateError } = await supabase
+        .from("Clubs")
+        .update({
+          name: editFormData.name,
+          description: editFormData.description,
+          website: editFormData.website || null,
+          instagram_url: editFormData.instagram_url || null,
+          linkedin_url: editFormData.linkedin_url || null,
+          image: imageUrl,
+        })
+        .eq("id", club.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setClub((prev) => ({
+        ...prev,
+        name: editFormData.name,
+        description: editFormData.description,
+        website: editFormData.website,
+        instagram_url: editFormData.instagram_url,
+        linkedin_url: editFormData.linkedin_url,
+        image: imageUrl,
+      }));
+
+      setIsSettingsOpen(false);
+      setNewLogoFile(null);
+      setLogoPreview(null);
+
+
+      // Reload the page to reflect all changes
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating club details:", error);
+      alert("Failed to update club details: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  useEffect(() => {
+    if (isSettingsOpen && club) {
+      setEditFormData({
+        name: club.name,
+        description: club.description,
+        website: club.website || "",
+        instagram_url: club.instagram_url || "",
+        linkedin_url: club.linkedin_url || "",
+      });
+    }
+  }, [isSettingsOpen, club]);
+
+  const handleLogoChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    // File size validation (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size must be less than 5MB");
+      return;
+    }
+
+    // File type validation
+    if (!file.type.startsWith('image/')) {
+      alert("Please upload an image file");
+      return;
+    }
+
+    setNewLogoFile(file);
+    
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setLogoPreview(previewUrl);
+  }
+};
   useEffect(() => {
     const fetchClubDetails = async () => {
       try {
-        setLoading(true);
-
-        // Fetch club details including Club_Coordinator
         const { data: clubData, error: clubError } = await supabase
           .from("Clubs")
-          .select("*, Club_Coordinator") // Explicitly select Club_Coordinator
+          .select("*")
           .eq("id", id)
           .single();
+
+        console.log("Fetched club data:", clubData); // Add this line
+        // ... rest of your code
 
         if (clubError) throw clubError;
 
@@ -180,7 +299,6 @@ const ClubDetail = () => {
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-4">Club not found</h1>
-          <p className="text-gray-400 mb-4">{error}</p>
           <button
             onClick={() => navigate("/clubs")}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-colors"
@@ -244,7 +362,7 @@ const ClubDetail = () => {
               </div>
 
               <div className="flex gap-3">
-                {isCoordinator? (
+                {isCoordinator ? (
                   <button className="border-1 border-gray-600 text-gray-400 px-6 py-2 rounded-xl transition-colors">
                     Join Club
                   </button>
@@ -257,7 +375,7 @@ const ClubDetail = () => {
                     Not Hiring
                   </button>
                 )}
-                
+
                 {isCoordinator && (
                   <a href="/create_event">
                     <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
@@ -284,9 +402,181 @@ const ClubDetail = () => {
                 </button>
 
                 {isCoordinator && (
-                  <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
-                    <Settings className="w-5 h-6" />
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setIsSettingsOpen(true)}
+                      className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors"
+                    >
+                      <Settings className="w-5 h-6" />
+                    </button>
+
+                    {/* Settings Modal */}
+                    {isSettingsOpen && (
+                      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                        <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+                          {/* Close button */}
+                          <button
+                            onClick={() => setIsSettingsOpen(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                          >
+                            <svg
+                              className="w-6 h-6"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+
+                          <h2 className="text-2xl font-bold text-center mb-6">
+                            Club Settings
+                          </h2>
+
+                          {/* Logo Update Section */}
+                          <div className="flex flex-col items-center mb-6">
+                            <label className="block text-sm font-medium mb-2">
+                              Update Club Logo
+                            </label>
+                            <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-700 mb-4">
+                              {logoPreview || club.image ? (
+                                <img
+                                  src={logoPreview || club.image}
+                                  alt="Logo preview"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
+                                  {club.name.charAt(0)}
+                                </div>
+                              )}
+
+                              {/* Upload overlay */}
+                              <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
+                                <Upload className="w-8 h-8 text-white mb-2" />
+                                <span className="text-sm text-white">
+                                  Upload new logo
+                                </span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={handleLogoChange}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Club Details Form */}
+                          <div className="space-y-4">
+                            {/* Club Name */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Club Name
+                              </label>
+                              <input
+                                type="text"
+                                name="name"
+                                value={editFormData.name}
+                                onChange={handleEditInputChange}
+                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                                required
+                              />
+                            </div>
+
+                            {/* About */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                About Club
+                              </label>
+                              <textarea
+                                name="description"
+                                value={editFormData.description}
+                                onChange={handleEditInputChange}
+                                rows={4}
+                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                                required
+                              />
+                            </div>
+
+                            {/* Website URL */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Website URL
+                              </label>
+                              <input
+                                type="url"
+                                name="website"
+                                value={editFormData.website}
+                                onChange={handleEditInputChange}
+                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                                placeholder="https://..."
+                              />
+                            </div>
+
+                            {/* Instagram URL */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Instagram URL
+                              </label>
+                              <input
+                                type="url"
+                                name="instagram_url"
+                                value={editFormData.instagram_url}
+                                onChange={handleEditInputChange}
+                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                                placeholder="https://instagram.com/..."
+                              />
+                            </div>
+
+                            {/* LinkedIn URL */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                LinkedIn URL
+                              </label>
+                              <input
+                                type="url"
+                                name="linkedin_url"
+                                value={editFormData.linkedin_url}
+                                onChange={handleEditInputChange}
+                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                                placeholder="https://linkedin.com/..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
+                            <button
+                              onClick={() => setIsSettingsOpen(false)}
+                              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleUpdateClubDetails}
+                              disabled={loading}
+                              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                              {loading ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                  Updating...
+                                </>
+                              ) : (
+                                "Save Changes"
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/*like button code*/}

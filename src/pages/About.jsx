@@ -27,7 +27,7 @@ const About = () => {
     {
       id: 2,
       name: "Adorn S George",
-      role: "Developer",
+      role: "Lead Developer",
       image: Adron,
       bio: "Turning complex problems into elegant solutions",
       socials: {
@@ -39,7 +39,7 @@ const About = () => {
     {
       id: 3,
       name: "Lenny Dany Derek",
-      role: "Developer",
+      role: "Lead Developer",
       image: Lenny,
       bio: "Got it! Your focus on scalability and maintainability will definitely help in building efficient and future-proof applications",
       socials: {
@@ -75,7 +75,7 @@ const About = () => {
     {
       id: 6,
       name: "Ashish Ranjan",
-      role: "Designer",
+      role: "Developer",
       image: Ashish,
       bio: "Dedicated to crafting exceptional web experiences",
       socials: {
@@ -87,7 +87,7 @@ const About = () => {
     {
       id: 7,
       name: "Arpita Biswal",
-      role: "Designer",
+      role: "Developer",
       image: Arpita,
       bio: "Turning ideas into success with innovation and preciion",
       socials: {

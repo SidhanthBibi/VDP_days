@@ -148,7 +148,7 @@ const Home = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="group bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full 
+                className="group bg-gradient-to-r from-blue-500 flex to-purple-600 text-white px-8 py-4 rounded-full 
                   hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
                   shadow-[0_0_25px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.5)]"
               >
