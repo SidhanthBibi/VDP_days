@@ -38,7 +38,7 @@ const Clubs = () => {
           description: club.description || 'No description available',
           image: club.image || null,
           stats: {
-            events: "0+", // Default value since it's not in the database
+            events: club.events?.toString() || "0+", // Default value since it's not in the database
             members: club.member || "0",
             followers: club.followers || "0"
           }
