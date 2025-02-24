@@ -87,12 +87,12 @@ Directory structure:
 
 3. **Start the frontend application:**
    ```sh
-   npm start
+   npm run dev
    ```
 
 4. **Open your browser and navigate to:**
    ```markdown
-   http://localhost:3000
+   http://localhost:5173
    ```
 
 ## Purpose of the Website
