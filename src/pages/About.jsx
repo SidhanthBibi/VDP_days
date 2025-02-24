@@ -75,7 +75,7 @@ const About = () => {
     {
       id: 6,
       name: "Ashish Ranjan",
-      role: "Designer",
+      role: "Developer",
       image: Ashish,
       bio: "Dedicated to crafting exceptional web experiences",
       socials: {
@@ -87,7 +87,7 @@ const About = () => {
     {
       id: 7,
       name: "Arpita Biswal",
-      role: "Designer",
+      role: "Developer",
       image: Arpita,
       bio: "Turning ideas into success with innovation and preciion",
       socials: {
