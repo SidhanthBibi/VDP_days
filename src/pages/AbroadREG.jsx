@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Terminal, UserCircle2, Mail, Phone, Calendar, Users, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
-import Poster from '../assets/StudyGroup.jpg';
+import Poster from '../assets/Abroad.jpg';
 
 const CyberpunkForm = () => {
   const [formData, setFormData] = useState({
