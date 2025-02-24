@@ -15,6 +15,8 @@ import { ClubProvider } from './context/ClubContext';
 import CodeTheDark_Reg from './pages/CodeTheDark_RegisterPage.jsx';
 import LoginSuccess from './components/LoginSuccess.jsx';
 import NotFound from './pages/NotFound';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function App() {
   return (
@@ -35,6 +37,10 @@ function App() {
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+
+         {/* Vercel */}
+          <Analytics />
+          <SpeedInsights />
           
           {/* Club-related routes */}
           <Route path="/clubDetailform" element={<ClubDetailForm />} />
