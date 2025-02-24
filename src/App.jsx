@@ -23,7 +23,7 @@ function App() {
     <>
     {/* Vercel Analytics */}
     <Analytics />
-          <SpeedInsights />
+    <SpeedInsights />
 
     <BrowserRouter>
       <ClubProvider>
