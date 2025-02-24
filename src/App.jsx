@@ -13,6 +13,8 @@ import ClubDetail from './pages/ClubDetail';
 import SignupTick from './components/SignUpSuccess.jsx'
 import { ClubProvider } from './context/ClubContext';
 import CodeTheDark_Reg from './pages/CodeTheDark_RegisterPage.jsx';
+import StudyGroup from './pages/StudyGroup_Reg.jsx';
+import AbroadREG from './pages/AbroadREG.jsx'
 import LoginSuccess from './components/LoginSuccess.jsx';
 import NotFound from './pages/NotFound';
 import { Analytics } from '@vercel/analytics/react';
@@ -37,6 +39,8 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
           <Route path="/CodeTheDark" element={<CodeTheDark_Reg />} />
+          <Route path="/StudyGroup" element={<StudyGroup />} />
+          <Route path="/AbroadREG" element={<AbroadREG />} />
           <Route path="*" element={<NotFound />} />
           
           {/* Authentication routes */}
