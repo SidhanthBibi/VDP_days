@@ -609,21 +609,21 @@ const ClubDetail = () => {
               <div className="p-6 text-center">
                 <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-blue-400">
-                  {club.stats.events}
+                  {club.stats.events}+
                 </p>
                 <p className="text-sm text-gray-400">Events</p>
               </div>
               <div className="p-6 text-center">
                 <User className="w-6 h-6 text-green-400 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-green-400">
-                  {club.stats.members}
+                  {club.stats.members}+
                 </p>
                 <p className="text-sm text-gray-400">Members</p>
               </div>
               <div className="p-6 text-center">
                 <UserPlus className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-yellow-400">
-                  {club.stats.followers}
+                  {club.stats.followers}+
                 </p>
                 <p className="text-sm text-gray-400">Followers</p>
               </div>
