@@ -38,9 +38,10 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
 
-         {/* Vercel */}
+         {/* Vercel Analytics */}
           <Analytics />
           <SpeedInsights />
+
           
           {/* Club-related routes */}
           <Route path="/clubDetailform" element={<ClubDetailForm />} />

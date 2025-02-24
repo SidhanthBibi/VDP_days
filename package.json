@@ -17,7 +17,6 @@
     "@vercel/speed-insights": "^1.2.0",
     "dom": "^0.0.3",
     "framer": "^2.4.1",
-    "framer-motion": "^12.4.7",
     "hot": "^0.0.7",
     "lucide-react": "^0.474.0",
     "motion": "^12.4.6",
