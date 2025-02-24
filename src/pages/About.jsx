@@ -15,7 +15,7 @@ const About = () => {
     {
       id: 1,
       name: "Sidhanth Bibi",
-      role: "Developer",
+      role: "Team Lead",
       image: Sidh,
       bio: "Passionate about creating seamless user experiences",
       socials: {
@@ -51,7 +51,7 @@ const About = () => {
     {
       id: 4,
       name: "Arindam Jaiman",
-      role: "Developer",
+      role: "Lead Developer",
       image: Arindan,
       bio: "Building the future of student communities",
       socials: {
@@ -75,7 +75,7 @@ const About = () => {
     {
       id: 6,
       name: "Ashish Ranjan",
-      role: "Developer",
+      role: "Designer",
       image: Ashish,
       bio: "Dedicated to crafting exceptional web experiences",
       socials: {
@@ -87,7 +87,7 @@ const About = () => {
     {
       id: 7,
       name: "Arpita Biswal",
-      role: "Developer",
+      role: "Designer",
       image: Arpita,
       bio: "Turning ideas into success with innovation and preciion",
       socials: {
