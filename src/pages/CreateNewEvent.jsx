@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Upload } from 'lucide-react';
+import { Calendar, Clock, MapPin, Upload, User, Users } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -11,7 +11,8 @@ const EventForm = () => {
     time: '',
     location: '',
     description: '',
-    price: 0,
+    price_individual: 0,
+    price_team: 0,
     register_link: ''
   });
 
@@ -21,10 +22,10 @@ const EventForm = () => {
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -60,7 +61,7 @@ const EventForm = () => {
 
         if (uploadError) throw uploadError;
 
-        // Get public URL - this step is crucial
+        // Get public URL
         const { data: { publicUrl } } = supabase.storage
           .from('assets')
           .getPublicUrl(filePath);
@@ -68,30 +69,18 @@ const EventForm = () => {
         posterUrl = publicUrl;
       }
 
-      // Log the data being inserted (for debugging)
-      console.log('Inserting data:', {
-        event_name: formData.event_name,
-        club_name: formData.club_name,
-        description: formData.description,
-        date: formData.date,
-        time: formData.time,
-        location: formData.location,
-        price: parseFloat(formData.price) || 0,
-        register_link: formData.register_link,
-        poster: posterUrl
-      });
-
       // Insert event data into the events table
       const { error: insertError, data } = await supabase
         .from('Events')
-        .insert([{  // Changed to array of objects
+        .insert([{
           event_name: formData.event_name,
           club_name: formData.club_name,
           description: formData.description,
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          price: parseFloat(formData.price) || 0,
+          price: parseFloat(formData.price_individual) || 0,
+          price_team: parseFloat(formData.price_team) || 0,
           register_link: formData.register_link,
           poster: posterUrl
         }]);
@@ -111,7 +100,8 @@ const EventForm = () => {
         time: '',
         location: '',
         description: '',
-        price: 0,
+        price_individual: 0,
+        price_team: 0,
         register_link: ''
       });
       setImageFile(null);
@@ -230,17 +220,36 @@ const EventForm = () => {
               />
             </div>
 
-            {/* Price */}
-            <div className="mb-6">
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                placeholder="Event Price"
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+            {/* Price Section */}
+            <div className="mb-6 space-y-4">
+              <h3 className="text-lg font-medium text-gray-300">Pricing</h3>
+              
+              {/* Individual Price */}
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="number"
+                  name="price_individual"
+                  value={formData.price_individual}
+                  onChange={handleChange}
+                  placeholder="Price for Person"
+                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              
+              {/* Team Price */}
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="number"
+                  name="price_team"
+                  value={formData.price_team}
+                  onChange={handleChange}
+                  placeholder="Price for Team"
+                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             {/* Register Link */}

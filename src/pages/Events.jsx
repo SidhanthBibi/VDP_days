@@ -259,19 +259,19 @@ const LandingPage = () => {
                       </div>
 
                       <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.7 }}
-                        className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[20px] 
-                          hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-                          shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
-                      >
-                        <a href={event.register_link}>Register Now</a>
-                      </motion.button>
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.7 }}
+                      className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[20px] 
+                        hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
+                        shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
+                    >
+                      <a href={`/event-register/${event.id}`}>Register Now</a>
+                    </motion.button>
                     </div>
-                  </motion.div>
+                  </motion.div> 
                 )}
               </AnimatePresence>
             </motion.div>

@@ -10,12 +10,11 @@ import About from './pages/About';
 import ClubDetailForm from './pages/ClubDetailForm';
 import CreateEvent from './pages/CreateNewEvent';
 import ClubDetail from './pages/ClubDetail';
-import SignupTick from './components/SignUpSuccess.jsx'
+import SignupTick from './components/SignUpSuccess.jsx';
 import { ClubProvider } from './context/ClubContext';
-import CodeTheDark_Reg from './pages/CodeTheDark_RegisterPage.jsx';
-import StudyGroup from './pages/StudyGroup_Reg.jsx';
-import AbroadREG from './pages/AbroadREG.jsx'
+import DynamicRegistrationForm from './components/EventRegistation.jsx';
 import LoginSuccess from './components/LoginSuccess.jsx';
+import QrCode from './pages/QR_Code.jsx';
 import NotFound from './pages/NotFound';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -38,16 +37,20 @@ function App() {
           <Route path="/clubs" element={<Clubs />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
-          <Route path="/CodeTheDark" element={<CodeTheDark_Reg />} />
-          <Route path="/StudyGroup" element={<StudyGroup />} />
-          <Route path="/AbroadREG" element={<AbroadREG />} />
+          <Route path="/qrcode" element={<QrCode />} />
           <Route path="*" element={<NotFound />} />
+          
+          {/* Dynamic Event Registration Route */}
+          <Route path="/event-register/:eventId" element={<DynamicRegistrationForm />} />
+          
+          {/* Legacy direct routes */}
+          <Route path="/CodeTheDark" element={<DynamicRegistrationForm />} />
+          <Route path="/StudyGroup" element={<DynamicRegistrationForm />} />
+          <Route path="/AbroadREG" element={<DynamicRegistrationForm />} />
           
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
-
-         
           
           {/* Club-related routes */}
           <Route path="/clubDetailform" element={<ClubDetailForm />} />
@@ -56,7 +59,6 @@ function App() {
           {/*Animation router */}
           <Route path="/signupsuccess" element={<SignupTick />} />
           <Route path="/loginsuccess" element={<LoginSuccess />} />
-
         </Routes>
       </ClubProvider>
     </BrowserRouter>
