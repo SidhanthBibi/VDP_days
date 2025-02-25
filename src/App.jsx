@@ -13,11 +13,20 @@ import ClubDetail from './pages/ClubDetail';
 import SignupTick from './components/SignUpSuccess.jsx'
 import { ClubProvider } from './context/ClubContext';
 import CodeTheDark_Reg from './pages/CodeTheDark_RegisterPage.jsx';
+import StudyGroup from './pages/StudyGroup_Reg.jsx';
+import AbroadREG from './pages/AbroadREG.jsx'
 import LoginSuccess from './components/LoginSuccess.jsx';
 import NotFound from './pages/NotFound';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function App() {
   return (
+    <>
+    {/* Vercel Analytics */}
+    <Analytics />
+    <SpeedInsights />
+
     <BrowserRouter>
       <ClubProvider>
         <Navbar />
@@ -30,11 +39,15 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
           <Route path="/CodeTheDark" element={<CodeTheDark_Reg />} />
+          <Route path="/StudyGroup" element={<StudyGroup />} />
+          <Route path="/AbroadREG" element={<AbroadREG />} />
           <Route path="*" element={<NotFound />} />
           
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+
+         
           
           {/* Club-related routes */}
           <Route path="/clubDetailform" element={<ClubDetailForm />} />
@@ -47,6 +60,8 @@ function App() {
         </Routes>
       </ClubProvider>
     </BrowserRouter>
+    
+    </>
   );
 }
 
