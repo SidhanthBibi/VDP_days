@@ -240,11 +240,7 @@ const ClubDetail = () => {
           achievements: clubData.achievements || "No achievements yet",
           memberCount: clubData.member || 0,
           stats: {
-<<<<<<< HEAD
-            events: clubData.events?.toString() || "0+",
-=======
             events: clubData.events?.toString() || "0",
->>>>>>> 43e6927d0982ee23d7528cb90f5c92db5b389b47
             members: clubData.member?.toString() || "0",
             followers: clubData.followers?.toString() || "0",
           },
