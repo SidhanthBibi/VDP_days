@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../lib/supabaseClient";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Calendar,
   Users,
@@ -13,6 +13,7 @@ import {
 
 const LandingPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // State declarations
   const [activeCard, setActiveCard] = useState(null);
@@ -21,6 +22,28 @@ const LandingPage = () => {
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+
+  // Check user authentication
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    
+    checkUser();
+    
+    // Set up auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+    
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
 
   // Fetch data
   useEffect(() => {
@@ -82,6 +105,24 @@ const LandingPage = () => {
     },
     [activeCard]
   );
+
+  // Handle register button click with authentication check
+  const handleRegisterClick = useCallback((e, registerLink) => {
+    e.preventDefault();
+    
+    if (user) {
+      // User is logged in, proceed to registration link
+      window.location.href = registerLink;
+    } else {
+      // User is not logged in, redirect to login page
+      navigate('/login', { 
+        state: { 
+          returnUrl: location.pathname,
+          registerLink: registerLink 
+        } 
+      });
+    }
+  }, [user, navigate, location.pathname]);
 
   // Filter events
   const filteredEvents = data.filter((event) => {
@@ -302,8 +343,9 @@ const LandingPage = () => {
                           className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[10px] 
                               hover:from-blue-600 hover:to-purple-700 transition-all duration-300 w-1/2
                               shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
+                          onClick={(e) => handleRegisterClick(e, event.register_link)}
                         >
-                          <a href={event.register_link}>Register Now</a>
+                          Register Now
                         </motion.button>
                       </div>
                     </div>
