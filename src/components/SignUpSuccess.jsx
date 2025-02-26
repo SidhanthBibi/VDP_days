@@ -3,11 +3,12 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import Logo from '../assets/clubsphereGradient.png';
-import { CheckCircle, Loader } from 'lucide-react';
+import { CheckCircle, Loader, XCircle } from 'lucide-react';
 
 const SignUpSuccess = () => {
   const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState(null);
+  const [userEmail, setUserEmail] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +24,16 @@ const SignUpSuccess = () => {
         
         if (!userType) {
           throw new Error('User type not found. Please restart the sign up process.');
+        }
+
+        // Store the user email for potential error display
+        setUserEmail(session.user.email);
+        
+        // Check if the email domain is valid for club incharge
+        if (userType === 'incharge' && !session.user.email.endsWith('@srmist.edu.in')) {
+          // Sign out the user since they don't have the required email domain
+          await supabase.auth.signOut();
+          throw new Error('Club Incharge registration requires an @srmist.edu.in email address.');
         }
 
         // Update the user profile with the user type
@@ -109,14 +120,21 @@ const SignUpSuccess = () => {
               animate={{ opacity: 1 }}
             >
               <div className="flex justify-center mb-4 text-red-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+                <XCircle size={64} className="text-red-400" />
               </div>
               <h2 className="text-2xl font-bold mb-4 text-red-400">
                 Something Went Wrong
               </h2>
-              <p className="text-gray-300 mb-6">{error}</p>
+              <p className="text-gray-300 mb-4">{error}</p>
+              
+              {/* Display the email that was used if the error is about domain requirements */}
+              {error.includes('@srmist.edu.in') && userEmail && (
+                <div className="bg-gray-700/50 p-3 rounded-lg mb-6 text-sm">
+                  <p className="text-gray-300">Attempted signup with: <span className="text-white">{userEmail}</span></p>
+                  <p className="mt-2 text-amber-300">Please use an @srmist.edu.in email for Club Incharge registration.</p>
+                </div>
+              )}
+              
               <button
                 onClick={() => navigate('/signup')}
                 className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white font-medium hover:shadow-lg transition-all duration-300"
