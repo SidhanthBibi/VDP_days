@@ -230,7 +230,6 @@ const EventForm = () => {
                 <input
                   type="number"
                   name="price_individual"
-                  value={formData.price_individual}
                   onChange={handleChange}
                   placeholder="Price for Person"
                   className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -244,7 +243,6 @@ const EventForm = () => {
                 <input
                   type="number"
                   name="price_team"
-                  value={formData.price_team}
                   onChange={handleChange}
                   placeholder="Price for Team"
                   className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
