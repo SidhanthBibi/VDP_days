@@ -288,7 +288,7 @@ const LandingPage = () => {
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ delay: 0.7 }}
                           className="mt-4 bg-white text-black px-6 py-3 rounded-[10px] w-1/2
-                              transition-all duration-300 flex
+                              transition-all duration-300
                               shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
                         >
                           <a href={event.websiteLink}>Visit Website</a>
