@@ -28,7 +28,8 @@ const LandingPage = () => {
       try {
         const { data: eventsData, error: supabaseError } = await supabase
           .from("Events")
-          .select("*");
+          .select("*")
+          .order('date',{ascending:true});
 
         if (supabaseError) throw supabaseError;
         setData(eventsData);
