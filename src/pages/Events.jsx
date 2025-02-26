@@ -1,15 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
-import { useLocation } from 'react-router-dom';
-import { Calendar, Users, Clock, MapPin, CircleDollarSign,ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "../lib/supabaseClient";
+import { useLocation } from "react-router-dom";
+import {
+  Calendar,
+  Users,
+  Clock,
+  MapPin,
+  CircleDollarSign,
+  ArrowUpRight,
+} from "lucide-react";
 
 const LandingPage = () => {
   const location = useLocation();
-  
+
   // State declarations
   const [activeCard, setActiveCard] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
@@ -20,8 +27,8 @@ const LandingPage = () => {
     const fetchData = async () => {
       try {
         const { data: eventsData, error: supabaseError } = await supabase
-          .from('Events')
-          .select('*');
+          .from("Events")
+          .select("*");
 
         if (supabaseError) throw supabaseError;
         setData(eventsData);
@@ -38,12 +45,12 @@ const LandingPage = () => {
   // Session storage and loading effect
   useEffect(() => {
     setIsLoaded(false);
-    const savedSearchQuery = sessionStorage.getItem('eventSearchQuery');
+    const savedSearchQuery = sessionStorage.getItem("eventSearchQuery");
     if (savedSearchQuery) {
       setSearchQuery(savedSearchQuery);
     }
 
-    const savedActiveCard = sessionStorage.getItem('eventActiveCard');
+    const savedActiveCard = sessionStorage.getItem("eventActiveCard");
     if (savedActiveCard) {
       setActiveCard(parseInt(savedActiveCard, 10));
     }
@@ -58,22 +65,25 @@ const LandingPage = () => {
   // Callbacks
   const handleSearchChange = useCallback((query) => {
     setSearchQuery(query);
-    sessionStorage.setItem('eventSearchQuery', query);
+    sessionStorage.setItem("eventSearchQuery", query);
   }, []);
 
-  const handleCardClick = useCallback((cardId) => {
-    const newActiveCard = activeCard === cardId ? null : cardId;
-    setActiveCard(newActiveCard);
+  const handleCardClick = useCallback(
+    (cardId) => {
+      const newActiveCard = activeCard === cardId ? null : cardId;
+      setActiveCard(newActiveCard);
 
-    if (newActiveCard !== null) {
-      sessionStorage.setItem('eventActiveCard', newActiveCard.toString());
-    } else {
-      sessionStorage.removeItem('eventActiveCard');
-    }
-  }, [activeCard]);
+      if (newActiveCard !== null) {
+        sessionStorage.setItem("eventActiveCard", newActiveCard.toString());
+      } else {
+        sessionStorage.removeItem("eventActiveCard");
+      }
+    },
+    [activeCard]
+  );
 
   // Filter events
-  const filteredEvents = data.filter(event => {
+  const filteredEvents = data.filter((event) => {
     const searchLower = searchQuery.toLowerCase().trim();
     if (!searchLower) return true;
 
@@ -86,20 +96,20 @@ const LandingPage = () => {
 
   if (isLoading) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="min-h-screen bg-gray-900 flex items-center justify-center"
       >
         <motion.div
-          animate={{ 
+          animate={{
             rotate: 360,
-            borderColor: ['#3B82F6', '#8B5CF6', '#3B82F6'],
+            borderColor: ["#3B82F6", "#8B5CF6", "#3B82F6"],
           }}
-          transition={{ 
+          transition={{
             duration: 1.5,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
           className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
         />
@@ -108,51 +118,49 @@ const LandingPage = () => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="min-h-screen bg-gray-900 text-white px-4 py-8"
     >
       {/* Background Gradients */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           scale: [1, 1.2, 1],
-          opacity: [0.1, 0.2, 0.1]
+          opacity: [0.1, 0.2, 0.1],
         }}
-        transition={{ 
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20"
-      />
-      <motion.div 
-        animate={{ 
-          scale: [1.2, 1, 1.2],
-          opacity: [0.1, 0.2, 0.1]
-        }}
-        transition={{ 
+        transition={{
           duration: 8,
           repeat: Infinity,
           ease: "easeInOut",
-          delay: 2
+        }}
+        className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20"
+      />
+      <motion.div
+        animate={{
+          scale: [1.2, 1, 1.2],
+          opacity: [0.1, 0.2, 0.1],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 2,
         }}
         className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20"
       />
 
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="max-w-7xl mx-auto mb-16 relative"
       >
         <div className="text-center">
-          <motion.h1 
-            className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600"
-          >
+          <motion.h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
             Campus Events
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -177,7 +185,7 @@ const LandingPage = () => {
       </motion.div>
 
       {/* Events Grid */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
@@ -213,14 +221,14 @@ const LandingPage = () => {
                   >
                     <div className="h-full flex flex-col justify-between">
                       <div>
-                        <motion.h3 
+                        <motion.h3
                           initial={{ y: -20, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           className="text-2xl font-bold mb-2"
                         >
                           {event.event_name}
                         </motion.h3>
-                        <motion.p 
+                        <motion.p
                           initial={{ y: -10, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ delay: 0.1 }}
@@ -228,7 +236,7 @@ const LandingPage = () => {
                         >
                           {event.club_name}
                         </motion.p>
-                        <motion.p 
+                        <motion.p
                           initial={{ y: -10, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ delay: 0.2 }}
@@ -239,16 +247,30 @@ const LandingPage = () => {
 
                         <motion.div className="space-y-3">
                           {[
-                            { icon: <Calendar className="w-4 h-4 mr-2" />, text: event.date },
-                            { icon: <Clock className="w-4 h-4 mr-2" />, text: event.time },
-                            { icon: <MapPin className="w-4 h-4 mr-2" />, text: event.location },
-                            { icon: <CircleDollarSign className="w-4 h-4 mr-2" />, text: event.price }
+                            {
+                              icon: <Calendar className="w-4 h-4 mr-2" />,
+                              text: event.date,
+                            },
+                            {
+                              icon: <Clock className="w-4 h-4 mr-2" />,
+                              text: event.time,
+                            },
+                            {
+                              icon: <MapPin className="w-4 h-4 mr-2" />,
+                              text: event.location,
+                            },
+                            {
+                              icon: (
+                                <CircleDollarSign className="w-4 h-4 mr-2" />
+                              ),
+                              text: event.price,
+                            },
                           ].map((item, index) => (
-                            <motion.div 
+                            <motion.div
                               key={index}
                               initial={{ x: -20, opacity: 0 }}
                               animate={{ x: 0, opacity: 1 }}
-                              transition={{ delay: 0.3 + (index * 0.1) }}
+                              transition={{ delay: 0.3 + index * 0.1 }}
                               className="flex items-center text-gray-300"
                             >
                               {item.icon}
@@ -256,36 +278,35 @@ const LandingPage = () => {
                             </motion.div>
                           ))}
                         </motion.div>
-                      </div >
+                      </div>
                       <div className="flex justify-center gap-5">
-                            <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.7 }}
-                            className="mt-4 bg-white text-black px-6 py-3 rounded-[10px] w-1/2
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.7 }}
+                          className="mt-4 bg-white text-black px-6 py-3 rounded-[10px] w-1/2
                               transition-all duration-300 flex
                               shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
-                          >
-                            <a href={event.websiteLink}>Visit Website</a>
-                          </motion.button>   
-                            <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.7 }}
-                            className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[10px] 
+                        >
+                          <a href={event.websiteLink}>Visit Website</a>
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.7 }}
+                          className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[10px] 
                               hover:from-blue-600 hover:to-purple-700 transition-all duration-300 w-1/2
                               shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
-                          >
-                            <a href={event.register_link}>Register Now</a>
-                          </motion.button>
+                        >
+                          <a href={event.register_link}>Register Now</a>
+                        </motion.button>
                       </div>
-                      
                     </div>
-                  </motion.div> 
+                  </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
