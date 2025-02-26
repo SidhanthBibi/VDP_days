@@ -113,6 +113,7 @@ const LandingPage = () => {
     if (user) {
       // User is logged in, proceed to registration link
       window.location.href = registerLink;
+      window.target = "_blank"
     } else {
       // User is not logged in, redirect to login page
       navigate('/login', { 

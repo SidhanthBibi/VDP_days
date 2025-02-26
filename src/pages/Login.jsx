@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, LogIn } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
-import Logo from '../assets/clubsphereGradient.png'
+import Logo from '../assets/clubsphereGradient.png';
+import { useLocation } from 'react-router-dom';
 
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const location = useLocation();
+
+  // Get returnUrl and registerLink from location state if available
+  const returnUrl = location.state?.returnUrl || '';
+  const registerLink = location.state?.registerLink || '';
 
   const handleGoogleSignIn = async () => {
     if (isLoading) return;
     
     try {
       setIsLoading(true);
+      
+      // Store return URL and register link in session storage to persist through OAuth redirect
+      if (returnUrl) {
+        sessionStorage.setItem('returnUrl', returnUrl);
+      }
+      
+      if (registerLink) {
+        sessionStorage.setItem('registerLink', registerLink);
+      }
       
       // Initiate Google OAuth sign-in
       const { data, error } = await supabase.auth.signInWithOAuth({
