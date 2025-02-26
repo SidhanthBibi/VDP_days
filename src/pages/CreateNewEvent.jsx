@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Upload, User, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin, Upload, User, Users,Globe } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,7 +13,8 @@ const EventForm = () => {
     description: '',
     price_individual: 0,
     price_team: 0,
-    register_link: ''
+    register_link: '',
+    websiteLink:''
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -82,6 +83,7 @@ const EventForm = () => {
           price: parseFloat(formData.price_individual) || 0,
           price_team: parseFloat(formData.price_team) || 0,
           register_link: formData.register_link,
+          websiteLink:formData.websiteLink,
           poster: posterUrl
         }]);
 
@@ -102,7 +104,8 @@ const EventForm = () => {
         description: '',
         price_individual: 0,
         price_team: 0,
-        register_link: ''
+        register_link: '',
+        websiteLink:""
       });
       setImageFile(null);
       setPreviewUrl(null);
@@ -249,7 +252,20 @@ const EventForm = () => {
                 />
               </div>
             </div>
-
+            {/* website Link */}
+            <div className="mb-6 relative">
+              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="url"
+                name="websiteLink"
+                value={formData.websiteLink}
+                onChange={handleChange}
+                placeholder="Website link"
+                className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            
             {/* Register Link */}
             <div className="mb-6">
               <input
