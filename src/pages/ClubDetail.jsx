@@ -39,12 +39,14 @@ const ClubDetail = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [newLogoFile, setNewLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [haveAccess, setHaveAccess] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
     description: "",
     website: "",
     instagram_url: "",
     linkedin_url: "",
+    access: [],
   });
 
   // Authentication check
@@ -88,6 +90,22 @@ const ClubDetail = () => {
     fetchUserEmail();
   }, []);
 
+  const checkUserAccess = (clubData, userEmail) => {
+    if (!userEmail) return false;
+
+    // Check if user is the coordinator
+    if (clubData.Club_Coordinator === userEmail) {
+      return true;
+    }
+
+    // Check if user's email is in the access array
+    if (Array.isArray(clubData.access) && clubData.access.includes(userEmail)) {
+      return true;
+    }
+
+    return false;
+  };
+
   const handleCopy = async () => {
     try {
       // Get the current URL
@@ -106,6 +124,36 @@ const ClubDetail = () => {
     } catch (err) {
       console.error("Failed to copy URL:", err);
     }
+  };
+
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleAddEmail = () => {
+    const emailInput = document.getElementById("email-input");
+    if (!emailInput || !emailInput.value) return;
+
+    // Process comma-separated emails
+    const emails = emailInput.value.split(",");
+
+    emails.forEach((email) => {
+      const trimmedEmail = email.trim();
+      if (
+        trimmedEmail &&
+        isValidEmail(trimmedEmail) &&
+        !editFormData.access.includes(trimmedEmail)
+      ) {
+        setEditFormData((prev) => ({
+          ...prev,
+          access: [...prev.access, trimmedEmail],
+        }));
+      }
+    });
+
+    // Clear the input
+    emailInput.value = "";
   };
 
   // Add this function to handle logo file changes
@@ -143,6 +191,7 @@ const ClubDetail = () => {
           instagram_url: editFormData.instagram_url || null,
           linkedin_url: editFormData.linkedin_url || null,
           image: imageUrl,
+          access: editFormData.access, // Use the array directly
         })
         .eq("id", club.id);
 
@@ -157,12 +206,12 @@ const ClubDetail = () => {
         instagram_url: editFormData.instagram_url,
         linkedin_url: editFormData.linkedin_url,
         image: imageUrl,
+        access: editFormData.access,
       }));
 
       setIsSettingsOpen(false);
       setNewLogoFile(null);
       setLogoPreview(null);
-
 
       // Reload the page to reflect all changes
       window.location.reload();
@@ -190,32 +239,33 @@ const ClubDetail = () => {
         website: club.website || "",
         instagram_url: club.instagram_url || "",
         linkedin_url: club.linkedin_url || "",
+        access: club.access || [], // Initialize from club data
       });
     }
   }, [isSettingsOpen, club]);
 
   const handleLogoChange = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    // File size validation (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5MB");
-      return;
-    }
+    const file = e.target.files[0];
+    if (file) {
+      // File size validation (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB");
+        return;
+      }
 
-    // File type validation
-    if (!file.type.startsWith('image/')) {
-      alert("Please upload an image file");
-      return;
-    }
+      // File type validation
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image file");
+        return;
+      }
 
-    setNewLogoFile(file);
-    
-    // Create preview URL
-    const previewUrl = URL.createObjectURL(file);
-    setLogoPreview(previewUrl);
-  }
-};
+      setNewLogoFile(file);
+
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setLogoPreview(previewUrl);
+    }
+  };
   useEffect(() => {
     const fetchClubDetails = async () => {
       try {
@@ -224,9 +274,6 @@ const ClubDetail = () => {
           .select("*")
           .eq("id", id)
           .single();
-
-        console.log("Fetched club data:", clubData); // Add this line
-        // ... rest of your code
 
         if (clubError) throw clubError;
 
@@ -249,17 +296,21 @@ const ClubDetail = () => {
           linkedin_url: clubData.linkedin_url,
           website: clubData.website,
           Club_Coordinator: clubData.Club_Coordinator,
-           // Add coordinator email
+          access: clubData.access || [], // Ensure access is always an array
         };
 
         setClub(transformedClub);
 
-        // Check if current user is the coordinator
-        if (
-          currentUserEmail &&
-          clubData.Club_Coordinator === currentUserEmail
-        ) {
-          setIsCoordinator(true);
+        // Check access based on coordinator email AND access array
+        if (currentUserEmail) {
+          // Check if current user is the coordinator
+          const isUserCoordinator =
+            clubData.Club_Coordinator === currentUserEmail;
+          setIsCoordinator(isUserCoordinator);
+
+          // Set haveAccess flag - this will be true for both coordinators and users in access array
+          const hasAccess = checkUserAccess(clubData, currentUserEmail);
+          setHaveAccess(hasAccess);
         }
 
         // Fetch events for this club
@@ -282,7 +333,7 @@ const ClubDetail = () => {
     if (id && currentUserEmail) {
       fetchClubDetails();
     }
-  }, [id, currentUserEmail]); // Added currentUserEmail as dependency
+  }, [id, currentUserEmail]);
 
   if (loading) {
     return (
@@ -363,7 +414,7 @@ const ClubDetail = () => {
               </div>
 
               <div className="flex gap-3">
-                {isCoordinator ? (
+                {(isCoordinator || haveAccess) ? (
                   <button className="border-1 border-gray-600 text-gray-400 px-6 py-2 rounded-xl transition-colors">
                     Join Club
                   </button>
@@ -372,12 +423,12 @@ const ClubDetail = () => {
                     Join Club
                   </button>
                 ) : (
-                  <button className="border-1 border-gray-600  text-white px-6 py-2 rounded-xl transition-colors">
+                  <button className="border-1 border-gray-600 text-white px-6 py-2 rounded-xl transition-colors">
                     Not Hiring
                   </button>
                 )}
 
-                {isCoordinator && (
+                {(isCoordinator || haveAccess) && (
                   <a href="/create_event">
                     <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
                       <Plus className="w-5 h-6" />
@@ -402,7 +453,7 @@ const ClubDetail = () => {
                   )}
                 </button>
 
-                {isCoordinator && (
+                {(isCoordinator || haveAccess) && (
                   <>
                     <button
                       onClick={() => setIsSettingsOpen(true)}
@@ -548,6 +599,80 @@ const ClubDetail = () => {
                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                                 placeholder="https://linkedin.com/..."
                               />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Share Access
+                              </label>
+                              <div className="flex space-x-2">
+                                <input
+                                  type="email"
+                                  id="email-input"
+                                  className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                                  placeholder="Enter email address"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={handleAddEmail}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                                >
+                                  Add
+                                </button>
+                              </div>
+
+                              {/* Display the email chips here */}
+                              {editFormData.access &&
+                                editFormData.access.length > 0 && (
+                                  <div className="mt-3">
+                                    <p className="text-sm text-gray-300 mb-2">
+                                      Access shared with:
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {editFormData.access.map(
+                                        (email, index) => (
+                                          <div
+                                            key={index}
+                                            className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm flex items-center"
+                                          >
+                                            <span className="mr-2">
+                                              {email}
+                                            </span>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const newAccess = [
+                                                  ...editFormData.access,
+                                                ];
+                                                newAccess.splice(index, 1);
+                                                setEditFormData((prev) => ({
+                                                  ...prev,
+                                                  access: newAccess,
+                                                }));
+                                              }}
+                                              className="text-blue-300 hover:text-red-400"
+                                            >
+                                              <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                              >
+                                                <path
+                                                  d="M18 6L6 18M6 6l12 12"
+                                                  stroke="currentColor"
+                                                  strokeWidth="2"
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                />
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                             </div>
                           </div>
 
