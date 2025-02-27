@@ -110,7 +110,7 @@ const ClubDetail = () => {
   
       // 2. Insert record into Clubs table with coordinator email
       const { error: insertError } = await supabase
-        .from('Clubs')
+        .from('ToBeVerified')
         .insert({
           name: formData.name,
           image: imageUrl,
@@ -140,7 +140,7 @@ const ClubDetail = () => {
         member: 0
       });
       setLogoFile(null);
-      setSuccess('Club registered successfully! Redirecting...');
+      setSuccess('Request sent to be Verified, Redirecting...');
       
       // Redirect to clubs page after successful submission
       setTimeout(() => {
