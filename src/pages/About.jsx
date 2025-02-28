@@ -3,7 +3,7 @@ import { Building2, Mail, Phone, Globe, ChevronRight, Github, Linkedin, Instagra
 import Sidh from '../assets/Sidh.jpg';
 import Adron from '../assets/Adron.jpg';
 import Lenny from '../assets/Lenny.jpg';
-import Arindan from '../assets/Aridam.jpg';
+import Arindam from '../assets/Arindam.jpg';
 import Ananya from '../assets/Ananya.jpg';
 import Ashish from '../assets/AshishRanjan.jpg';
 import Arpita from '../assets/Arpita.jpg'
@@ -52,7 +52,7 @@ const About = () => {
       id: 4,
       name: "Arindam Jaiman",
       role: "Lead Developer",
-      image: Arindan,
+      image: Arindam,
       bio: "Building the future of student communities",
       socials: {
         github: "#",
