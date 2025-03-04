@@ -231,26 +231,14 @@ const EventForm = () => {
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="number"
+                  type="text"
                   name="price_individual"
                   onChange={handleChange}
-                  placeholder="Price for Person"
+                  placeholder="Price(s) for the event"
                   className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
-              </div>
-              
-              {/* Team Price */}
-              <div className="relative">
-                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="number"
-                  name="price_team"
-                  onChange={handleChange}
-                  placeholder="Price for Team"
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              </div>              
             </div>
             {/* website Link */}
             <div className="mb-6 relative">
