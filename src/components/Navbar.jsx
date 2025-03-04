@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { UserCircle, Menu, X, LogOut } from 'lucide-react';
+import logo from '../assets/clubsphereGradient.png';
 import { supabase } from '../lib/supabaseClient';
 
 const Navbar = () => {
@@ -117,9 +118,9 @@ const Navbar = () => {
               transition-all duration-500 flex items-center gap-2
               ${scrolled ? 'scale-95' : 'scale-100'}
             `}>
-                <img className='h-[50px]' src="/clubsphereGradient.png" alt="ClubSphere"/>
+                <img className='h-[50px]' src={logo} alt="ClubSphere"/>
                 <a href="/">
-                  <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                  <span className="text-2xl font-bold bg-clip-text text-transparent bg-[#DCDDE1]">
                     ClubSphere
                   </span>
                 </a>
