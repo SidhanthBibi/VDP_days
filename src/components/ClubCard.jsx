@@ -81,21 +81,21 @@ const ClubCard = ({ club, activeCard, setActiveCard }) => {
             <div className="flex justify-center mb-2">
               <Calendar className="h-5 w-5 text-blue-400" />
             </div>
-            <p className="text-lg font-bold text-blue-400">{club.stats.events}</p>
+            <p className="text-lg font-bold text-blue-400">{club.stats.events}+</p>
             <p className="text-xs text-gray-400">Events</p>
           </div>
           <div className="text-center">
             <div className="flex justify-center mb-2">
               <User className="h-5 w-5 text-green-400" />
             </div>
-            <p className="text-lg font-bold text-green-400">{club.stats.members}</p>
+            <p className="text-lg font-bold text-green-400">{club.stats.members}+</p>
             <p className="text-xs text-gray-400">Members</p>
           </div>
           <div className="text-center">
             <div className="flex justify-center mb-2">
               <UserPlus className="h-5 w-5 text-yellow-400" />
             </div>
-            <p className="text-lg font-bold text-yellow-400">{club.stats.followers}</p>
+            <p className="text-lg font-bold text-yellow-400">{club.stats.followers}+</p>
             <p className="text-xs text-gray-400">Followers</p>
           </div>
         </div>

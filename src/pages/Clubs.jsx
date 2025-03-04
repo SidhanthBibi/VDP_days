@@ -26,9 +26,32 @@ const Clubs = () => {
         const { data, error } = await query;
         
         if (error) throw error;
+
+        // Fetch events for each club to get accurate event counts
+        const clubsWithEventCounts = await Promise.all(data.map(async (club) => {
+          // Query the Events table to count events for this club
+          const { data: eventsData, error: eventsError } = await supabase
+            .from('Events')
+            .select('id')
+            .eq('club_name', club.name);
+            
+          if (eventsError) {
+            console.error(`Error fetching events for club ${club.name}:`, eventsError);
+            return {
+              ...club,
+              eventCount: 0
+            };
+          }
+          
+          // Return the club with its event count
+          return {
+            ...club,
+            eventCount: eventsData ? eventsData.length : 0
+          };
+        }));
         
         // Transform data to match the expected format
-        const transformedClubs = data.map(club => ({
+        const transformedClubs = clubsWithEventCounts.map(club => ({
           id: club.id,
           name: club.name || '',
           category: club.dept || 'Other', // Using department as category
@@ -38,9 +61,9 @@ const Clubs = () => {
           description: club.description || 'No description available',
           image: club.image || null,
           stats: {
-            events: club.events?.toString() || "0+", // Default value since it's not in the database
-            members: club.member || "0",
-            followers: club.followers || "0"
+            events: club.eventCount.toString(), // Use the actual event count
+            members: club.member?.toString() || "0",
+            followers: club.followers?.toString() || "0"
           }
         }));
         
