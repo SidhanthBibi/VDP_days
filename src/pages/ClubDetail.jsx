@@ -274,10 +274,24 @@ const ClubDetail = () => {
           .select("*")
           .eq("id", id)
           .single();
-
+  
         if (clubError) throw clubError;
-
-        // Transform club data
+  
+        // Fetch events for this club
+        const { data: eventsData, error: eventsError } = await supabase
+          .from("Events")
+          .select("*")
+          .eq("club_name", clubData.name);
+  
+        if (eventsError) throw eventsError;
+  
+        // Set clubEvents state
+        setClubEvents(eventsData || []);
+        
+        // Get the dynamic count of events
+        const eventCount = eventsData ? eventsData.length : 0;
+  
+        // Transform club data with dynamic event count
         const transformedClub = {
           id: clubData.id,
           name: clubData.name,
@@ -287,7 +301,7 @@ const ClubDetail = () => {
           achievements: clubData.achievements || "No achievements yet",
           memberCount: clubData.member || 0,
           stats: {
-            events: clubData.events?.toString() || "0",
+            events: eventCount.toString(), // Use the actual count from eventsData
             members: clubData.member?.toString() || "0",
             followers: clubData.followers?.toString() || "0",
           },
@@ -298,30 +312,20 @@ const ClubDetail = () => {
           Club_Coordinator: clubData.Club_Coordinator,
           access: clubData.access || [], // Ensure access is always an array
         };
-
+  
         setClub(transformedClub);
-
+  
         // Check access based on coordinator email AND access array
         if (currentUserEmail) {
           // Check if current user is the coordinator
           const isUserCoordinator =
             clubData.Club_Coordinator === currentUserEmail;
           setIsCoordinator(isUserCoordinator);
-
+  
           // Set haveAccess flag - this will be true for both coordinators and users in access array
           const hasAccess = checkUserAccess(clubData, currentUserEmail);
           setHaveAccess(hasAccess);
         }
-
-        // Fetch events for this club
-        const { data: eventsData, error: eventsError } = await supabase
-          .from("Events")
-          .select("*")
-          .eq("club_name", clubData.name);
-
-        if (eventsError) throw eventsError;
-
-        setClubEvents(eventsData || []);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(err.message);
@@ -329,7 +333,7 @@ const ClubDetail = () => {
         setLoading(false);
       }
     };
-
+  
     if (id && currentUserEmail) {
       fetchClubDetails();
     }
