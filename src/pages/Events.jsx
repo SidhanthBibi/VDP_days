@@ -180,6 +180,7 @@ const LandingPage = () => {
   const [showPastEvents, setShowPastEvents] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
+  const [visiblePastEvents, setVisiblePastEvents] = useState(6); // Number of past events initially visible
 
   // Handle resize events for responsive behavior
   useEffect(() => {
@@ -338,6 +339,10 @@ const LandingPage = () => {
   // Toggle past events visibility
   const togglePastEvents = useCallback(() => {
     setShowPastEvents(!showPastEvents);
+    // Reset visible past events count when toggling
+    if (!showPastEvents) {
+      setVisiblePastEvents(6);
+    }
   }, [showPastEvents]);
 
   // Filter events based on search query - memoized
@@ -482,8 +487,8 @@ const LandingPage = () => {
                   </p>
                 )}
                 
-                {/* Use windowing for past events on mobile to improve performance */}
-                {filteredPastEvents.slice(0, isMobileView ? 6 : filteredPastEvents.length).map((event) => (
+                {/* Show limited number of past events initially */}
+                {filteredPastEvents.slice(0, isMobileView ? visiblePastEvents : filteredPastEvents.length).map((event) => (
                   <EventCard
                     key={event.id}
                     event={event}
@@ -495,16 +500,19 @@ const LandingPage = () => {
                 ))}
                 
                 {/* Load more button for mobile */}
-                {isMobileView && filteredPastEvents.length > 6 && (
-                  <button
-                    className="col-span-1 md:col-span-2 lg:col-span-3 bg-gray-800 py-3 rounded-lg text-gray-300 mt-4"
+                {isMobileView && filteredPastEvents.length > visiblePastEvents && (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="col-span-1 md:col-span-2 lg:col-span-3 bg-gray-800 hover:bg-gray-700 py-3 rounded-lg text-gray-300 mt-4 transition-colors duration-300"
                     onClick={() => {
-                      // This would be expanded to implement pagination or load more functionality
-                      alert("Load more functionality would be implemented here");
+                      // Increase the number of visible past events
+                      setVisiblePastEvents(prev => Math.min(prev + 6, filteredPastEvents.length));
                     }}
                   >
-                    Load More Events
-                  </button>
+                    Load More Events ({Math.min(visiblePastEvents, filteredPastEvents.length)} of {filteredPastEvents.length})
+                  </motion.button>
                 )}
               </motion.div>
             )}
