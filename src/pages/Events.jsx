@@ -67,13 +67,28 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
           >
             <div className="h-full flex flex-col justify-between">
               <div>
-                <motion.h3 className="text-2xl font-bold mb-2">
+                <motion.h3
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-2xl font-bold mb-2"
+                >
                   {event.event_name}
                 </motion.h3>
-                <motion.p className="text-blue-400 mb-4">
+                <motion.p
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="text-blue-400 mb-4"
+                >
                   {event.club_name}
                 </motion.p>
-                <motion.p className="text-gray-300 mb-6 line-clamp-4">
+                <motion.p
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                  className="text-gray-300 mb-6 line-clamp-4"
+                >
                   {event.description}
                 </motion.p>
 
@@ -84,10 +99,16 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
                     { icon: <MapPin className="w-4 h-4 mr-2" />, text: event.location },
                     { icon: <CircleDollarSign className="w-4 h-4 mr-2" />, text: event.price },
                   ].map((item, index) => (
-                    <div key={index} className="flex items-center text-gray-300">
+                    <motion.div
+                      key={index}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ duration: 0.3, delay: 0.3 + (index * 0.1) }}
+                      className="flex items-center text-gray-300"
+                    >
                       {item.icon}
                       <span>{item.text}</span>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -95,6 +116,9 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
               {!isPastEvent ? (
                 <div className="flex justify-center gap-5">
                   <motion.button
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.7 }}
                     whileTap={{ scale: 0.95 }}
                     className="mt-4 bg-white text-black px-6 py-3 rounded-[10px] w-1/2
                         transition-all duration-300
@@ -103,6 +127,9 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
                     <a href={event.websiteLink}>Visit</a>
                   </motion.button>
                   <motion.button
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.7 }}
                     whileTap={{ scale: 0.95 }}
                     className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[10px] 
                         transition-all duration-300 w-1/2
@@ -114,6 +141,9 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
                 </div>
               ) : (
                 <motion.button
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.7 }}
                   whileTap={{ scale: 0.95 }}
                   className="mt-4 bg-gray-700 text-white px-6 py-3 rounded-[10px] w-full
                       transition-all duration-300"
