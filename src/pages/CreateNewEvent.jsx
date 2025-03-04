@@ -80,8 +80,7 @@ const EventForm = () => {
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          price: parseFloat(formData.price_individual) || 0,
-          price_team: parseFloat(formData.price_team) || 0,
+          price: formData.price_individual || 0,
           register_link: formData.register_link,
           websiteLink:formData.websiteLink,
           poster: posterUrl
