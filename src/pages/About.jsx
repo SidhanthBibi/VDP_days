@@ -19,9 +19,9 @@ const About = () => {
       image: Sidh,
       bio: "Passionate about creating seamless user experiences",
       socials: {
-        github: "#",
-        linkedin: "#",
-        twitter: "#"
+        github: "https://github.com/sidhanthbibi",
+        linkedin: "https://www.linkedin.com/in/sidhanthbibi/",
+        twitter: "https://instagram.com/sidhanthbibi"
       }
     },
     {
@@ -31,9 +31,9 @@ const About = () => {
       image: Adron,
       bio: "Turning complex problems into elegant solutions",
       socials: {
-        github: "#",
-        linkedin: "#",
-        twitter: "#"
+        github: "https://github.com/Quadr1on",
+        linkedin: "https://www.linkedin.com/in/adorn-s-george-1766202a9/",
+        twitter: "https://www.instagram.com/quadr1on/"
       }
     },
     {
@@ -41,11 +41,11 @@ const About = () => {
       name: "Lenny Dany Derek",
       role: "Lead Developer",
       image: Lenny,
-      bio: "Got it! Your focus on scalability and maintainability will definitely help in building efficient and future-proof applications",
+      bio: "Focusing on scalability and maintainability to help in building efficient and future-proof applications",
       socials: {
-        github: "#",
-        linkedin: "#",
-        twitter: "#"
+        github: "https://github.com/LennyDany-03",
+        linkedin: "http://www.linkedin.com/in/lenny-dany-derek-d-4411aa326",
+        twitter: "https://www.instagram.com/lenny_dany_3/"
       }
     },
     {
@@ -55,9 +55,9 @@ const About = () => {
       image: Arindam,
       bio: "Building the future of student communities",
       socials: {
-        github: "#",
-        linkedin: "#",
-        twitter: "#"
+        github: "https://github.com/Mr-Jaiman09",
+        linkedin: "https://www.linkedin.com/in/arindam-jaiman-6149a82ab/",
+        twitter: "https://www.instagram.com/thearindamjaiman"
       }
     },
     {
@@ -67,9 +67,9 @@ const About = () => {
       image: Ananya,
       bio: "Bringing creative ideas to life through code",
       socials: {
-        github: "#",
-        linkedin: "#",
-        twitter: "#"
+        github: "https://github.com/Ananya29J",
+        linkedin: "https://www.linkedin.com/in/ananya-jaiswal-88a680328",
+        twitter: "https://www.instagram.com/_aviana29/#"
       }
     },
     {
@@ -79,7 +79,7 @@ const About = () => {
       image: Ashish,
       bio: "Dedicated to crafting exceptional web experiences",
       socials: {
-        github: "#",
+        github: "https://github.com/Money-gpt",
         linkedin: "https://www.linkedin.com/in/ashish-ranjan-670780322",
         twitter: "https://www.instagram.com/m_.one._y"
       }
@@ -89,11 +89,11 @@ const About = () => {
       name: "Arpita Biswal",
       role: "Designer",
       image: Arpita,
-      bio: "Turning ideas into success with innovation and preciion",
+      bio: "Turning ideas into success with innovation and precision",
       socials: {
         github: "#",
         linkedin: "#",
-        twitter: "#"
+        twitter: "https://www.instagram.com/aritaaaaas"
       }}
   ];
 
@@ -107,7 +107,7 @@ const About = () => {
     {
       icon: <Mail className="w-6 h-6" />,
       title: "Email Us",
-      content: "as7516@srmist.edu.in",
+      content: "sb1051@srmist.edu.in",
       color: "from-purple-400 to-purple-600"
     },
     {
