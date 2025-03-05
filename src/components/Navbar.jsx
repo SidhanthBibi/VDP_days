@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { UserCircle, Menu, X, LogOut } from 'lucide-react';
+import { UserCircle, Menu, X, LogOut, Edit2 } from 'lucide-react';
 import logo from '../assets/clubsphereGradient.png';
 import { supabase } from '../lib/supabaseClient';
 
@@ -181,14 +181,27 @@ const Navbar = () => {
                                 {userProfile.email}
                               </p>
                             </div>
+                            
+                            {/* Profile Actions */}
+                            <div className="w-full flex flex-col gap-2">
+                              {/* Edit Profile Button - Same size as Sign Out */}
+                              <button
+                                onClick={() => window.location.href = '/edit-profile'}
+                                className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/10 to-green-500/10 hover:from-blue-500/20 hover:to-green-500/20 text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center gap-2 group"
+                              >
+                                <Edit2 className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                                Edit Profile
+                              </button>
 
-                            <button
-                              onClick={handleSignOut}
-                              className="w-full mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center gap-2 group"
-                            >
-                              <LogOut className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                              Sign Out
-                            </button>
+                              {/* Sign Out Button */}
+                              <button
+                                onClick={handleSignOut}
+                                className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center gap-2 group"
+                              >
+                                <LogOut className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                                Sign Out
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </>

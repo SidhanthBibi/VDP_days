@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Upload, User, Users,Globe } from 'lucide-react';
+import { Calendar, Clock, MapPin, Upload, User, Users, Globe, Send } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
+import { Toaster, toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const EventForm = () => {
   const [formData, setFormData] = useState({
@@ -12,15 +14,13 @@ const EventForm = () => {
     location: '',
     description: '',
     price_individual: 0,
-    price_team: 0,
     register_link: '',
-    websiteLink:''
+    websiteLink: ''
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -41,7 +41,9 @@ const EventForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    
+    // Show loading toast
+    const loadingToast = toast.loading('Creating your event...');
 
     try {
       let posterUrl = null;
@@ -71,7 +73,7 @@ const EventForm = () => {
       }
 
       // Insert event data into the events table
-      const { error: insertError, data } = await supabase
+      const { error: insertError } = await supabase
         .from('Events')
         .insert([{
           event_name: formData.event_name,
@@ -82,16 +84,13 @@ const EventForm = () => {
           location: formData.location,
           price: formData.price_individual || 0,
           register_link: formData.register_link,
-          websiteLink:formData.websiteLink,
+          websiteLink: formData.websiteLink,
           poster: posterUrl
         }]);
 
       if (insertError) {
-        console.error('Insert Error:', insertError);
         throw insertError;
       }
-
-      console.log('Insert successful:', data);
 
       // Reset form after successful submission
       setFormData({
@@ -102,204 +101,439 @@ const EventForm = () => {
         location: '',
         description: '',
         price_individual: 0,
-        price_team: 0,
         register_link: '',
-        websiteLink:""
+        websiteLink: ""
       });
       setImageFile(null);
       setPreviewUrl(null);
 
-      alert('Event created successfully!');
+      // Show success toast
+      toast.dismiss(loadingToast);
+      toast.success('Event created successfully!', {
+        duration: 5000,
+        icon: '🎉',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
 
     } catch (err) {
-      setError(err.message);
+      // Show error toast
+      toast.dismiss(loadingToast);
+      toast.error(`Error: ${err.message}`, {
+        duration: 5000,
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.05,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: 'spring', stiffness: 300, damping: 24 }
+    }
+  };
+
+  const buttonVariants = {
+    rest: { scale: 1 },
+    hover: { 
+      scale: 1.03,
+      boxShadow: "0 10px 25px rgba(79, 70, 229, 0.4)",
+      transition: { 
+        type: "spring", 
+        stiffness: 400, 
+        damping: 10 
+      }
+    },
+    tap: { scale: 0.97 }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 py-8">
-      {/* Neon Circle Accents */}
-      <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-      <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+    <motion.div 
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white px-4 py-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
+      {/* Toast Container */}
+      <Toaster position="top-right" />
 
-      <div className="max-w-3xl mx-auto relative">
-        <h1 className="text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-          Create New Event
-        </h1>
+      {/* Animated background elements */}
+      <motion.div 
+        className="fixed top-20 right-20 w-64 h-64 bg-cyan-600 rounded-full blur-3xl opacity-10"
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.1, 0.15, 0.1]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
+      />
+      <motion.div 
+        className="fixed bottom-20 left-20 w-96 h-96 bg-pink-600 rounded-full blur-3xl opacity-10"
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.1, 0.15, 0.1]
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          repeatType: "reverse",
+          delay: 1
+        }}
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50">
-            {/* Image Upload */}
-            <div className="mb-8">
-              <div 
-                className="w-80 h-100 mx-auto rounded-xl border-2 border-dashed border-gray-700 flex flex-col items-center justify-center cursor-pointer overflow-hidden"
+      <div className="max-w-xl mx-auto relative z-10">
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 100, 
+            damping: 15,
+            delay: 0.2
+          }}
+        >
+          <h1 className="text-5xl font-bold text-white mb-2">
+            Create <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">Event</span>
+          </h1>
+          <p className="text-gray-300">Fill in the details to create a new event</p>
+        </motion.div>
+
+        <motion.form 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-6"
+          onSubmit={handleSubmit}
+        >
+          <motion.div 
+            className="backdrop-blur-xl bg-white/10 rounded-2xl p-8 border border-white/20 shadow-xl"
+            variants={itemVariants}
+          >
+            {/* Event Poster Upload - Portrait Style */}
+            <motion.div 
+              className="mb-8 flex flex-col items-center"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 mb-3 block text-center text-lg">Event Poster</label>
+              <motion.div 
+                whileHover={{ scale: 1.02, borderColor: 'rgba(236, 72, 153, 0.7)' }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full max-w-xs h-96 rounded-xl border-2 border-cyan-400/50 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20"
                 onClick={() => document.getElementById('image-upload').click()}
               >
-                {previewUrl ? (
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-center p-4">
-                    <Upload className="w-10 h-10 mx-auto mb-2 text-gray-400" />
-                    <p className="text-gray-400 text-sm">Click to upload</p>
-                    <p className="text-xs text-gray-500 mt-1">3:4 ratio</p>
-                  </div>
-                )}
+                <AnimatePresence mode="wait">
+                  {previewUrl ? (
+                    <motion.img 
+                      key="preview" 
+                      src={previewUrl} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  ) : (
+                    <motion.div 
+                      key="upload" 
+                      className="text-center p-4 flex flex-col items-center justify-center h-full"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                      <div className="bg-white/10 p-6 rounded-full mb-4">
+                        <Upload className="w-16 h-16 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                      </div>
+                      <p className="text-white text-xl font-medium mb-2">Upload Event Poster</p>
+                      <p className="text-gray-300 text-sm max-w-xs text-center">
+                        Select a portrait image in 3:4 ratio
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <input
                   id="image-upload"
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
                   className="hidden"
+                  required
+                />
+              </motion.div>
+            </motion.div>
+
+            {/* Event Title */}
+            <motion.div 
+              className="mb-6 relative group"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 ml-2 mb-1 block">Event Title</label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                <motion.input
+                  whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                  type="text"
+                  name="event_name"
+                  value={formData.event_name}
+                  onChange={handleChange}
+                  placeholder="Enter event title"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                  required
                 />
               </div>
-            </div>
+            </motion.div>
 
-            {/* Title */}
-            <div className="mb-6">
-              <input
-                type="text"
-                name="event_name"
-                value={formData.event_name}
-                onChange={handleChange}
-                placeholder="Event Title"
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Club */}
-            <div className="mb-6">
-              <input
-                type="text"
-                name="club_name"
-                value={formData.club_name}
-                placeholder="Organizing Club"
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+            {/* Organizing Club */}
+            <motion.div 
+              className="mb-6 relative group"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 ml-2 mb-1 block">Organizing Club</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                <motion.input
+                  whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                  type="text"
+                  name="club_name"
+                  value={formData.club_name}
+                  onChange={handleChange}
+                  placeholder="Enter club name"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                  required
+                />
+              </div>
+            </motion.div>
 
             {/* Date and Time */}
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+              <motion.div 
+                className="relative group"
+                variants={itemVariants}
+              >
+                <label className="text-gray-300 ml-2 mb-1 block">Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                  <motion.input
+                    whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                    required
+                  />
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                className="relative group"
+                variants={itemVariants}
+              >
+                <label className="text-gray-300 ml-2 mb-1 block">Time</label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                  <motion.input
+                    whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                    required
+                  />
+                </div>
+              </motion.div>
             </div>
 
             {/* Location */}
-            <div className="mb-6 relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="Event Location"
-                className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Price Section */}
-            <div className="mb-6 space-y-4">
-              <h3 className="text-lg font-medium text-gray-300">Pricing</h3>
-              
-              {/* Individual Price */}
+            <motion.div 
+              className="mb-6 relative group"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 ml-2 mb-1 block">Location</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                <motion.input
+                  whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
                   type="text"
-                  name="price_individual"
+                  name="location"
+                  value={formData.location}
                   onChange={handleChange}
-                  placeholder="Price(s) for the event"
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter event location"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
                   required
                 />
-              </div>              
-            </div>
-            {/* website Link */}
-            <div className="mb-6 relative">
-              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="url"
-                name="websiteLink"
-                value={formData.websiteLink}
-                onChange={handleChange}
-                placeholder="Website link"
-                className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            {/* Register Link */}
-            <div className="mb-6">
-              <input
-                type="url"
-                name="register_link"
-                value={formData.register_link}
-                onChange={handleChange}
-                placeholder="Registration Link"
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+              </div>
+            </motion.div>
+
+            {/* Price */}
+            <motion.div 
+              className="mb-6 relative group"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 ml-2 mb-1 block">Price Information</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                <motion.input
+                  whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                  type="text"
+                  name="price_individual"
+                  value={formData.price_individual}
+                  onChange={handleChange}
+                  placeholder="Enter price details (e.g. Free, ₹100, ₹200 per team)"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                  required
+                />
+              </div>
+            </motion.div>
+
+            {/* Website Link */}
+            <motion.div 
+              className="mb-6 relative group"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 ml-2 mb-1 block">Website Link</label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                <motion.input
+                  whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                  type="url"
+                  name="websiteLink"
+                  value={formData.websiteLink}
+                  onChange={handleChange}
+                  placeholder="Enter website URL"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                  required
+                />
+              </div>
+            </motion.div>
+
+            {/* Registration Link */}
+            <motion.div 
+              className="mb-6 relative group"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 ml-2 mb-1 block">Registration Link</label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300" />
+                <motion.input
+                  whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                  type="url"
+                  name="register_link"
+                  value={formData.register_link}
+                  onChange={handleChange}
+                  placeholder="Enter registration URL"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                  required
+                />
+              </div>
+            </motion.div>
 
             {/* Description */}
-            <div className="mb-6">
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Event Description"
-                rows="4"
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="mb-4 text-red-500 text-sm">
-                {error}
+            <motion.div 
+              className="mb-6 relative group"
+              variants={itemVariants}
+            >
+              <label className="text-gray-300 ml-2 mb-1 block">Event Description</label>
+              <div className="relative">
+                <div className="absolute left-3 top-3 w-5 h-5 text-cyan-400 group-hover:text-pink-400 transition-colors duration-300">
+                  <Users className="w-5 h-5" />
+                </div>
+                <motion.textarea
+                  whileFocus={{ boxShadow: "0 0 0 2px rgba(6, 182, 212, 0.5)" }}
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Describe your event"
+                  rows="4"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-300"
+                  required
+                ></motion.textarea>
               </div>
-            )}
+            </motion.div>
 
             {/* Submit Button */}
-            <button
+            <motion.button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[20px] 
-                hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-                shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]
-                disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-8 bg-gradient-to-r from-cyan-500 to-pink-500 text-white px-6 py-4 rounded-xl
+                hover:from-cyan-600 hover:to-pink-600 transition-all duration-300 
+                shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-pink-500/30
+                disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              variants={buttonVariants}
+              initial="rest"
+              whileHover="hover"
+              whileTap="tap"
             >
-              {loading ? 'Creating Event...' : 'Create Event'}
-            </button>
-          </div>
-        </form>
+              {loading ? (
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                />
+              ) : (
+                <>
+                  <Send className="w-5 h-5" /> 
+                  <span>Create Event</span>
+                </>
+              )}
+            </motion.button>
+          </motion.div>
+        </motion.form>
+
+        {/* Decorative elements */}
+        <motion.div 
+          className="hidden md:block absolute -bottom-20 -left-20 w-40 h-40 bg-cyan-500 rounded-full blur-3xl opacity-20"
+          animate={{
+            x: [0, 10, 0],
+            y: [0, -10, 0],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            repeatType: "mirror"
+          }}
+        />
+        <motion.div 
+          className="hidden md:block absolute -top-20 -right-20 w-40 h-40 bg-pink-500 rounded-full blur-3xl opacity-20"
+          animate={{
+            x: [0, -10, 0],
+            y: [0, 10, 0],
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            repeatType: "mirror"
+          }}
+        />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -16,6 +16,7 @@ import DynamicRegistrationForm from './components/EventRegistation.jsx';
 import LoginSuccess from './components/LoginSuccess.jsx';
 import QrCode from './pages/QR_Code.jsx';
 import NotFound from './pages/NotFound';
+import Biodata from './pages/Biodata.jsx';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
           <Route path="/qrcode" element={<QrCode />} />
+          <Route path="/edit-profile" element={<Biodata />} />
           <Route path="*" element={<NotFound />} />
           
           {/* Dynamic Event Registration Route */}
