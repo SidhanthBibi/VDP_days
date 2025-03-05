@@ -2,50 +2,50 @@
 
 ## Project Structure
 
-Directory structure:
-└── sidhanthbibi-vdp_days/
-    ├── README.md
-    ├── LICENSE
-    ├── eslint.config.js
-    ├── index.html
-    ├── package.json
-    ├── vercel.json
-    ├── vite.config.js
-    ├── public/
-    │   └── policies/
-    │       ├── contact.html
-    │       ├── privacy.html
-    │       ├── refunds.html
-    │       └── terms.html
-    └── src/
-        ├── App.css
-        ├── App.jsx
-        ├── index.css
-        ├── main.jsx
-        ├── assets/
-        ├── components/
-        │   ├── ClubCard.jsx
-        │   ├── LoginSuccess.jsx
-        │   ├── Navbar.jsx
-        │   └── SignUpSuccess.jsx
-        ├── context/
-        │   └── ClubContext.jsx
-        ├── lib/
-        │   └── supabaseClient.js
-        └── pages/
-            ├── About.jsx
-            ├── ClubDetail.jsx
-            ├── ClubDetailForm.jsx
-            ├── Clubs.jsx
-            ├── CodeTheDark_RegisterPage.jsx
-            ├── CreateNewEvent.jsx
-            ├── Events.jsx
-            ├── Explore.jsx
-            ├── Home.jsx
-            ├── Landing.jsx
-            ├── Login.jsx
-            ├── NotFound.jsx
-            └── SignUp.jsx
+Directory structure: <br>
+└── sidhanthbibi-vdp_days/ <br>
+    ├── README.md <br>
+    ├── LICENSE <br>
+    ├── eslint.config.js <br>
+    ├── index.html <br>
+    ├── package.json <br>
+    ├── vercel.json <br>
+    ├── vite.config.js <br>
+    ├── public/ <br>
+    │   └── policies/ <br>
+    │       ├── contact.html <br>
+    │       ├── privacy.html <br>
+    │       ├── refunds.html <br>
+    │       └── terms.html <br>
+    └── src/ <br>
+        ├── App.css <br>
+        ├── App.jsx <br>
+        ├── index.css <br>
+        ├── main.jsx <br>
+        ├── assets/ <br>
+        ├── components/ <br>
+        │   ├── ClubCard.jsx <br>
+        │   ├── LoginSuccess.jsx <br>
+        │   ├── Navbar.jsx <br>
+        │   └── SignUpSuccess.jsx <br>
+        ├── context/ <br>
+        │   └── ClubContext.jsx <br>
+        ├── lib/ <br>
+        │   └── supabaseClient.js <br>
+        └── pages/ <br>
+            ├── About.jsx <br>
+            ├── ClubDetail.jsx <br>
+            ├── ClubDetailForm.jsx <br>
+            ├── Clubs.jsx <br>
+            ├── CodeTheDark_RegisterPage.jsx <br>
+            ├── CreateNewEvent.jsx <br>
+            ├── Events.jsx <br>
+            ├── Explore.jsx <br>
+            ├── Home.jsx <br>
+            ├── Landing.jsx <br>
+            ├── Login.jsx <br>
+            ├── NotFound.jsx <br>
+            └── SignUp.jsx <br>
 
 
 ## Setup Instructions
@@ -111,3 +111,4 @@ For more information, please contact the project maintainers at [sidhanthbibi@gm
 ###### @SidhanthBibi : Sidhanth Bibi
 ###### @Quadr1on : Adorn S George
 ###### @LennyDany-03 : Lenny Dany Derek D
+###### @Mr-Jaiman09 : Arindam Jaiman
