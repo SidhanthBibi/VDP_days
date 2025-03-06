@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Calendar, Mail, Phone, Upload, User, BookOpen, GraduationCap, Send, School } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Phone, Upload, User, BookOpen, GraduationCap, Send, School } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BiodataForm = () => {
+  // Form state
   const [formData, setFormData] = useState({
     name: '',
     gender: '',
@@ -15,12 +16,118 @@ const BiodataForm = () => {
     department: '',
     class: '',
     year: '',
+    email: ''
   });
-
+  
+  // UI state
   const [photoFile, setPhotoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [existingRecord, setExistingRecord] = useState(null);
 
+  // Fetch current user and check for existing record
+  const checkTable = async () => {
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('User authentication error:', userError);
+        return;
+      }
+  
+      if (!user || !user.email) {
+        console.warn('No authenticated user found');
+        return;
+      }
+  
+      const { data, error: fetchError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+  
+      if (fetchError) {
+        console.error('Detailed Supabase query error:', {
+          code: fetchError.code,
+          message: fetchError.message,
+          details: fetchError.details
+        });
+        
+        // Handle specific error scenarios
+        if (fetchError.code === 'PGRST116') {
+          // No records found (not necessarily an error)
+          console.log('No existing record found for this user');
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+  };
+  
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        // Get current authenticated user
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) throw error;
+        
+        if (!user || !user.email) {
+          console.warn('No authenticated user found');
+          return;
+        }
+        
+        console.log('Current user email:', user.email);
+        
+        // Set email in form data
+        setFormData(prev => ({ ...prev, email: user.email }));
+        
+        // Check if user already has a record
+        const { data, error: fetchError } = await supabase
+          .from('students')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+        
+        if (fetchError) {
+          if (fetchError.code !== 'PGRST116') { // Not found is expected for new users
+            console.error('Error fetching existing record:', fetchError);
+          }
+          return;
+        }
+        
+        if (data) {
+          console.log('Found existing record:', data);
+          setExistingRecord(data);
+          
+          // Pre-fill form with existing data
+          setFormData({
+            name: data.name || '',
+            gender: data.gender || '',
+            phone: data.phone || '',
+            isSRMVadaplani: data.is_srm_vadaplani ? 'Yes' : 'No',
+            registrationNumber: data.registration_number || '',
+            department: data.department || '',
+            class: data.class || '',
+            year: data.year ? data.year.toString() : '',
+            email: user.email
+          });
+          
+          // Set photo preview if available
+          if (data.photo) {
+            setPreviewUrl(data.photo);
+          }
+        }
+      } catch (error) {
+        console.error('Error getting user data:', error);
+        toast.error('Failed to retrieve your information. Please try signing in again.');
+      }
+    };
+    
+    getUserData();
+  }, []);
+
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -29,6 +136,7 @@ const BiodataForm = () => {
     }));
   };
 
+  // Handle photo file selection
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -37,23 +145,27 @@ const BiodataForm = () => {
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    // Show loading toast
     const loadingToast = toast.loading('Processing your request...');
+    console.log('Submitting form with data:', formData);
 
     try {
-      let photoUrl = null;
+      // Validate email
+      if (!formData.email) {
+        throw new Error('User email not available. Please try signing in again.');
+      }
 
-      // Handle photo upload if a photo is selected
+      // Handle photo upload
+      let photoUrl = null;
       if (photoFile) {
         const fileExt = photoFile.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
         const filePath = `students/${fileName}`;
 
-        // Upload photo to Supabase Storage
         const { error: uploadError } = await supabase.storage
           .from('assets')
           .upload(filePath, photoFile, {
@@ -63,72 +175,67 @@ const BiodataForm = () => {
 
         if (uploadError) throw uploadError;
 
-        // Get public URL
         const { data: { publicUrl } } = supabase.storage
           .from('assets')
           .getPublicUrl(filePath);
 
         photoUrl = publicUrl;
+      } else if (existingRecord?.photo) {
+        // Keep existing photo if no new one is uploaded
+        photoUrl = existingRecord.photo;
       }
 
-      // Insert student data into the students table
-      const { error: insertError } = await supabase
-        .from('Students')
-        .insert([{
-          id: uuidv4(),
-          name: formData.name,
-          gender: formData.gender,
-          phone: formData.phone,
-          is_srm_vadaplani: formData.isSRMVadaplani === "Yes",
-          registration_number: formData.registrationNumber,
-          department: formData.department,
-          class: formData.class,
-          year: formData.year,
-          photo: photoUrl || ''
-        }]);
-
-      if (insertError) {
-        throw insertError;
+      // Prepare data for database
+      const studentData = {
+        name: formData.name,
+        gender: formData.gender,
+        phone: formData.phone,
+        is_srm_vadaplani: formData.isSRMVadaplani === "Yes",
+        registration_number: formData.registrationNumber,
+        department: formData.department,
+        class: formData.class,
+        year: formData.year,
+        photo: photoUrl,
+        email: formData.email
+      };
+      
+      console.log('Saving student data:', studentData);
+      
+      let result;
+      if (existingRecord) {
+        // Update existing record
+        result = await supabase
+          .from('students')
+          .update(studentData)
+          .eq('email', formData.email);
+          
+        if (result.error) throw result.error;
+        
+        toast.success('Your information has been updated successfully!');
+      } else {
+        // Insert new record
+        result = await supabase
+          .from('students')
+          .insert([{
+            id: uuidv4(),
+            ...studentData
+          }]);
+          
+        if (result.error) throw result.error;
+        
+        toast.success('Your information has been submitted successfully!');
       }
 
-      // Dismiss loading toast and show success toast
-      toast.dismiss(loadingToast);
-      toast.success('Edit request has been sent successfully!', {
-        duration: 5000,
-        icon: '🎉',
-        style: {
-          borderRadius: '10px',
-          background: '#333',
-          color: '#fff',
-        },
-      });
-
-      // Reset form after successful submission
-      setFormData({
-        name: '',
-        gender: '',
-        phone: '',
-        isSRMVadaplani: '',
-        registrationNumber: '',
-        department: '',
-        class: '',
-        year: '',
-      });
-      setPhotoFile(null);
-      setPreviewUrl(null);
+      // Update existing record state if this was a new submission
+      if (!existingRecord) {
+        setExistingRecord({ ...studentData });
+      }
 
     } catch (err) {
-      // Dismiss loading toast and show error toast
-      toast.dismiss(loadingToast);
-      toast.error(`Error: ${err.message}`, {
-        duration: 5000,
-        style: {
-          borderRadius: '10px',
-          background: '#333',
-          color: '#fff',
-        },
-      });
+      console.error('Error in form submission:', err);
+      toast.error(`Error: ${err.message}`);
     } finally {
+      toast.dismiss(loadingToast);
       setLoading(false);
     }
   };
@@ -136,22 +243,12 @@ const BiodataForm = () => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        staggerChildren: 0.1,
-        delayChildren: 0.3
-      }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.3 } }
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: 'spring', stiffness: 300, damping: 24 }
-    }
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
   };
 
   const buttonVariants = {
@@ -159,11 +256,7 @@ const BiodataForm = () => {
     hover: { 
       scale: 1.05,
       boxShadow: "0 10px 20px rgba(0, 0, 0, 0.2)",
-      transition: { 
-        type: "spring", 
-        stiffness: 400, 
-        damping: 10 
-      }
+      transition: { type: "spring", stiffness: 400, damping: 10 }
     },
     tap: { scale: 0.95 }
   };
@@ -173,22 +266,9 @@ const BiodataForm = () => {
     animate: { 
       scale: 1, 
       opacity: 1,
-      transition: { 
-        type: "spring", 
-        stiffness: 500, 
-        damping: 15 
-      }
+      transition: { type: "spring", stiffness: 500, damping: 15 }
     },
-    exit: { 
-      scale: 0, 
-      opacity: 0,
-      transition: { duration: 0.2 }
-    }
-  };
-
-  // Function to set year
-  const setYear = (year) => {
-    setFormData(prev => ({ ...prev, year: year.toString() }));
+    exit: { scale: 0, opacity: 0, transition: { duration: 0.2 } }
   };
 
   return (
@@ -198,32 +278,32 @@ const BiodataForm = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
     >
-      {/* Toast Container */}
+      {/* Toast notifications */}
       <Toaster position="top-right" />
       
-      {/* Background effects - matching ClubDetail */}
+      {/* Background effects */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       
       {/* Main content */}
       <div className="max-w-4xl mx-auto relative z-10">
+        {/* Header */}
         <motion.div 
           className="text-center mb-8"
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 100, 
-            damping: 15,
-            delay: 0.2
-          }}
+          transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.2 }}
         >
           <h1 className="text-5xl font-bold text-white mb-2">
             Student <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">Biodata</span>
           </h1>
           <p className="text-gray-300">Complete the form below to submit your information</p>
+          {formData.email && (
+            <p className="mt-2 text-blue-400">Logged in as: {formData.email}</p>
+          )}
         </motion.div>
 
+        {/* Form */}
         <motion.form 
           onSubmit={handleSubmit}
           variants={containerVariants}
@@ -309,6 +389,7 @@ const BiodataForm = () => {
                   <div className="flex flex-col space-y-3">
                     <label className="text-gray-300 ml-2">Gender</label>
                     <div className="flex gap-4">
+                      {/* Male Option */}
                       <motion.label 
                         className="relative flex-1"
                         whileHover={{ scale: 1.02 }}
@@ -355,6 +436,7 @@ const BiodataForm = () => {
                         </motion.div>
                       </motion.label>
                       
+                      {/* Female Option */}
                       <motion.label 
                         className="relative flex-1"
                         whileHover={{ scale: 1.02 }}
@@ -425,7 +507,7 @@ const BiodataForm = () => {
 
               {/* Right Column */}
               <div>
-                {/* SRMIST Vadaplani Check (replacing Email) */}
+                {/* SRMIST Vadaplani Check */}
                 <motion.div 
                   className="mb-6"
                   variants={itemVariants}
@@ -433,6 +515,7 @@ const BiodataForm = () => {
                   <div className="flex flex-col space-y-3">
                     <label className="text-gray-300 ml-2">Are you from SRMIST Vadaplani?</label>
                     <div className="flex gap-4">
+                      {/* Yes Option */}
                       <motion.label 
                         className="relative flex-1"
                         whileHover={{ scale: 1.02 }}
@@ -479,6 +562,7 @@ const BiodataForm = () => {
                         </motion.div>
                       </motion.label>
                       
+                      {/* No Option */}
                       <motion.label 
                         className="relative flex-1"
                         whileHover={{ scale: 1.02 }}
@@ -588,8 +672,8 @@ const BiodataForm = () => {
                     required
                   />
                 </motion.div>
-
-                {/* Year Selection - Fixed to properly align with buttons and fit within parent container */}
+                
+                {/* Year Selection - Large circular buttons */}
                 <motion.div 
                   className="mb-6"
                   variants={itemVariants}
@@ -617,7 +701,7 @@ const BiodataForm = () => {
                         <motion.button
                           key={year}
                           type="button"
-                          onClick={() => setYear(year)}
+                          onClick={() => setFormData(prev => ({ ...prev, year: year.toString() }))}
                           className={`w-16 h-16 rounded-full flex flex-col items-center justify-center
                             ${formData.year === year.toString() 
                               ? 'bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg shadow-purple-600/30' 
@@ -659,7 +743,7 @@ const BiodataForm = () => {
                 </motion.div>
               </div>
             </div>
-
+            
             {/* Submit Button */}
             <motion.button
               type="submit"
@@ -682,7 +766,7 @@ const BiodataForm = () => {
               ) : (
                 <>
                   <Send className="w-5 h-5" /> 
-                  <span>Submit Biodata</span>
+                  <span>{existingRecord ? 'Update' : 'Submit'} Biodata</span>
                 </>
               )}
             </motion.button>
