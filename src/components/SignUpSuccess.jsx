@@ -56,9 +56,9 @@ const SignUpSuccess = () => {
         // Wait a moment to show success animation
         setTimeout(() => {
           setIsProcessing(false);
-          // Redirect after 1.5 seconds
+          // Redirect after 1.5 seconds - modified to redirect students to edit-profile
           setTimeout(() => {
-            navigate(userType === 'student' ? '/events' : '/clubDetailform');
+            navigate(userType === 'student' ? '/edit-profile' : '/clubDetailform');
           }, 1500);
         }, 1000);
       } catch (error) {
@@ -160,7 +160,7 @@ const SignUpSuccess = () => {
                 Welcome to ClubSphere!
               </h2>
               <p className="text-gray-300 mb-2">Your account has been created successfully.</p>
-              <p className="text-gray-400 text-sm">Redirecting you to your dashboard...</p>
+              <p className="text-gray-400 text-sm">Redirecting you to complete your profile...</p>
             </motion.div>
           )}
         </motion.div>
