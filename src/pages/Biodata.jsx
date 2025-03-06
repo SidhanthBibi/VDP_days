@@ -4,8 +4,12 @@ import { supabase } from '../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'; // Import for redirection in React Router
 
 const BiodataForm = () => {
+  // Add navigate function for routing
+  const navigate = useNavigate();
+  
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -230,6 +234,12 @@ const BiodataForm = () => {
       if (!existingRecord) {
         setExistingRecord({ ...studentData });
       }
+      
+      // Redirect to the events page after successful submission
+      // Add a short delay to allow the success toast to be visible
+      setTimeout(() => {
+        navigate('/events');
+      }, 1500);
 
     } catch (err) {
       console.error('Error in form submission:', err);
