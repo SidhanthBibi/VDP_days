@@ -38,11 +38,24 @@ const Navbar = () => {
           return;
         }
 
+        // Check if the user has a record in the students table
+        const { data: studentData, error: studentError } = await supabase
+          .from('students')
+          .select('photo, name')
+          .eq('email', session.user.email)
+          .single();
+
+        if (studentError && studentError.code !== 'PGRST116') { // PGRST116 is "not found" which is OK
+          console.error('Error fetching student data:', studentError);
+        }
+
         const profile = {
           id: session.user.id,
-          name: profileData?.full_name || session.user.user_metadata.full_name,
+          // Use student name if available, otherwise fall back to profile name
+          name: studentData?.name || profileData?.full_name || session.user.user_metadata.full_name,
           email: session.user.email,
-          picture: profileData?.avatar_url || session.user.user_metadata.avatar_url
+          // Use student photo if available, otherwise fall back to profile photo
+          picture: studentData?.photo || profileData?.avatar_url || session.user.user_metadata.avatar_url
         };
 
         setUserProfile(profile);
