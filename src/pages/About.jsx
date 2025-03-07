@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building2, Mail, Phone, Globe, ChevronRight, Github, Linkedin, Instagram } from 'lucide-react';
 import Sidh from '../assets/Sidh.jpg';
 import Adron from '../assets/Adron.jpg';
@@ -6,10 +6,54 @@ import Lenny from '../assets/Lenny.jpg';
 import Arindam from '../assets/Arindam.jpg';
 import Ananya from '../assets/Ananya.jpg';
 import Ashish from '../assets/AshishRanjan.jpg';
-import Arpita from '../assets/Arpita.jpg'
+import Arpita from '../assets/Arpita.jpg';
+import { supabase } from '../lib/supabaseClient.js'; // Make sure you import your Supabase client
 
 const About = () => {
   const [hoveredMember, setHoveredMember] = useState(null);
+  const [stats, setStats] = useState({
+    clubsCount: 0,
+    studentsCount: 0,
+    eventsCount: 0,
+    partnersCount: 20 // Keeping partners as static since there's no corresponding table
+  });
+
+  // Fetch counts from Supabase
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        // Get clubs count
+        const { count: clubsCount, error: clubsError } = await supabase
+          .from('Clubs')
+          .select('*', { count: 'exact', head: true });
+
+        // Get profiles count (students)
+        const { count: studentsCount, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+
+        // Get events count
+        const { count: eventsCount, error: eventsError } = await supabase
+          .from('Events')
+          .select('*', { count: 'exact', head: true });
+
+        if (clubsError) console.error('Error fetching clubs:', clubsError);
+        if (profilesError) console.error('Error fetching profiles:', profilesError);
+        if (eventsError) console.error('Error fetching events:', eventsError);
+
+        setStats({
+          clubsCount: clubsCount || 0,
+          studentsCount: studentsCount || 0,
+          eventsCount: eventsCount || 0,
+          partnersCount: 20
+        });
+      } catch (error) {
+        console.error('Error fetching counts:', error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
 
   const teamMembers = [
     {
@@ -160,19 +204,19 @@ const About = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">10+</h3>
+              <h3 className="text-4xl font-bold mb-2">{stats.clubsCount}+</h3>
               <p className="text-gray-200">Active Clubs</p>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-pink-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">1000+</h3>
+              <h3 className="text-4xl font-bold mb-2">{stats.studentsCount}+</h3>
               <p className="text-gray-200">Students</p>
             </div>
             <div className="bg-gradient-to-br from-pink-500 to-red-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">100+</h3>
+              <h3 className="text-4xl font-bold mb-2">{stats.eventsCount}+</h3>
               <p className="text-gray-200">Events</p>
             </div>
             <div className="bg-gradient-to-br from-blue-600 to-green-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">20+</h3>
+              <h3 className="text-4xl font-bold mb-2">{stats.partnersCount}+</h3>
               <p className="text-gray-200">Partners</p>
             </div>
           </div>
