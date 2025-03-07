@@ -274,23 +274,23 @@ const ClubDetail = () => {
           .select("*")
           .eq("id", id)
           .single();
-  
+
         if (clubError) throw clubError;
-  
+
         // Fetch events for this club
         const { data: eventsData, error: eventsError } = await supabase
           .from("Events")
           .select("*")
           .eq("club_name", clubData.name);
-  
+
         if (eventsError) throw eventsError;
-  
+
         // Set clubEvents state
         setClubEvents(eventsData || []);
-        
+
         // Get the dynamic count of events
         const eventCount = eventsData ? eventsData.length : 0;
-  
+
         // Transform club data with dynamic event count
         const transformedClub = {
           id: clubData.id,
@@ -312,16 +312,16 @@ const ClubDetail = () => {
           Club_Coordinator: clubData.Club_Coordinator,
           access: clubData.access || [], // Ensure access is always an array
         };
-  
+
         setClub(transformedClub);
-  
+
         // Check access based on coordinator email AND access array
         if (currentUserEmail) {
           // Check if current user is the coordinator
           const isUserCoordinator =
             clubData.Club_Coordinator === currentUserEmail;
           setIsCoordinator(isUserCoordinator);
-  
+
           // Set haveAccess flag - this will be true for both coordinators and users in access array
           const hasAccess = checkUserAccess(clubData, currentUserEmail);
           setHaveAccess(hasAccess);
@@ -333,7 +333,7 @@ const ClubDetail = () => {
         setLoading(false);
       }
     };
-  
+
     if (id && currentUserEmail) {
       fetchClubDetails();
     }
@@ -418,7 +418,7 @@ const ClubDetail = () => {
               </div>
 
               <div className="flex gap-3">
-                {(isCoordinator || haveAccess) ? (
+                {isCoordinator || haveAccess ? (
                   <button className="border-1 border-gray-600 text-gray-400 px-6 py-2 rounded-xl transition-colors">
                     Join Club
                   </button>
@@ -759,7 +759,6 @@ const ClubDetail = () => {
             </div>
           </div>
         </div>
-
         {/* Additional Information */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           {/* About Section */}
@@ -808,10 +807,20 @@ const ClubDetail = () => {
             </div>
           </div>
         </div>
-
-        {/* Events Section */}
+        
+        {/* Events Section with Edit Button */}
         <div className="bg-gray-800 rounded-2xl p-6 mt-6 mb-8">
-          <h2 className="text-xl font-bold text-white mb-6">Events Hosted</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-white">Events Hosted</h2>
+            {(isCoordinator || haveAccess) && (
+              <a href="/create_event">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  <span>Add Event</span>
+                </button>
+              </a>
+            )}
+          </div>
 
           {clubEvents.length === 0 ? (
             <div className="text-center py-8">
@@ -833,8 +842,18 @@ const ClubDetail = () => {
                       className="w-full h-full object-cover"
                     />
 
+                    {/* Edit Button - Only visible for coordinators/access users */}
+                    {(isCoordinator || haveAccess) && (
+                      <a
+                        href={`/edit-event/${event.id}`}
+                        className="absolute top-4 right-4 z-30 bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                      >
+                        <Settings className="w-4 h-4 text-white" />
+                      </a>
+                    )}
+
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between">
+                    <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between pointer-events-none">
                       <div>
                         <h3 className="text-xl font-bold mb-2">
                           {event.event_name}
@@ -862,17 +881,6 @@ const ClubDetail = () => {
                           </div>
                         </div>
                       </div>
-                      {/* 
-                      <a
-                        href={event.register_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center px-4 py-2 rounded-lg
-                          hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-                          shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
-                      >
-                        Register Now
-                      </a> */}
                     </div>
                   </div>
 

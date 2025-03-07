@@ -14,6 +14,7 @@ import SignupTick from './components/SignUpSuccess.jsx';
 import { ClubProvider } from './context/ClubContext';
 import DynamicRegistrationForm from './components/EventRegistation.jsx';
 import LoginSuccess from './components/LoginSuccess.jsx';
+import EditEventForm from "./pages/EditEventForm";
 import QrCode from './pages/QR_Code.jsx';
 import NotFound from './pages/NotFound';
 import Biodata from './pages/Biodata.jsx';
@@ -44,11 +45,7 @@ function App() {
           
           {/* Dynamic Event Registration Route */}
           <Route path="/event-register/:eventId" element={<DynamicRegistrationForm />} />
-          
-          {/* Legacy direct routes */}
-          <Route path="/CodeTheDark" element={<DynamicRegistrationForm />} />
-          <Route path="/StudyGroup" element={<DynamicRegistrationForm />} />
-          <Route path="/AbroadREG" element={<DynamicRegistrationForm />} />
+          <Route path="/edit-event/:id" element={<EditEventForm />} />
           
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
