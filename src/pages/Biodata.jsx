@@ -23,7 +23,7 @@ const BiodataForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     gender: "",
-    dob: '', 
+    dob: "",
     phone: "",
     isSRMVadaplani: "",
     registrationNumber: "",
@@ -125,7 +125,7 @@ const BiodataForm = () => {
           setFormData({
             name: data.name || "",
             gender: data.gender || "",
-            dob: data.dob || '',
+            dob: data.dob || "",
             phone: data.phone || "",
             isSRMVadaplani: data.is_srm_vadaplani ? "Yes" : "No",
             registrationNumber: data.registration_number || "",
@@ -188,6 +188,33 @@ const BiodataForm = () => {
       // Handle photo upload
       let photoUrl = null;
       if (photoFile) {
+        // If there's an existing photo and user is uploading a new one, delete the old photo
+        if (existingRecord?.photo) {
+          try {
+            // Extract the file path from the URL
+            const existingPhotoPath = existingRecord.photo
+              .split("/")
+              .slice(-2)
+              .join("/");
+
+            // Delete the old photo from storage
+            const { error: deleteError } = await supabase.storage
+              .from("assets")
+              .remove([existingPhotoPath]);
+
+            if (deleteError) {
+              console.error("Error deleting previous photo:", deleteError);
+              // Continue with the upload even if delete fails
+            } else {
+              console.log("Previous photo deleted successfully");
+            }
+          } catch (error) {
+            console.error("Error processing photo deletion:", error);
+            // Continue with the upload even if delete fails
+          }
+        }
+
+        // Upload new photo - your existing upload code
         const fileExt = photoFile.name.split(".").pop();
         const fileName = `${uuidv4()}.${fileExt}`;
         const filePath = `students/${fileName}`;
@@ -210,13 +237,12 @@ const BiodataForm = () => {
         // Keep existing photo if no new one is uploaded
         photoUrl = existingRecord.photo;
       }
-
       // Prepare data for database
       const studentData = {
         name: formData.name,
         gender: formData.gender,
         phone: formData.phone,
-        dob: formData.dob, 
+        dob: formData.dob,
         is_srm_vadaplani: formData.isSRMVadaplani === "Yes",
         registration_number: formData.registrationNumber,
         department: formData.department,
