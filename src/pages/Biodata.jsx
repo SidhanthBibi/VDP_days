@@ -252,7 +252,7 @@ const BiodataForm = () => {
         email: formData.email,
       };
 
-      console.log("Saving student data:", studentData);
+      
 
       let result;
       if (existingRecord) {
