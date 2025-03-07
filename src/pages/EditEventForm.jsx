@@ -234,7 +234,43 @@ const EditEventForm = () => {
     setLoading(true);
     
     try {
-      // Delete the event
+      // First, get the full event data to access the poster URL
+      const { data: eventData, error: fetchError } = await supabase
+        .from('Events')
+        .select('poster')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Delete the poster from storage if it exists
+      if (eventData.poster) {
+        // Extract the file path from the URL
+        const storageUrl = supabase.storage.from('assets').getPublicUrl('').data.publicUrl;
+        let filePath = null;
+        
+        // Check if the poster URL includes the storage URL and extract the path
+        if (eventData.poster.startsWith(storageUrl)) {
+          filePath = eventData.poster.replace(storageUrl, '');
+          
+          // Remove leading slash if present
+          if (filePath.startsWith('/')) {
+            filePath = filePath.substring(1);
+          }
+          
+          // Delete the file from storage
+          const { error: storageError } = await supabase.storage
+            .from('assets')
+            .remove([filePath]);
+            
+          if (storageError) {
+            console.error('Failed to delete poster image:', storageError);
+            // Continue with deleting the event even if image deletion fails
+          }
+        }
+      }
+      
+      // Delete the event from the database
       const { error: deleteError } = await supabase
         .from('Events')
         .delete()
