@@ -22,6 +22,7 @@ import {
   CircleCheck,
   Settings,
   Upload,
+  Star,
 } from "lucide-react";
 
 const ClubDetail = () => {
@@ -35,11 +36,14 @@ const ClubDetail = () => {
   const [clubEvents, setClubEvents] = useState([]);
   const [isHiring, setIsHiring] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [newLogoFile, setNewLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [haveAccess, setHaveAccess] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
     description: "",
@@ -81,6 +85,7 @@ const ClubDetail = () => {
 
         if (session?.user?.email) {
           setCurrentUserEmail(session.user.email);
+          setCurrentUserId(session.user.id);
         }
       } catch (err) {
         console.error("Error fetching user email:", err);
@@ -89,6 +94,31 @@ const ClubDetail = () => {
 
     fetchUserEmail();
   }, []);
+
+  // Check if user is following the club
+  useEffect(() => {
+    const checkIfFollowing = async () => {
+      if (!currentUserId || !id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("followed")
+          .eq("id", currentUserId)
+          .single();
+          
+        if (error) throw error;
+        
+        // Check if the club ID is in the followed array
+        const isFollowed = data.followed ? data.followed.includes(id) : false;
+        setIsFollowing(isFollowed);
+      } catch (err) {
+        console.error("Error checking follow status:", err);
+      }
+    };
+    
+    checkIfFollowing();
+  }, [currentUserId, id]);
 
   const checkUserAccess = (clubData, userEmail) => {
     if (!userEmail) return false;
@@ -266,6 +296,94 @@ const ClubDetail = () => {
       setLogoPreview(previewUrl);
     }
   };
+
+  // Handle follow/unfollow club
+  const handleFollowToggle = async () => {
+    if (!currentUserId) {
+      // Redirect to login if not logged in
+      navigate("/login", {
+        state: {
+          returnUrl: `/clubs/${id}`,
+        },
+      });
+      return;
+    }
+    
+    setFollowLoading(true);
+    
+    try {
+      // Get current user's followed clubs
+      const { data: userData, error: userError } = await supabase
+        .from("profiles")
+        .select("followed")
+        .eq("id", currentUserId)
+        .single();
+        
+      if (userError) throw userError;
+      
+      // Initialize followed array if it doesn't exist
+      const currentFollowed = userData.followed || [];
+      let newFollowed;
+      let followersDelta;
+      
+      if (isFollowing) {
+        // Unfollow logic - remove club ID from followed array
+        newFollowed = currentFollowed.filter(clubId => clubId !== id);
+        followersDelta = -1;
+      } else {
+        // Follow logic - add club ID to followed array
+        newFollowed = [...currentFollowed, id];
+        followersDelta = 1;
+      }
+      
+      // Update profiles table
+      const { error: updateProfileError } = await supabase
+        .from("profiles")
+        .update({ followed: newFollowed })
+        .eq("id", currentUserId);
+        
+      if (updateProfileError) throw updateProfileError;
+      
+      // Get current followers count from Clubs table
+      const { data: clubData, error: clubError } = await supabase
+        .from("Clubs")
+        .select("followers")
+        .eq("id", id)
+        .single();
+        
+      if (clubError) throw clubError;
+      
+      // Calculate new followers count
+      const currentFollowers = clubData.followers || 0;
+      const newFollowersCount = Math.max(0, currentFollowers + followersDelta);
+      
+      // Update Clubs table
+      const { error: updateClubError } = await supabase
+        .from("Clubs")
+        .update({ followers: newFollowersCount })
+        .eq("id", id);
+        
+      if (updateClubError) throw updateClubError;
+      
+      // Update local state
+      setIsFollowing(!isFollowing);
+      
+      // Update club state with new followers count
+      setClub(prevClub => ({
+        ...prevClub,
+        stats: {
+          ...prevClub.stats,
+          followers: newFollowersCount.toString(),
+        }
+      }));
+      
+    } catch (err) {
+      console.error("Error following/unfollowing club:", err);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchClubDetails = async () => {
       try {
@@ -410,324 +528,110 @@ const ClubDetail = () => {
                     <Trophy className="h-5 w-5" />
                     <span>{club.achievements}</span>
                   </div>
-                  {/* <div className="flex items-center gap-2 text-gray-400">
-                    <Users className="h-5 w-5" />
-                    <span>{club.memberCount} members</span>
-                  </div> */}
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                {isCoordinator || haveAccess ? (
-                  <button className="border-1 border-gray-600 text-gray-400 px-6 py-2 rounded-xl transition-colors">
-                    Join Club
-                  </button>
-                ) : isHiring ? (
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-colors">
-                    Join Club
-                  </button>
-                ) : (
-                  <button className="border-1 border-gray-600 text-white px-6 py-2 rounded-xl transition-colors">
-                    Not Hiring
-                  </button>
-                )}
-
-                {(isCoordinator || haveAccess) && (
-                  <a href="/create_event">
-                    <button className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors">
-                      <Plus className="w-5 h-6" />
+              {/* Reorganized button section */}
+              <div className="flex flex-col gap-3 sm:items-end">
+                {/* Primary actions */}
+                <div className="flex flex-wrap gap-2">
+                  {/* Join button */}
+                  {isCoordinator || haveAccess ? (
+                    <button className="border border-gray-600 text-gray-400 px-4 py-2 rounded-xl transition-colors">
+                      Join Club
                     </button>
-                  </a>
-                )}
-                <button
-                  onClick={handleCopy}
-                  className="bg-gray-700 hover:bg-gray-600 flex justify-center items-center gap-1 text-white p-2 rounded-xl transition-colors"
-                >
-                  {copied ? (
-                    <>
-                      <span>
-                        <CircleCheck className="w-5 h-5" />
-                      </span>
-                      Link Copied!
-                    </>
+                  ) : isHiring ? (
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors">
+                      Join Club
+                    </button>
                   ) : (
-                    <>
-                      <Share2 className="w-5 h-5" />
-                    </>
+                    <button className="border border-gray-600 text-white px-4 py-2 rounded-xl transition-colors">
+                      Not Hiring
+                    </button>
                   )}
-                </button>
 
-                {(isCoordinator || haveAccess) && (
-                  <>
+                  {/* Follow button */}
+                  <button
+                    onClick={handleFollowToggle}
+                    className={`${
+                      isFollowing 
+                        ? "bg-purple-600 hover:bg-purple-700" 
+                        : "bg-gray-700 hover:bg-gray-600"
+                    } text-white px-4 py-2 rounded-xl transition-colors flex items-center gap-2 relative`}
+                    disabled={followLoading}
+                  >
+                    {followLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Loading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Star className={`w-5 h-5 ${isFollowing ? "fill-white" : ""}`} />
+                        <span>{isFollowing ? "Following" : "Follow"}</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  {/* Share button - MOBILE ONLY VERSION */}
+                  <button
+                    onClick={handleCopy}
+                    className="flex sm:hidden items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-xl transition-colors"
+                  >
+                    {copied ? (
+                      <>
+                        <CircleCheck className="w-4 h-4" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-4 h-4" />
+                        <span>Share</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Secondary actions */}
+                <div className="flex gap-2 mt-2">
+                  {/* Create event button - only for coordinators/admins */}
+                  {(isCoordinator || haveAccess) && (
+                    <a href="/create_event" 
+                      className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-xl transition-colors flex items-center gap-2 text-sm">
+                      <Plus className="w-4 h-4" />
+                      <span className="hidden sm:inline">Add Event</span>
+                    </a>
+                  )}
+                  
+                  {/* Share button - DESKTOP ONLY VERSION */}
+                  <button
+                    onClick={handleCopy}
+                    className="hidden sm:flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-xl transition-colors text-sm"
+                  >
+                    {copied ? (
+                      <>
+                        <CircleCheck className="w-4 h-4" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-4 h-4" />
+                        <span>Share</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  {/* Settings button - only for coordinators/admins */}
+                  {(isCoordinator || haveAccess) && (
                     <button
                       onClick={() => setIsSettingsOpen(true)}
-                      className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-xl transition-colors"
+                      className="bg-gray-700 hover:bg-gray-600 flex items-center gap-2 text-white px-3 py-2 rounded-xl transition-colors text-sm"
                     >
-                      <Settings className="w-5 h-6" />
+                      <Settings className="w-4 h-4" />
+                      <span className="hidden sm:inline">Settings</span>
                     </button>
-
-                    {/* Settings Modal */}
-                    {isSettingsOpen && (
-                      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                        <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
-                          {/* Close button */}
-                          <button
-                            onClick={() => setIsSettingsOpen(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-white"
-                          >
-                            <svg
-                              className="w-6 h-6"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-
-                          <h2 className="text-2xl font-bold text-center mb-6">
-                            Club Settings
-                          </h2>
-
-                          {/* Logo Update Section */}
-                          <div className="flex flex-col items-center mb-6">
-                            <label className="block text-sm font-medium mb-2">
-                              Update Club Logo
-                            </label>
-                            <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-700 mb-4">
-                              {logoPreview || club.image ? (
-                                <img
-                                  src={logoPreview || club.image}
-                                  alt="Logo preview"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
-                                  {club.name.charAt(0)}
-                                </div>
-                              )}
-
-                              {/* Upload overlay */}
-                              <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
-                                <Upload className="w-8 h-8 text-white mb-2" />
-                                <span className="text-sm text-white">
-                                  Upload new logo
-                                </span>
-                                <input
-                                  type="file"
-                                  className="hidden"
-                                  accept="image/*"
-                                  onChange={handleLogoChange}
-                                />
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Club Details Form */}
-                          <div className="space-y-4">
-                            {/* Club Name */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Club Name
-                              </label>
-                              <input
-                                type="text"
-                                name="name"
-                                value={editFormData.name}
-                                onChange={handleEditInputChange}
-                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                                required
-                              />
-                            </div>
-
-                            {/* About */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                About Club
-                              </label>
-                              <textarea
-                                name="description"
-                                value={editFormData.description}
-                                onChange={handleEditInputChange}
-                                rows={4}
-                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                                required
-                              />
-                            </div>
-
-                            {/* Website URL */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Website URL
-                              </label>
-                              <input
-                                type="url"
-                                name="website"
-                                value={editFormData.website}
-                                onChange={handleEditInputChange}
-                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                                placeholder="https://..."
-                              />
-                            </div>
-
-                            {/* Instagram URL */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Instagram URL
-                              </label>
-                              <input
-                                type="url"
-                                name="instagram_url"
-                                value={editFormData.instagram_url}
-                                onChange={handleEditInputChange}
-                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                                placeholder="https://instagram.com/..."
-                              />
-                            </div>
-
-                            {/* LinkedIn URL */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                LinkedIn URL
-                              </label>
-                              <input
-                                type="url"
-                                name="linkedin_url"
-                                value={editFormData.linkedin_url}
-                                onChange={handleEditInputChange}
-                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                                placeholder="https://linkedin.com/..."
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Share Access
-                              </label>
-                              <div className="flex space-x-2">
-                                <input
-                                  type="email"
-                                  id="email-input"
-                                  className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                                  placeholder="Enter email address"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={handleAddEmail}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                                >
-                                  Add
-                                </button>
-                              </div>
-
-                              {/* Display the email chips here */}
-                              {editFormData.access &&
-                                editFormData.access.length > 0 && (
-                                  <div className="mt-3">
-                                    <p className="text-sm text-gray-300 mb-2">
-                                      Access shared with:
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                      {editFormData.access.map(
-                                        (email, index) => (
-                                          <div
-                                            key={index}
-                                            className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm flex items-center"
-                                          >
-                                            <span className="mr-2">
-                                              {email}
-                                            </span>
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                const newAccess = [
-                                                  ...editFormData.access,
-                                                ];
-                                                newAccess.splice(index, 1);
-                                                setEditFormData((prev) => ({
-                                                  ...prev,
-                                                  access: newAccess,
-                                                }));
-                                              }}
-                                              className="text-blue-300 hover:text-red-400"
-                                            >
-                                              <svg
-                                                width="14"
-                                                height="14"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                              >
-                                                <path
-                                                  d="M18 6L6 18M6 6l12 12"
-                                                  stroke="currentColor"
-                                                  strokeWidth="2"
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                />
-                                              </svg>
-                                            </button>
-                                          </div>
-                                        )
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                            </div>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
-                            <button
-                              onClick={() => setIsSettingsOpen(false)}
-                              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={handleUpdateClubDetails}
-                              disabled={loading}
-                              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            >
-                              {loading ? (
-                                <>
-                                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                  Updating...
-                                </>
-                              ) : (
-                                "Save Changes"
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/*like button code*/}
-                {/* <button
-                  // onClick={handleLikeClick}
-                  className={`${
-                    isLiked
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-gray-700 hover:bg-gray-600"
-                  } text-white p-2 rounded-xl transition-colors relative group`}
-                  disabled={loading}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
-                  />
-                  {loading && (
-                    <div className="border absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    </div>
                   )}
-                </button> */}
+                </div>
               </div>
             </div>
           </div>
@@ -752,7 +656,7 @@ const ClubDetail = () => {
               <div className="p-6 text-center">
                 <UserPlus className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-yellow-400">
-                  {club.stats.followers}+
+                  {club.stats.followers}
                 </p>
                 <p className="text-sm text-gray-400">Followers</p>
               </div>
@@ -897,6 +801,247 @@ const ClubDetail = () => {
           )}
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+            {/* Close button */}
+            <button
+              onClick={() => setIsSettingsOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <h2 className="text-2xl font-bold text-center mb-6">
+              Club Settings
+            </h2>
+
+            {/* Logo Update Section */}
+            <div className="flex flex-col items-center mb-6">
+              <label className="block text-sm font-medium mb-2">
+                Update Club Logo
+              </label>
+              <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-700 mb-4">
+                {logoPreview || club.image ? (
+                  <img
+                    src={logoPreview || club.image}
+                    alt="Logo preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
+                    {club.name.charAt(0)}
+                  </div>
+                )}
+
+                {/* Upload overlay */}
+                <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
+                  <Upload className="w-8 h-8 text-white mb-2" />
+                  <span className="text-sm text-white">
+                    Upload new logo
+                  </span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Club Details Form */}
+            <div className="space-y-4">
+              {/* Club Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Club Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editFormData.name}
+                  onChange={handleEditInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* About */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  About Club
+                </label>
+                <textarea
+                  name="description"
+                  value={editFormData.description}
+                  onChange={handleEditInputChange}
+                  rows={4}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Website URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Website URL
+                </label>
+                <input
+                  type="url"
+                  name="website"
+                  value={editFormData.website}
+                  onChange={handleEditInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+
+              {/* Instagram URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Instagram URL
+                </label>
+                <input
+                  type="url"
+                  name="instagram_url"
+                  value={editFormData.instagram_url}
+                  onChange={handleEditInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
+
+              {/* LinkedIn URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  LinkedIn URL
+                </label>
+                <input
+                  type="url"
+                  name="linkedin_url"
+                  value={editFormData.linkedin_url}
+                  onChange={handleEditInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="https://linkedin.com/..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Share Access
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="email"
+                    id="email-input"
+                    className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    placeholder="Enter email address"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddEmail}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {/* Display the email chips here */}
+                {editFormData.access &&
+                  editFormData.access.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-300 mb-2">
+                        Access shared with:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {editFormData.access.map(
+                          (email, index) => (
+                            <div
+                              key={index}
+                              className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm flex items-center"
+                            >
+                              <span className="mr-2">
+                                {email}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newAccess = [
+                                    ...editFormData.access,
+                                  ];
+                                  newAccess.splice(index, 1);
+                                  setEditFormData((prev) => ({
+                                    ...prev,
+                                    access: newAccess,
+                                  }));
+                                }}
+                                className="text-blue-300 hover:text-red-400"
+                              >
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M18 6L6 18M6 6l12 12"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateClubDetails}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Updating...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
