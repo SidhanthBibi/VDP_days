@@ -30,7 +30,7 @@ const CounterAnimation = ({ value, suffix = "+" }) => {
   });
 
   useEffect(() => {
-    // Only run the animation if we haven't animated yet and the element is in view
+    // Only run the animation if we haven't animated yet, the element is in view, and we have a valid value
     if (inView && !hasAnimated && value > 0) {
       // Always explicitly reset to zero before starting animation
       setCount(0);
@@ -78,7 +78,7 @@ const CounterAnimation = ({ value, suffix = "+" }) => {
 };
 
 // StatCard component with motion effects
-const StatCard = ({ gradient, value, label }) => {
+const StatCard = ({ gradient, value, label, isLoading }) => {
   const controls = useAnimation();
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -86,10 +86,10 @@ const StatCard = ({ gradient, value, label }) => {
   });
 
   useEffect(() => {
-    if (inView) {
+    if (inView && !isLoading) {
       controls.start("visible");
     }
-  }, [controls, inView]);
+  }, [controls, inView, isLoading]);
 
   return (
     <motion.div
@@ -104,7 +104,11 @@ const StatCard = ({ gradient, value, label }) => {
       className={`bg-gradient-to-br ${gradient} p-6 rounded-lg`}
     >
       <h3 className="mb-2">
-        <CounterAnimation value={value} />
+        {isLoading ? (
+          <div className="w-16 h-8 bg-gray-700 rounded animate-pulse"></div>
+        ) : (
+          <CounterAnimation value={value} />
+        )}
       </h3>
       <p className="text-gray-200">{label}</p>
     </motion.div>
@@ -113,11 +117,12 @@ const StatCard = ({ gradient, value, label }) => {
 
 const About = () => {
   const [hoveredMember, setHoveredMember] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState({
-    clubsCount: 25, // Default values in case fetching fails
-    studentsCount: 350,
-    eventsCount: 42,
-    partnersCount: 20,
+    clubsCount: 0, // Initialize with 0 instead of default values
+    studentsCount: 0,
+    eventsCount: 0,
+    partnersCount: 0,
   });
 
   // Animation controls for sections
@@ -130,6 +135,7 @@ const About = () => {
   // Fetch counts from Supabase
   useEffect(() => {
     const fetchCounts = async () => {
+      setStatsLoading(true); // Start loading
       try {
         // Get clubs count
         const { count: clubsCount, error: clubsError } = await supabase
@@ -151,6 +157,7 @@ const About = () => {
           console.error("Error fetching profiles:", profilesError);
         if (eventsError) console.error("Error fetching events:", eventsError);
 
+        // Set stats with actual values or fallbacks if errors occurred
         setStats({
           clubsCount: clubsCount || 25,
           studentsCount: studentsCount || 350,
@@ -159,6 +166,15 @@ const About = () => {
         });
       } catch (error) {
         console.error("Error fetching counts:", error);
+        // Set fallback values in case of error
+        setStats({
+          clubsCount: 25,
+          studentsCount: 350,
+          eventsCount: 42,
+          partnersCount: 20,
+        });
+      } finally {
+        setStatsLoading(false); // End loading regardless of success/failure
       }
     };
 
@@ -350,21 +366,25 @@ const About = () => {
               gradient="from-blue-500 to-purple-600"
               value={stats.clubsCount}
               label="Active Clubs"
+              isLoading={statsLoading}
             />
             <StatCard
               gradient="from-purple-500 to-pink-600"
               value={stats.studentsCount}
               label="Students"
+              isLoading={statsLoading}
             />
             <StatCard
               gradient="from-pink-500 to-red-600"
               value={stats.eventsCount}
               label="Events"
+              isLoading={statsLoading}
             />
             <StatCard
               gradient="from-blue-600 to-green-600"
               value={stats.partnersCount}
               label="Partners"
+              isLoading={statsLoading}
             />
           </div>
         </div>
