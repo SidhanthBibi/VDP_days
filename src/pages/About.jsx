@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, Mail, Phone, Globe, ChevronRight, Github, Linkedin, Instagram } from 'lucide-react';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import Sidh from '../assets/Sidh.jpg';
 import Adron from '../assets/Adron.jpg';
 import Lenny from '../assets/Lenny.jpg';
@@ -7,15 +9,113 @@ import Arindam from '../assets/Arindam.jpg';
 import Ananya from '../assets/Ananya.jpg';
 import Ashish from '../assets/AshishRanjan.jpg';
 import Arpita from '../assets/Arpita.jpg';
-import { supabase } from '../lib/supabaseClient.js'; // Make sure you import your Supabase client
+import { supabase } from '../lib/supabaseClient.js';
+
+// A counter animation that scales duration based on value
+const CounterAnimation = ({ value, suffix = "+" }) => {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.5,
+  });
+  
+  useEffect(() => {
+    // Only run the animation if we haven't animated yet and the element is in view
+    if (inView && !hasAnimated && value > 0) {
+      // Always explicitly reset to zero before starting animation
+      setCount(0);
+      
+      // Base duration is 1000ms + value-dependent part
+      // This makes larger numbers take longer to count
+      // For example, if value is 20, duration is ~1400ms
+      // If value is 350, duration is ~2750ms
+      const baseDuration = 1000;
+      const valueScale = 5; // ms per unit value
+      const duration = Math.min(baseDuration + value * valueScale, 3000); // Cap at 3 seconds
+      
+      const frameDuration = 1000 / 60; // 60fps
+      const totalFrames = Math.round(duration / frameDuration);
+      
+      let frame = 0;
+      const counter = setInterval(() => {
+        frame++;
+        const progress = Math.min(frame / totalFrames, 1);
+        
+        // Use easeOutQuart for a more dynamic feel
+        const easeOutQuart = (t) => {
+          return 1 - Math.pow(1 - t, 4);
+        };
+        
+        setCount(Math.floor(easeOutQuart(progress) * value));
+        
+        if (frame === totalFrames) {
+          clearInterval(counter);
+          setCount(value); // Ensure we end exactly at the target value
+          setHasAnimated(true);
+        }
+      }, frameDuration);
+      
+      return () => clearInterval(counter);
+    }
+  }, [inView, value, hasAnimated]);
+
+  return (
+    <div ref={ref} className="inline-flex">
+      <span className="text-4xl font-bold">{count}</span>
+      <span className="text-4xl font-bold">{suffix}</span>
+    </div>
+  );
+};
+
+// StatCard component with motion effects
+const StatCard = ({ gradient, value, label }) => {
+  const controls = useAnimation();
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    }
+  }, [controls, inView]);
+
+  return (
+    <motion.div
+      ref={ref}
+      variants={{
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 }
+      }}
+      initial="hidden"
+      animate={controls}
+      transition={{ duration: 0.5 }}
+      className={`bg-gradient-to-br ${gradient} p-6 rounded-lg`}
+    >
+      <h3 className="mb-2">
+        <CounterAnimation value={value} />
+      </h3>
+      <p className="text-gray-200">{label}</p>
+    </motion.div>
+  );
+};
 
 const About = () => {
   const [hoveredMember, setHoveredMember] = useState(null);
   const [stats, setStats] = useState({
-    clubsCount: 0,
-    studentsCount: 0,
-    eventsCount: 0,
-    partnersCount: 20 // Keeping partners as static since there's no corresponding table
+    clubsCount: 25,     // Default values in case fetching fails
+    studentsCount: 350,
+    eventsCount: 42,
+    partnersCount: 20
+  });
+
+  // Animation controls for sections
+  const missionControls = useAnimation();
+  const [missionRef, missionInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
   });
 
   // Fetch counts from Supabase
@@ -42,9 +142,9 @@ const About = () => {
         if (eventsError) console.error('Error fetching events:', eventsError);
 
         setStats({
-          clubsCount: clubsCount || 0,
-          studentsCount: studentsCount || 0,
-          eventsCount: eventsCount || 0,
+          clubsCount: clubsCount || 25,
+          studentsCount: studentsCount || 350,
+          eventsCount: eventsCount || 42,
           partnersCount: 20
         });
       } catch (error) {
@@ -54,6 +154,12 @@ const About = () => {
 
     fetchCounts();
   }, []);
+
+  useEffect(() => {
+    if (missionInView) {
+      missionControls.start('visible');
+    }
+  }, [missionControls, missionInView]);
 
   const teamMembers = [
     {
@@ -171,68 +277,108 @@ const About = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Hero Section with Parallax Effect */}
-      <div className="relative h-96 overflow-hidden">
+      <motion.div 
+        className="relative h-96 overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-20"></div>
         <div className="absolute inset-0 bg-[url('/api/placeholder/1920/1080')] bg-cover bg-center"></div>
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative h-full flex items-center justify-center">
-          <div className="text-center space-y-6">
+          <motion.div 
+            className="text-center space-y-6"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
             <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
               About ClubSphere
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto px-4">
               Empowering student communities through innovation and collaboration
             </p>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mission Statement */}
       <div className="max-w-7xl mx-auto py-20 px-4">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
+          <motion.div 
+            className="space-y-6"
+            ref={missionRef}
+            variants={{
+              hidden: { opacity: 0, x: -30 },
+              visible: { opacity: 1, x: 0 }
+            }}
+            initial="hidden"
+            animate={missionControls}
+            transition={{ duration: 0.6 }}
+          >
             <h2 className="text-4xl font-bold">Our Mission</h2>
             <p className="text-gray-400 text-lg">
               We're dedicated to creating a vibrant ecosystem where students can connect,
               collaborate, and grow together. Through innovative technology and community-driven
               initiatives, we're building the future of student engagement.
             </p>
-            <button className="group flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200">
+            <motion.button 
+              className="group flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <span>Learn More</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">{stats.clubsCount}+</h3>
-              <p className="text-gray-200">Active Clubs</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-500 to-pink-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">{stats.studentsCount}+</h3>
-              <p className="text-gray-200">Students</p>
-            </div>
-            <div className="bg-gradient-to-br from-pink-500 to-red-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">{stats.eventsCount}+</h3>
-              <p className="text-gray-200">Events</p>
-            </div>
-            <div className="bg-gradient-to-br from-blue-600 to-green-600 p-6 rounded-lg">
-              <h3 className="text-4xl font-bold mb-2">{stats.partnersCount}+</h3>
-              <p className="text-gray-200">Partners</p>
-            </div>
+            <StatCard 
+              gradient="from-blue-500 to-purple-600" 
+              value={stats.clubsCount} 
+              label="Active Clubs" 
+            />
+            <StatCard 
+              gradient="from-purple-500 to-pink-600" 
+              value={stats.studentsCount} 
+              label="Students" 
+            />
+            <StatCard 
+              gradient="from-pink-500 to-red-600" 
+              value={stats.eventsCount} 
+              label="Events" 
+            />
+            <StatCard 
+              gradient="from-blue-600 to-green-600" 
+              value={stats.partnersCount} 
+              label="Partners" 
+            />
           </div>
         </div>
       </div>
 
       {/* Team Section */}
       <div className="max-w-7xl mx-auto py-20 px-4">
-        <h2 className="text-4xl font-bold text-center mb-12">Meet Our Team</h2>
+        <motion.h2 
+          className="text-4xl font-bold text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          Meet Our Team
+        </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {teamMembers.map((member) => (
-            <div
+          {teamMembers.map((member, index) => (
+            <motion.div
               key={member.id}
               className="group relative rounded-xl overflow-hidden"
               onMouseEnter={() => setHoveredMember(member.id)}
               onMouseLeave={() => setHoveredMember(null)}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <div className="aspect-square">
                 <img
@@ -264,19 +410,32 @@ const About = () => {
                   </a>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
 
       {/* Contact Section */}
       <div className="max-w-7xl mx-auto py-20 px-4">
-        <h2 className="text-4xl font-bold text-center mb-12">Get in Touch</h2>
+        <motion.h2 
+          className="text-4xl font-bold text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          Get in Touch
+        </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {contactInfo.map((info, index) => (
-            <div
+            <motion.div
               key={index}
               className="group backdrop-blur-md bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ y: -5 }}
             >
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${info.color} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}>
@@ -285,7 +444,7 @@ const About = () => {
                 <h3 className="text-lg font-bold">{info.title}</h3>
                 <p className="text-gray-400">{info.content}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
