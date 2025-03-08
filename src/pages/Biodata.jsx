@@ -161,11 +161,91 @@ const BiodataForm = () => {
   };
 
   // Handle photo file selection
-  const handlePhotoChange = (e) => {
+  const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setPhotoFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      // Check if compression is needed (file size > 1MB)
+      if (file.size > 1024 * 1024) {
+        try {
+          // Create a temporary URL for the selected image
+          const imageUrl = URL.createObjectURL(file);
+          
+          // Create an image element to load the file
+          const img = new Image();
+          img.src = imageUrl;
+          
+          await new Promise((resolve) => {
+            img.onload = resolve;
+          });
+          
+          // Calculate the compression ratio based on file size
+          // For files > 1MB, compress by 70-80%
+          const originalSizeInMB = file.size / (1024 * 1024);
+          
+          // Target quality (0.2-0.3 means 70-80% compression)
+          // Adjust quality based on original file size - larger files get more compression
+          let targetQuality = 0.3; // Default quality (70% compression)
+          if (originalSizeInMB > 5) {
+            targetQuality = 0.2; // 80% compression for very large files
+          } else if (originalSizeInMB > 2) {
+            targetQuality = 0.25; // 75% compression for medium-large files
+          }
+          
+          // Create canvas for compression
+          const canvas = document.createElement('canvas');
+          
+          // Maintain aspect ratio while limiting max dimensions to 1920px
+          const maxDimension = 1920;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height && width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw image on canvas
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Convert canvas to blob with compression
+          const compressedBlob = await new Promise(resolve => {
+            canvas.toBlob(resolve, 'image/jpeg', targetQuality);
+          });
+          
+          // Create new file from the compressed blob
+          const compressedFile = new File([compressedBlob], file.name, {
+            type: 'image/jpeg',
+            lastModified: new Date().getTime()
+          });
+          
+          console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
+          console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
+          console.log(`Compression ratio: ${((1 - compressedFile.size / file.size) * 100).toFixed(2)}%`);
+          
+          // Use the compressed file
+          setPhotoFile(compressedFile);
+          setPreviewUrl(URL.createObjectURL(compressedBlob));
+          
+          // Clean up the temporary object URL
+          URL.revokeObjectURL(imageUrl);
+        } catch (error) {
+          console.error('Error compressing image:', error);
+          // Fallback to original file if compression fails
+          setPhotoFile(file);
+          setPreviewUrl(URL.createObjectURL(file));
+        }
+      } else {
+        // For small files (< 1MB), don't compress
+        setPhotoFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+      }
     }
   };
 
