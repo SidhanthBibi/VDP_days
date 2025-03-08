@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Building2, Mail, Phone, Globe, ChevronRight, Github, Linkedin, Instagram } from 'lucide-react';
-import { motion, useAnimation } from 'framer-motion';
-import { useInView } from 'react-intersection-observer';
-import Sidh from '../assets/Sidh.jpg';
-import Adron from '../assets/Adron.jpg';
-import Lenny from '../assets/Lenny.jpg';
-import Arindam from '../assets/Arindam.jpg';
-import Ananya from '../assets/Ananya.jpg';
-import Ashish from '../assets/AshishRanjan.jpg';
-import Arpita from '../assets/Arpita.jpg';
-import { supabase } from '../lib/supabaseClient.js';
+import React, { useState, useEffect } from "react";
+import {
+  Building2,
+  Mail,
+  Phone,
+  Globe,
+  ChevronRight,
+  Github,
+  Linkedin,
+  Instagram,
+} from "lucide-react";
+import { motion, useAnimation } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+import Sidh from "../assets/Sidh.jpg";
+import Adron from "../assets/Adron.jpg";
+import Lenny from "../assets/Lenny.jpg";
+import Arindam from "../assets/Arindam.jpg";
+import Ananya from "../assets/Ananya.jpg";
+import Ashish from "../assets/AshishRanjan.jpg";
+import Arpita from "../assets/Arpita.jpg";
+import { supabase } from "../lib/supabaseClient.js";
 
 // A counter animation that scales duration based on value
 const CounterAnimation = ({ value, suffix = "+" }) => {
@@ -19,13 +28,13 @@ const CounterAnimation = ({ value, suffix = "+" }) => {
     triggerOnce: true,
     threshold: 0.5,
   });
-  
+
   useEffect(() => {
     // Only run the animation if we haven't animated yet and the element is in view
     if (inView && !hasAnimated && value > 0) {
       // Always explicitly reset to zero before starting animation
       setCount(0);
-      
+
       // Base duration is 1000ms + value-dependent part
       // This makes larger numbers take longer to count
       // For example, if value is 20, duration is ~1400ms
@@ -33,29 +42,29 @@ const CounterAnimation = ({ value, suffix = "+" }) => {
       const baseDuration = 1000;
       const valueScale = 5; // ms per unit value
       const duration = Math.min(baseDuration + value * valueScale, 3000); // Cap at 3 seconds
-      
+
       const frameDuration = 1000 / 60; // 60fps
       const totalFrames = Math.round(duration / frameDuration);
-      
+
       let frame = 0;
       const counter = setInterval(() => {
         frame++;
         const progress = Math.min(frame / totalFrames, 1);
-        
+
         // Use easeOutQuart for a more dynamic feel
         const easeOutQuart = (t) => {
           return 1 - Math.pow(1 - t, 4);
         };
-        
+
         setCount(Math.floor(easeOutQuart(progress) * value));
-        
+
         if (frame === totalFrames) {
           clearInterval(counter);
           setCount(value); // Ensure we end exactly at the target value
           setHasAnimated(true);
         }
       }, frameDuration);
-      
+
       return () => clearInterval(counter);
     }
   }, [inView, value, hasAnimated]);
@@ -78,7 +87,7 @@ const StatCard = ({ gradient, value, label }) => {
 
   useEffect(() => {
     if (inView) {
-      controls.start('visible');
+      controls.start("visible");
     }
   }, [controls, inView]);
 
@@ -87,7 +96,7 @@ const StatCard = ({ gradient, value, label }) => {
       ref={ref}
       variants={{
         hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
+        visible: { opacity: 1, y: 0 },
       }}
       initial="hidden"
       animate={controls}
@@ -105,10 +114,10 @@ const StatCard = ({ gradient, value, label }) => {
 const About = () => {
   const [hoveredMember, setHoveredMember] = useState(null);
   const [stats, setStats] = useState({
-    clubsCount: 25,     // Default values in case fetching fails
+    clubsCount: 25, // Default values in case fetching fails
     studentsCount: 350,
     eventsCount: 42,
-    partnersCount: 20
+    partnersCount: 20,
   });
 
   // Animation controls for sections
@@ -124,31 +133,32 @@ const About = () => {
       try {
         // Get clubs count
         const { count: clubsCount, error: clubsError } = await supabase
-          .from('Clubs')
-          .select('*', { count: 'exact', head: true });
+          .from("Clubs")
+          .select("*", { count: "exact", head: true });
 
         // Get profiles count (students)
         const { count: studentsCount, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
+          .from("profiles")
+          .select("*", { count: "exact", head: true });
 
         // Get events count
         const { count: eventsCount, error: eventsError } = await supabase
-          .from('Events')
-          .select('*', { count: 'exact', head: true });
+          .from("Events")
+          .select("*", { count: "exact", head: true });
 
-        if (clubsError) console.error('Error fetching clubs:', clubsError);
-        if (profilesError) console.error('Error fetching profiles:', profilesError);
-        if (eventsError) console.error('Error fetching events:', eventsError);
+        if (clubsError) console.error("Error fetching clubs:", clubsError);
+        if (profilesError)
+          console.error("Error fetching profiles:", profilesError);
+        if (eventsError) console.error("Error fetching events:", eventsError);
 
         setStats({
           clubsCount: clubsCount || 25,
           studentsCount: studentsCount || 350,
           eventsCount: eventsCount || 42,
-          partnersCount: 20
+          partnersCount: 20,
         });
       } catch (error) {
-        console.error('Error fetching counts:', error);
+        console.error("Error fetching counts:", error);
       }
     };
 
@@ -157,7 +167,7 @@ const About = () => {
 
   useEffect(() => {
     if (missionInView) {
-      missionControls.start('visible');
+      missionControls.start("visible");
     }
   }, [missionControls, missionInView]);
 
@@ -171,8 +181,8 @@ const About = () => {
       socials: {
         github: "https://github.com/sidhanthbibi",
         linkedin: "https://www.linkedin.com/in/sidhanthbibi/",
-        twitter: "https://instagram.com/sidhanthbibi"
-      }
+        twitter: "https://instagram.com/sidhanthbibi",
+      },
     },
     {
       id: 2,
@@ -183,8 +193,8 @@ const About = () => {
       socials: {
         github: "https://github.com/Quadr1on",
         linkedin: "https://www.linkedin.com/in/adorn-s-george-1766202a9/",
-        twitter: "https://www.instagram.com/quadr1on/"
-      }
+        twitter: "https://www.instagram.com/quadr1on/",
+      },
     },
     {
       id: 3,
@@ -195,8 +205,8 @@ const About = () => {
       socials: {
         github: "https://github.com/LennyDany-03",
         linkedin: "http://www.linkedin.com/in/lenny-dany-derek-d-4411aa326",
-        twitter: "https://www.instagram.com/lenny_dany_3/"
-      }
+        twitter: "https://www.instagram.com/lenny_dany_3/",
+      },
     },
     {
       id: 4,
@@ -207,8 +217,8 @@ const About = () => {
       socials: {
         github: "https://github.com/Mr-Jaiman09",
         linkedin: "https://www.linkedin.com/in/arindam-jaiman-6149a82ab/",
-        twitter: "https://www.instagram.com/thearindamjaiman"
-      }
+        twitter: "https://www.instagram.com/thearindamjaiman",
+      },
     },
     {
       id: 5,
@@ -219,8 +229,8 @@ const About = () => {
       socials: {
         github: "https://github.com/Ananya29J",
         linkedin: "https://www.linkedin.com/in/ananya-jaiswal-88a680328",
-        twitter: "https://www.instagram.com/_aviana29/#"
-      }
+        twitter: "https://www.instagram.com/_aviana29/#",
+      },
     },
     {
       id: 6,
@@ -231,8 +241,8 @@ const About = () => {
       socials: {
         github: "https://github.com/Money-gpt",
         linkedin: "https://www.linkedin.com/in/ashish-ranjan-670780322",
-        twitter: "https://www.instagram.com/m_.one._y"
-      }
+        twitter: "https://www.instagram.com/m_.one._y",
+      },
     },
     {
       id: 7,
@@ -243,8 +253,9 @@ const About = () => {
       socials: {
         github: "#",
         linkedin: "#",
-        twitter: "https://www.instagram.com/aritaaaaas"
-      }}
+        twitter: "https://www.instagram.com/aritaaaaas",
+      },
+    },
   ];
 
   const contactInfo = [
@@ -252,32 +263,32 @@ const About = () => {
       icon: <Building2 className="w-6 h-6" />,
       title: "Visit Us",
       content: "SRM University Vadapalani City Campus, Chennai, India",
-      color: "from-blue-400 to-blue-600"
+      color: "from-blue-400 to-blue-600",
     },
     {
       icon: <Mail className="w-6 h-6" />,
       title: "Email Us",
       content: "sb1051@srmist.edu.in",
-      color: "from-purple-400 to-purple-600"
+      color: "from-purple-400 to-purple-600",
     },
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Call Us",
       content: "(+91) 7012081312",
-      color: "from-pink-400 to-pink-600"
+      color: "from-pink-400 to-pink-600",
     },
     {
       icon: <Globe className="w-6 h-6" />,
       title: "Follow Us",
       content: "@VdpClubSphere",
-      color: "from-green-400 to-green-600"
-    }
+      color: "from-green-400 to-green-600",
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Hero Section with Parallax Effect */}
-      <motion.div 
+      <motion.div
         className="relative h-96 overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -287,7 +298,7 @@ const About = () => {
         <div className="absolute inset-0 bg-[url('/api/placeholder/1920/1080')] bg-cover bg-center"></div>
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative h-full flex items-center justify-center">
-          <motion.div 
+          <motion.div
             className="text-center space-y-6"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -297,7 +308,8 @@ const About = () => {
               About ClubSphere
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto px-4">
-              Empowering student communities through innovation and collaboration
+              Empowering student communities through innovation and
+              collaboration
             </p>
           </motion.div>
         </div>
@@ -306,12 +318,12 @@ const About = () => {
       {/* Mission Statement */}
       <div className="max-w-7xl mx-auto py-20 px-4">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <motion.div 
+          <motion.div
             className="space-y-6"
             ref={missionRef}
             variants={{
               hidden: { opacity: 0, x: -30 },
-              visible: { opacity: 1, x: 0 }
+              visible: { opacity: 1, x: 0 },
             }}
             initial="hidden"
             animate={missionControls}
@@ -319,11 +331,12 @@ const About = () => {
           >
             <h2 className="text-4xl font-bold">Our Mission</h2>
             <p className="text-gray-400 text-lg">
-              We're dedicated to creating a vibrant ecosystem where students can connect,
-              collaborate, and grow together. Through innovative technology and community-driven
-              initiatives, we're building the future of student engagement.
+              We're dedicated to creating a vibrant ecosystem where students can
+              connect, collaborate, and grow together. Through innovative
+              technology and community-driven initiatives, we're building the
+              future of student engagement.
             </p>
-            <motion.button 
+            <motion.button
               className="group flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -333,25 +346,25 @@ const About = () => {
             </motion.button>
           </motion.div>
           <div className="grid grid-cols-2 gap-4">
-            <StatCard 
-              gradient="from-blue-500 to-purple-600" 
-              value={stats.clubsCount} 
-              label="Active Clubs" 
+            <StatCard
+              gradient="from-blue-500 to-purple-600"
+              value={stats.clubsCount}
+              label="Active Clubs"
             />
-            <StatCard 
-              gradient="from-purple-500 to-pink-600" 
-              value={stats.studentsCount} 
-              label="Students" 
+            <StatCard
+              gradient="from-purple-500 to-pink-600"
+              value={stats.studentsCount}
+              label="Students"
             />
-            <StatCard 
-              gradient="from-pink-500 to-red-600" 
-              value={stats.eventsCount} 
-              label="Events" 
+            <StatCard
+              gradient="from-pink-500 to-red-600"
+              value={stats.eventsCount}
+              label="Events"
             />
-            <StatCard 
-              gradient="from-blue-600 to-green-600" 
-              value={stats.partnersCount} 
-              label="Partners" 
+            <StatCard
+              gradient="from-blue-600 to-green-600"
+              value={stats.partnersCount}
+              label="Partners"
             />
           </div>
         </div>
@@ -359,7 +372,7 @@ const About = () => {
 
       {/* Team Section */}
       <div className="max-w-7xl mx-auto py-20 px-4">
-        <motion.h2 
+        <motion.h2
           className="text-4xl font-bold text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -388,26 +401,45 @@ const About = () => {
                 />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent opacity-90"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-6 transform transition-transform duration-300">
+
+              {/* Card content wrapper with transition */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 transform transition-all duration-300 group-hover:translate-y-0">
+                {/* Always visible content */}
                 <h3 className="text-xl font-bold mb-1">{member.name}</h3>
                 <p className="text-blue-400 mb-2">{member.role}</p>
-                <p className={`text-gray-300 mb-4 transition-opacity duration-300 ${
-                  hoveredMember === member.id ? 'opacity-100' : 'opacity-0'
-                }`}>
-                  {member.bio}
-                </p>
-                <div className={`flex space-x-4 transition-opacity duration-300 ${
-                  hoveredMember === member.id ? 'opacity-100' : 'opacity-0'
-                }`}>
-                  <a href={member.socials.github} target='_blank' className="text-gray-400 hover:text-white">
-                    <Github className="w-5 h-5" />
-                  </a>
-                  <a href={member.socials.linkedin} target='_blank' className="text-gray-400 hover:text-white">
-                    <Linkedin className="w-5 h-5" />
-                  </a>
-                  <a href={member.socials.twitter}  target='_blank' className="text-gray-400 hover:text-white">
-                    <Instagram className="w-5 h-5" />
-                  </a>
+
+                {/* Expandable content */}
+                <div
+                  className="transition-all duration-300 overflow-hidden"
+                  style={{
+                    maxHeight: hoveredMember === member.id ? "200px" : "0px",
+                    opacity: hoveredMember === member.id ? 1 : 0,
+                  }}
+                >
+                  <p className="text-gray-300 mb-4">{member.bio}</p>
+                  <div className="flex space-x-4">
+                    <a
+                      href={member.socials.github}
+                      target="_blank"
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <Github className="w-5 h-5" />
+                    </a>
+                    <a
+                      href={member.socials.linkedin}
+                      target="_blank"
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                    <a
+                      href={member.socials.twitter}
+                      target="_blank"
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <Instagram className="w-5 h-5" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -417,7 +449,7 @@ const About = () => {
 
       {/* Contact Section */}
       <div className="max-w-7xl mx-auto py-20 px-4">
-        <motion.h2 
+        <motion.h2
           className="text-4xl font-bold text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -438,7 +470,9 @@ const About = () => {
               whileHover={{ y: -5 }}
             >
               <div className="flex flex-col items-center text-center space-y-4">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${info.color} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}>
+                <div
+                  className={`w-12 h-12 rounded-full bg-gradient-to-r ${info.color} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}
+                >
                   {info.icon}
                 </div>
                 <h3 className="text-lg font-bold">{info.title}</h3>
