@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Check if device is mobile
 const isMobile = () => window.innerWidth < 768;
@@ -30,8 +32,64 @@ const getAnimationVariants = (isMobileView) => ({
   cardHover: isMobileView ? {} : { scale: 1.02 },
 });
 
+// Format date for display
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  } catch (e) {
+    return dateString;
+  }
+};
+
+// Format time for display
+const formatTime = (timeString) => {
+  if (!timeString) return "";
+  
+  try {
+    // Handle different time formats
+    let timeParts;
+    if (timeString.includes(':')) {
+      timeParts = timeString.split(':');
+    } else {
+      return timeString;
+    }
+    
+    const hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+    
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  } catch (e) {
+    return timeString;
+  }
+};
+
 const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClick, isPastEvent }) => {
   const isMobileView = isMobile();
+  
+  // Format event date and time for display
+  const eventStartDate = formatDate(event.start_date);
+  const eventStartTime = formatTime(event.start_time);
+  const eventEndDate = formatDate(event.end_date);
+  const eventEndTime = formatTime(event.end_time);
+  
+  // Create display strings for date/time
+  const dateDisplay = eventStartDate === eventEndDate 
+    ? eventStartDate 
+    : `${eventStartDate} - ${eventEndDate}`;
+    
+  const timeDisplay = eventStartTime === eventEndTime 
+    ? eventStartTime 
+    : `${eventStartTime} - ${eventEndTime}`;
   
   return (
     <motion.div
@@ -93,23 +151,49 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
                 </motion.p>
 
                 <div className="space-y-3">
-                  {[
-                    { icon: <Calendar className="w-4 h-4 mr-2" />, text: event.date },
-                    { icon: <Clock className="w-4 h-4 mr-2" />, text: event.time },
-                    { icon: <MapPin className="w-4 h-4 mr-2" />, text: event.location },
-                    { icon: <CircleDollarSign className="w-4 h-4 mr-2" />, text: event.price },
-                  ].map((item, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ x: -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ duration: 0.3, delay: 0.3 + (index * 0.1) }}
-                      className="flex items-center text-gray-300"
-                    >
-                      {item.icon}
-                      <span>{item.text}</span>
-                    </motion.div>
-                  ))}
+                  {/* Date Display */}
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                    className="flex items-center text-gray-300"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span>{dateDisplay}</span>
+                  </motion.div>
+                  
+                  {/* Time Display */}
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.4 }}
+                    className="flex items-center text-gray-300"
+                  >
+                    <Clock className="w-4 h-4 mr-2" />
+                    <span>{timeDisplay}</span>
+                  </motion.div>
+                  
+                  {/* Location Display */}
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.5 }}
+                    className="flex items-center text-gray-300"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span>{event.location}</span>
+                  </motion.div>
+                  
+                  {/* Price Display */}
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.6 }}
+                    className="flex items-center text-gray-300"
+                  >
+                    <CircleDollarSign className="w-4 h-4 mr-2" />
+                    <span>{event.price}</span>
+                  </motion.div>
                 </div>
               </div>
               
@@ -220,7 +304,7 @@ const LandingPage = () => {
         const { data: eventsData, error: supabaseError } = await supabase
           .from("Events")
           .select("*")
-          .order('date', { ascending: true });
+          .order('start_date', { ascending: true }); // Updated to use start_date
 
         if (supabaseError) throw supabaseError;
         
@@ -233,7 +317,8 @@ const LandingPage = () => {
         const upcoming = [];
         
         eventsData.forEach(event => {
-          let eventDate = event.date;
+          // Use start_date instead of date
+          let eventDate = event.start_date;
           
           try {
             const dateParts = eventDate.split('-');
@@ -265,6 +350,7 @@ const LandingPage = () => {
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(err.message);
+        toast.error("Failed to load events: " + err.message);
       } finally {
         setIsLoading(false);
       }
@@ -380,6 +466,20 @@ const LandingPage = () => {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-gray-900 text-white px-4 py-8"
     >
+      {/* Toast Container for notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+      
       {/* Background Gradients - simplified for mobile */}
       {!isMobileView && (
         <>

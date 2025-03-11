@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Upload, User, Users,Globe } from 'lucide-react';
+import { Calendar, Clock, MapPin, Upload, User, Globe } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const EventForm = () => {
   const [formData, setFormData] = useState({
     event_name: '',
     club_name: '',
-    date: '',
-    time: '',
+    start_date: '',
+    start_time: '',
+    end_date: '',
+    end_time: '',
     location: '',
     description: '',
     price_individual: 0,
-    price_team: 0,
     register_link: '',
-    websiteLink:''
+    websiteLink: ''
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -77,12 +80,14 @@ const EventForm = () => {
           event_name: formData.event_name,
           club_name: formData.club_name,
           description: formData.description,
-          date: formData.date,
-          time: formData.time,
+          start_date: formData.start_date,
+          start_time: formData.start_time,
+          end_date: formData.end_date,
+          end_time: formData.end_time,
           location: formData.location,
           price: formData.price_individual || 0,
           register_link: formData.register_link,
-          websiteLink:formData.websiteLink,
+          websiteLink: formData.websiteLink,
           poster: posterUrl
         }]);
 
@@ -97,22 +102,32 @@ const EventForm = () => {
       setFormData({
         event_name: '',
         club_name: '',
-        date: '',
-        time: '',
+        start_date: '',
+        start_time: '',
+        end_date: '',
+        end_time: '',
         location: '',
         description: '',
         price_individual: 0,
-        price_team: 0,
         register_link: '',
-        websiteLink:""
+        websiteLink: ''
       });
       setImageFile(null);
       setPreviewUrl(null);
 
-      alert('Event created successfully!');
+      // Show success toast notification
+      toast.success('Event created successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
 
     } catch (err) {
       setError(err.message);
+      toast.error(err.message || 'An error occurred while creating the event');
     } finally {
       setLoading(false);
     }
@@ -120,6 +135,20 @@ const EventForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8">
+      {/* Toast Container for notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+      
       {/* Neon Circle Accents */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
@@ -182,29 +211,61 @@ const EventForm = () => {
               />
             </div>
 
-            {/* Date and Time */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+            {/* Start Date and Time */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Event Start</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="start_date"
+                    value={formData.start_date}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="time"
+                    name="start_time"
+                    value={formData.start_time}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+            </div>
+
+            {/* End Date and Time */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Event End</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="end_date"
+                    value={formData.end_date}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="time"
+                    name="end_time"
+                    value={formData.end_time}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -232,6 +293,7 @@ const EventForm = () => {
                 <input
                   type="text"
                   name="price_individual"
+                  value={formData.price_individual}
                   onChange={handleChange}
                   placeholder="Price(s) for the event"
                   className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -239,7 +301,8 @@ const EventForm = () => {
                 />
               </div>              
             </div>
-            {/* website Link */}
+            
+            {/* Website Link */}
             <div className="mb-6 relative">
               <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
