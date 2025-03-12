@@ -20,6 +20,7 @@ import NotFound from './pages/NotFound';
 import Biodata from './pages/Biodata.jsx';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
           {/* Main routes */}
           <Route path="/" element={<Home />} />
           <Route path="/events" element={<LandingPage />} />
-          <Route path="/create_event" element={<CreateEvent />} />
+          <Route path="/create_event" element={<ProtectedRoute><CreateEvent /></ProtectedRoute>} />
           <Route path="/clubs" element={<Clubs />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/about" element={<About />} />
