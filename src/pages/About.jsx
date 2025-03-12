@@ -290,7 +290,7 @@ const About = () => {
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Call Us",
-      content: "(+91) 7012081312",
+      content: "(+91) 6282483521",
       color: "from-pink-400 to-pink-600",
     },
     {
