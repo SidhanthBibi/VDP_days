@@ -222,7 +222,7 @@ const Navbar = () => {
                   </>
                 ) : (
                   // Login Button
-                  <a href="/login">
+                  <a href="/signup">
                     <button className="p-2 rounded-lg hover:bg-white/5 transition-colors">
                       <UserCircle className="h-6 w-6 text-gray-300" />
                     </button>
