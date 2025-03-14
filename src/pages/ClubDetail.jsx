@@ -99,16 +99,16 @@ const ClubDetail = () => {
   useEffect(() => {
     const checkIfFollowing = async () => {
       if (!currentUserId || !id) return;
-      
+
       try {
         const { data, error } = await supabase
           .from("profiles")
           .select("followed")
           .eq("id", currentUserId)
           .single();
-          
+
         if (error) throw error;
-        
+
         // Check if the club ID is in the followed array
         const isFollowed = data.followed ? data.followed.includes(id) : false;
         setIsFollowing(isFollowed);
@@ -116,7 +116,7 @@ const ClubDetail = () => {
         console.error("Error checking follow status:", err);
       }
     };
-    
+
     checkIfFollowing();
   }, [currentUserId, id]);
 
@@ -308,9 +308,9 @@ const ClubDetail = () => {
       });
       return;
     }
-    
+
     setFollowLoading(true);
-    
+
     try {
       // Get current user's followed clubs
       const { data: userData, error: userError } = await supabase
@@ -318,111 +318,120 @@ const ClubDetail = () => {
         .select("followed")
         .eq("id", currentUserId)
         .single();
-        
+
       if (userError) throw userError;
-      
+
       // Initialize followed array if it doesn't exist
       const currentFollowed = userData.followed || [];
       let newFollowed;
       let followersDelta;
-      
+
       if (isFollowing) {
         // Unfollow logic - remove club ID from followed array
-        newFollowed = currentFollowed.filter(clubId => clubId !== id);
+        newFollowed = currentFollowed.filter((clubId) => clubId !== id);
         followersDelta = -1;
       } else {
         // Follow logic - add club ID to followed array
         newFollowed = [...currentFollowed, id];
         followersDelta = 1;
       }
-      
+
       // Update profiles table
       const { error: updateProfileError } = await supabase
         .from("profiles")
         .update({ followed: newFollowed })
         .eq("id", currentUserId);
-        
+
       if (updateProfileError) throw updateProfileError;
-      
+
       // Get current followers count - this needs to be done with admin privileges
       // We'll use a special RPC (Remote Procedure Call) function that has higher privileges
       // This function uses Supabase's built-in RPC feature to bypass RLS
       const { data: updatedClub, error: rpcError } = await supabase.rpc(
-        'update_follower_count',
-        { 
-          club_id: id, 
-          delta: followersDelta 
+        "update_follower_count",
+        {
+          club_id: id,
+          delta: followersDelta,
         }
       );
-      
+
       if (rpcError) {
         console.error("Error updating follower count:", rpcError);
-        
+
         // Fallback approach - use a direct SQL function call
         // This uses a stored function in the database that has SECURITY DEFINER privileges
-        const { data: directUpdateResult, error: directUpdateError } = await supabase
-          .from('Clubs')
-          .update({ 
-            followers: supabase.raw(`GREATEST(0, COALESCE(followers, 0) ${followersDelta > 0 ? '+' : '-'} 1)`) 
-          })
-          .eq('id', id)
-          .select('followers');
-        
+        const { data: directUpdateResult, error: directUpdateError } =
+          await supabase
+            .from("Clubs")
+            .update({
+              followers: supabase.raw(
+                `GREATEST(0, COALESCE(followers, 0) ${
+                  followersDelta > 0 ? "+" : "-"
+                } 1)`
+              ),
+            })
+            .eq("id", id)
+            .select("followers");
+
         if (directUpdateError) {
           throw directUpdateError;
         }
-        
+
         // Update local state
         setIsFollowing(!isFollowing);
-        
+
         // Update club state with new followers count from direct update
-        const newFollowerCount = directUpdateResult?.[0]?.followers || 
+        const newFollowerCount =
+          directUpdateResult?.[0]?.followers ||
           (parseInt(club.stats.followers) + followersDelta).toString();
-        
-        setClub(prevClub => ({
+
+        setClub((prevClub) => ({
           ...prevClub,
           stats: {
             ...prevClub.stats,
-            followers: newFollowerCount
-          }
+            followers: newFollowerCount,
+          },
         }));
       } else {
         // RPC call succeeded, update local state
         setIsFollowing(!isFollowing);
-        
+
         // Get the new follower count from the RPC response or calculate it
-        const newFollowerCount = updatedClub?.followers || 
+        const newFollowerCount =
+          updatedClub?.followers ||
           (parseInt(club.stats.followers) + followersDelta).toString();
-        
+
         // Update club state with new followers count
-        setClub(prevClub => ({
+        setClub((prevClub) => ({
           ...prevClub,
           stats: {
             ...prevClub.stats,
-            followers: newFollowerCount
-          }
+            followers: newFollowerCount,
+          },
         }));
       }
     } catch (err) {
       console.error("Error following/unfollowing club:", err);
-      
+
       // Even if updating the database failed, we should still update the local state
       // This ensures the UI remains responsive even if the server update failed
       const optimisticFollowerCount = isFollowing
         ? Math.max(0, parseInt(club.stats.followers) - 1)
         : parseInt(club.stats.followers) + 1;
-      
+
       setIsFollowing(!isFollowing);
-      setClub(prevClub => ({
+      setClub((prevClub) => ({
         ...prevClub,
         stats: {
           ...prevClub.stats,
-          followers: optimisticFollowerCount.toString()
-        }
+          followers: optimisticFollowerCount.toString(),
+        },
       }));
-      
+
       // Notify the user that there might be a sync issue
-      console.log("Local state updated but server sync may have failed. Changes might not persist on reload.");
+      console.log(
+        "Local state updated but server sync may have failed. Changes might not persist on reload."
+      );
     } finally {
       setFollowLoading(false);
     }
@@ -598,8 +607,8 @@ const ClubDetail = () => {
                   <button
                     onClick={handleFollowToggle}
                     className={`${
-                      isFollowing 
-                        ? "bg-purple-600 hover:bg-purple-700" 
+                      isFollowing
+                        ? "bg-purple-600 hover:bg-purple-700"
                         : "bg-gray-700 hover:bg-gray-600"
                     } text-white px-4 py-2 rounded-xl transition-colors flex items-center gap-2 relative`}
                     disabled={followLoading}
@@ -611,12 +620,16 @@ const ClubDetail = () => {
                       </>
                     ) : (
                       <>
-                        <Star className={`w-5 h-5 ${isFollowing ? "fill-white" : ""}`} />
+                        <Star
+                          className={`w-5 h-5 ${
+                            isFollowing ? "fill-white" : ""
+                          }`}
+                        />
                         <span>{isFollowing ? "Following" : "Follow"}</span>
                       </>
                     )}
                   </button>
-                  
+
                   {/* Share button - MOBILE ONLY VERSION */}
                   <button
                     onClick={handleCopy}
@@ -640,13 +653,15 @@ const ClubDetail = () => {
                 <div className="flex gap-2 mt-2">
                   {/* Create event button - only for coordinators/admins */}
                   {(isCoordinator || haveAccess) && (
-                    <a href="/create_event" 
-                      className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-xl transition-colors flex items-center gap-2 text-sm">
+                    <a
+                      href="/create_event"
+                      className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-xl transition-colors flex items-center gap-2 text-sm"
+                    >
                       <Plus className="w-4 h-4" />
                       <span className="hidden sm:inline">Add Event</span>
                     </a>
                   )}
-                  
+
                   {/* Share button - DESKTOP ONLY VERSION */}
                   <button
                     onClick={handleCopy}
@@ -664,7 +679,7 @@ const ClubDetail = () => {
                       </>
                     )}
                   </button>
-                  
+
                   {/* Settings button - only for coordinators/admins */}
                   {(isCoordinator || haveAccess) && (
                     <button
@@ -755,7 +770,7 @@ const ClubDetail = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Events Section with Edit Button */}
         <div className="bg-gray-800 rounded-2xl p-6 mt-6 mb-8">
           <div className="flex justify-between items-center mb-6">
@@ -813,11 +828,17 @@ const ClubDetail = () => {
                         <div className="space-y-2">
                           <div className="flex items-center text-gray-300">
                             <Calendar className="w-4 h-4 mr-2" />
-                            <span>{event.date}</span>
+                            <span>
+                              {event.start_date
+                                ? new Date(
+                                    event.start_date
+                                  ).toLocaleDateString()
+                                : "Date TBA"}
+                            </span>
                           </div>
                           <div className="flex items-center text-gray-300">
                             <Clock className="w-4 h-4 mr-2" />
-                            <span>{event.time}</span>
+                            <span>{event.start_time || "Time TBA"}</span>
                           </div>
                           <div className="flex items-center text-gray-300">
                             <MapPin className="w-4 h-4 mr-2" />
@@ -895,9 +916,7 @@ const ClubDetail = () => {
                 {/* Upload overlay */}
                 <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
                   <Upload className="w-8 h-8 text-white mb-2" />
-                  <span className="text-sm text-white">
-                    Upload new logo
-                  </span>
+                  <span className="text-sm text-white">Upload new logo</span>
                   <input
                     type="file"
                     className="hidden"
@@ -1005,58 +1024,51 @@ const ClubDetail = () => {
                 </div>
 
                 {/* Display the email chips here */}
-                {editFormData.access &&
-                  editFormData.access.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-sm text-gray-300 mb-2">
-                        Access shared with:
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {editFormData.access.map(
-                          (email, index) => (
-                            <div
-                              key={index}
-                              className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm flex items-center"
+                {editFormData.access && editFormData.access.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-300 mb-2">
+                      Access shared with:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {editFormData.access.map((email, index) => (
+                        <div
+                          key={index}
+                          className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm flex items-center"
+                        >
+                          <span className="mr-2">{email}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newAccess = [...editFormData.access];
+                              newAccess.splice(index, 1);
+                              setEditFormData((prev) => ({
+                                ...prev,
+                                access: newAccess,
+                              }));
+                            }}
+                            className="text-blue-300 hover:text-red-400"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
                             >
-                              <span className="mr-2">
-                                {email}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newAccess = [
-                                    ...editFormData.access,
-                                  ];
-                                  newAccess.splice(index, 1);
-                                  setEditFormData((prev) => ({
-                                    ...prev,
-                                    access: newAccess,
-                                  }));
-                                }}
-                                className="text-blue-300 hover:text-red-400"
-                              >
-                                <svg
-                                  width="14"
-                                  height="14"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M18 6L6 18M6 6l12 12"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          )
-                        )}
-                      </div>
+                              <path
+                                d="M18 6L6 18M6 6l12 12"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             </div>
 
