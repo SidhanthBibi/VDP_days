@@ -21,6 +21,7 @@ import Biodata from './pages/Biodata.jsx';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import AnalyticsDashboard from './pages/Analytics';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route path="/edit-event/:id" element={<EditEventForm />} />
           
           {/* Authentication routes */}
+          <Route path="/analytics" element={<AnalyticsDashboard />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           

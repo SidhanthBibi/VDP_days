@@ -27,6 +27,7 @@
     "react-qr-code": "^2.0.15",
     "react-router-dom": "^7.1.5",
     "react-toastify": "^11.0.5",
+    "recharts": "^2.15.1",
     "router": "^2.1.0",
     "styled-components": "^6.1.15",
     "tailwindcss": "^4.0.1",

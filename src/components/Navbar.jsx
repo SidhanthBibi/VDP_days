@@ -1,12 +1,12 @@
-"use client"
-import React, { useState, useEffect } from 'react';
-import { UserCircle, Menu, X, LogOut, Edit2 } from 'lucide-react';
-import logo from '../assets/clubsphereGradient.png';
-import { supabase } from '../lib/supabaseClient';
+"use client";
+import React, { useState, useEffect } from "react";
+import { UserCircle, Menu, X, LogOut, Edit2 } from "lucide-react";
+import logo from "../assets/clubsphereGradient.png";
+import { supabase } from "../lib/supabaseClient";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [activePath, setActivePath] = useState('/');
+  const [activePath, setActivePath] = useState("/");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -16,46 +16,55 @@ const Navbar = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     // Set active path
     setActivePath(window.location.pathname);
 
     // Check Supabase session and fetch user profile
     const fetchUserProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session?.user) {
         // Fetch additional user profile information from Supabase
         const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
           .single();
 
         if (error) {
-          console.error('Error fetching profile:', error);
+          console.error("Error fetching profile:", error);
           return;
         }
 
         // Check if the user has a record in the students table
         const { data: studentData, error: studentError } = await supabase
-          .from('students')
-          .select('photo, name')
-          .eq('email', session.user.email)
+          .from("students")
+          .select("photo, name")
+          .eq("email", session.user.email)
           .single();
 
-        if (studentError && studentError.code !== 'PGRST116') { // PGRST116 is "not found" which is OK
-          console.error('Error fetching student data:', studentError);
+        if (studentError && studentError.code !== "PGRST116") {
+          // PGRST116 is "not found" which is OK
+          console.error("Error fetching student data:", studentError);
         }
 
         const profile = {
           id: session.user.id,
           // Use student name if available, otherwise fall back to profile name
-          name: studentData?.name || profileData?.full_name || session.user.user_metadata.full_name,
+          name:
+            studentData?.name ||
+            profileData?.full_name ||
+            session.user.user_metadata.full_name,
           email: session.user.email,
           // Use student photo if available, otherwise fall back to profile photo
-          picture: studentData?.photo || profileData?.avatar_url || session.user.user_metadata.avatar_url
+          picture:
+            studentData?.photo ||
+            profileData?.avatar_url ||
+            session.user.user_metadata.avatar_url,
         };
 
         setUserProfile(profile);
@@ -63,7 +72,7 @@ const Navbar = () => {
     };
     fetchUserProfile();
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleSignOut = async () => {
@@ -71,18 +80,18 @@ const Navbar = () => {
       await supabase.auth.signOut();
       setUserProfile(null);
       setIsProfileOpen(false);
-      window.location.href = '/login';
+      window.location.href = "/login";
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
   const NavLink = ({ href, children, isMobile }) => {
     const isActive = activePath === href;
-    
+
     return (
-      <a 
-        href={href} 
+      <a
+        href={href}
         onClick={() => {
           setActivePath(href);
           if (isMobile) setIsMenuOpen(false);
@@ -90,19 +99,19 @@ const Navbar = () => {
         className={`
           relative px-3 py-2 rounded-lg text-gray-400 hover:text-white
           transition-all duration-300 hover:bg-white/10
-          ${scrolled ? 'text-sm' : 'text-base'}
-          ${isActive ? 'text-white bg-white/5' : ''}
-          ${isMobile ? 'text-lg w-full text-center' : ''}
+          ${scrolled ? "text-sm" : "text-base"}
+          ${isActive ? "text-white bg-white/5" : ""}
+          ${isMobile ? "text-lg w-full text-center" : ""}
           group
         `}
       >
         {children}
-        <span 
+        <span
           className={`
             absolute bottom-0 left-1/2 w-1/2 h-0.5
             bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500
             transform -translate-x-1/2 transition-all duration-300
-            ${isActive ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'}
+            ${isActive ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"}
             group-hover:scale-x-100 group-hover:opacity-100
           `}
         />
@@ -114,36 +123,42 @@ const Navbar = () => {
     <>
       {/* Fixed height spacer div */}
       <div className="h-16" />
-      
-      <nav 
+
+      <nav
         className={`
           fixed top-0 left-0 right-0 z-50 
           transition-all duration-500
-          ${scrolled 
-            ? 'h-16 bg-[#15134a]/70 backdrop-blur-lg shadow-lg' 
-            : 'h-18 bg-gradient-to-r from-[#0b1727] to-[#1d1d4b]'}
+          ${
+            scrolled
+              ? "h-16 bg-[#15134a]/70 backdrop-blur-lg shadow-lg"
+              : "h-18 bg-gradient-to-r from-[#0b1727] to-[#1d1d4b]"
+          }
         `}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
             {/* Logo */}
-            <div className={`
+            <div
+              className={`
               transition-all duration-500 flex items-center gap-2
-              ${scrolled ? 'scale-95' : 'scale-100'}
-            `}>
-                <img className='h-[50px]' src={logo} alt="ClubSphere"/>
-                <a href="/">
-                  <span className="text-2xl font-bold bg-clip-text text-transparent bg-[#DCDDE1]">
-                    ClubSphere
-                  </span>
-                </a>
+              ${scrolled ? "scale-95" : "scale-100"}
+            `}
+            >
+              <img className="h-[50px]" src={logo} alt="ClubSphere" />
+              <a href="/">
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-[#DCDDE1]">
+                  ClubSphere
+                </span>
+              </a>
             </div>
 
             {/* Desktop Navigation */}
-            <div className={`
+            <div
+              className={`
               hidden md:flex items-center gap-6 transition-all duration-500
-              ${scrolled ? 'scale-95' : 'scale-100'}
-            `}>
+              ${scrolled ? "scale-95" : "scale-100"}
+            `}
+            >
               <NavLink href="/">Home</NavLink>
               <NavLink href="/events">Events</NavLink>
               <NavLink href="/clubs">Clubs</NavLink>
@@ -185,7 +200,7 @@ const Navbar = () => {
                                 />
                               </div>
                             </div>
-                            
+
                             <div className="text-center">
                               <h3 className="text-lg font-semibold text-white">
                                 {userProfile.name}
@@ -194,12 +209,14 @@ const Navbar = () => {
                                 {userProfile.email}
                               </p>
                             </div>
-                            
+
                             {/* Profile Actions */}
                             <div className="w-full flex flex-col gap-2">
                               {/* Edit Profile Button - Same size as Sign Out */}
                               <button
-                                onClick={() => window.location.href = '/edit-profile'}
+                                onClick={() =>
+                                  (window.location.href = "/edit-profile")
+                                }
                                 className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/10 to-green-500/10 hover:from-blue-500/20 hover:to-green-500/20 text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center gap-2 group"
                               >
                                 <Edit2 className="h-4 w-4 group-hover:rotate-12 transition-transform" />
@@ -230,7 +247,7 @@ const Navbar = () => {
                 )}
               </div>
 
-              <button 
+              <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors"
               >
@@ -242,24 +259,24 @@ const Navbar = () => {
       </nav>
 
       {/* Mobile Menu Overlay */}
-      <div 
+      <div
         className={`
           fixed inset-0 bg-[#0d0a48]/50 backdrop-blur-sm z-40 md:hidden
           transition-opacity duration-300
-          ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+          ${isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"}
         `}
         onClick={() => setIsMenuOpen(false)}
       />
 
       {/* Mobile Menu Panel */}
-      <div 
+      <div
         className={`
           fixed top-0 right-0 h-full w-64 bg-[#0d0a48] z-50 md:hidden
           transform transition-transform duration-300 ease-in-out
-          ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+          ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        <button 
+        <button
           onClick={() => setIsMenuOpen(false)}
           className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/5 transition-colors"
         >
@@ -267,10 +284,19 @@ const Navbar = () => {
         </button>
 
         <div className="flex flex-col items-center pt-20 gap-6">
-          <NavLink href="/" isMobile>Home</NavLink>
-          <NavLink href="/events" isMobile>Events</NavLink>
-          <NavLink href="/clubs" isMobile>Clubs</NavLink>
-          <NavLink href="/about" isMobile>About</NavLink>
+          <NavLink href="/" isMobile>
+            Home
+          </NavLink>
+          <NavLink href="/events" isMobile>
+            Events
+          </NavLink>
+          <NavLink href="/clubs" isMobile>
+            Clubs
+          </NavLink>
+          <NavLink href="/about" isMobile>
+            About
+          </NavLink>
+          
         </div>
       </div>
     </>
