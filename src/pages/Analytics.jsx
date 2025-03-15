@@ -127,6 +127,9 @@ const AnalyticsDashboard = () => {
   const [eventAttendanceData, setEventAttendanceData] = useState([]);
   const [studentsByGenderData, setStudentsByGenderData] = useState([]);
   const [eventsTimelineData, setEventsTimelineData] = useState([]);
+  const [venueStats, setVenueStats] = useState([]);
+  const [srmStudentPercentage, setSrmStudentPercentage] = useState(0);
+  const [userTypeDistribution, setUserTypeDistribution] = useState([]);
 
   // UI state
   const [expandedSections, setExpandedSections] = useState({
@@ -159,6 +162,9 @@ const AnalyticsDashboard = () => {
         fetchEventAttendanceData(),
         fetchStudentsByGender(),
         fetchEventsTimeline(),
+        fetchVenueStats(),
+        fetchSRMStudentData(),
+        fetchUserTypeDistribution(),
       ]);
 
       setDataFetched(true);
@@ -168,6 +174,41 @@ const AnalyticsDashboard = () => {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  const fetchUserTypeDistribution = async () => {
+    try {
+      // Get counts by user type
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_type");
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        // Count users by type
+        const userTypeCounts = _.countBy(data, "user_type");
+
+        const distributionData = [
+          { name: "Students", value: userTypeCounts["student"] || 0 },
+          { name: "Club Incharges", value: userTypeCounts["incharge"] || 0 },
+          // Add any other user types you have
+          { name: "Unknown", value: data.filter((u) => !u.user_type).length },
+        ].filter((item) => item.value > 0); // Remove types with zero users
+
+        setUserTypeDistribution(distributionData);
+      }
+    } catch (error) {
+      console.error("Error fetching user type distribution:", error);
+      // Fallback data
+      setUserTypeDistribution([
+        { name: "Students", value: totalStudents || 0 },
+        {
+          name: "Club Incharges",
+          value: Math.max(0, totalUsers - totalStudents),
+        },
+      ]);
     }
   };
 
@@ -207,6 +248,62 @@ const AnalyticsDashboard = () => {
       setTotalStudents(studentsCount || 0);
     } catch (error) {
       console.error("Error fetching total counts:", error);
+      throw error;
+    }
+  };
+
+  const fetchVenueStats = async () => {
+    try {
+      const { data, error } = await supabase.from("Events").select("location");
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        // Count events by location
+        const locationCounts = _.countBy(data, "location");
+
+        // Calculate percentages and sort
+        const totalEvents = data.length;
+        const venueData = Object.entries(locationCounts)
+          .map(([venue, count]) => ({
+            venue: venue || "Unknown",
+            count,
+            percentage: Math.round((count / totalEvents) * 100),
+          }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 4); // Top 4 venues
+
+        setVenueStats(venueData);
+      }
+    } catch (error) {
+      console.error("Error fetching venue statistics:", error);
+      throw error;
+    }
+  };
+
+  const fetchSRMStudentData = async () => {
+    try {
+      // Count total students
+      const { count: totalCount, error: totalError } = await supabase
+        .from("students")
+        .select("*", { count: "exact", head: true });
+
+      if (totalError) throw totalError;
+
+      // Count SRM students
+      const { count: srmCount, error: srmError } = await supabase
+        .from("students")
+        .select("*", { count: "exact", head: true })
+        .eq("is_srm_vadaplani", true);
+
+      if (srmError) throw srmError;
+
+      // Calculate percentage
+      const percentage =
+        totalCount > 0 ? Math.round((srmCount / totalCount) * 100) : 0;
+      setSrmStudentPercentage(percentage);
+    } catch (error) {
+      console.error("Error fetching SRM student data:", error);
       throw error;
     }
   };
@@ -369,23 +466,27 @@ const AnalyticsDashboard = () => {
 
   const fetchStudentsByGender = async () => {
     try {
-      // Get students with gender
       const { data, error } = await supabase.from("students").select("gender");
-
+  
       if (error) throw error;
-
+  
       if (data && data.length > 0) {
-        // Count students by gender
-        const genderCounts = _.countBy(data, "gender");
-
-        // Transform to chart data format
+        // Normalize gender values to handle case differences
+        const normalizedData = data.map(item => ({
+          gender: item.gender ? item.gender.toLowerCase() : null
+        }));
+        
+        // Count with normalized values
+        const genderCounts = _.countBy(normalizedData, 'gender');
+        
+        // Transform with proper display names
         const genderData = [
-          { name: "Male", value: genderCounts["Male"] || 0 },
-          { name: "Female", value: genderCounts["Female"] || 0 },
-          { name: "Other", value: genderCounts["Other"] || 0 },
-          { name: "Unknown", value: data.filter((s) => !s.gender).length },
-        ].filter((item) => item.value > 0);
-
+          { name: "Male", value: genderCounts["male"] || 0 },
+          { name: "Female", value: genderCounts["female"] || 0 },
+          { name: "Other", value: genderCounts["other"] || 0 },
+          { name: "Unknown", value: data.filter(s => !s.gender).length },
+        ].filter(item => item.value > 0);
+  
         setStudentsByGenderData(genderData);
       }
     } catch (error) {
@@ -1076,22 +1177,27 @@ const AnalyticsDashboard = () => {
                       Popular Venues
                     </h4>
                     <ul className="space-y-3">
-                      <li className="flex justify-between items-center">
-                        <span className="text-gray-300">Main Auditorium</span>
-                        <span className="text-green-400">32%</span>
-                      </li>
-                      <li className="flex justify-between items-center">
-                        <span className="text-gray-300">CS Building</span>
-                        <span className="text-blue-400">27%</span>
-                      </li>
-                      <li className="flex justify-between items-center">
-                        <span className="text-gray-300">Innovation Lab</span>
-                        <span className="text-yellow-400">18%</span>
-                      </li>
-                      <li className="flex justify-between items-center">
-                        <span className="text-gray-300">Other Locations</span>
-                        <span className="text-gray-400">23%</span>
-                      </li>
+                      {venueStats.length > 0 ? (
+                        venueStats.map((venue, index) => (
+                          <li
+                            key={index}
+                            className="flex justify-between items-center"
+                          >
+                            <span className="text-gray-300">{venue.venue}</span>
+                            <span
+                              className={`text-${COLORS[
+                                index % COLORS.length
+                              ].replace("#", "")}`}
+                            >
+                              {venue.percentage}%
+                            </span>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-gray-400">
+                          No venue data available
+                        </li>
+                      )}
                     </ul>
                   </div>
 
@@ -1219,31 +1325,35 @@ const AnalyticsDashboard = () => {
                       User Type Distribution
                     </h3>
                     <div className="w-full h-72 flex items-center justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={[
-                              { name: "Students", value: totalStudents || 0 },
-                              {
-                                name: "Club Incharges",
-                                value: Math.max(0, totalUsers - totalStudents),
-                              },
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            <Cell fill="#0088FE" />
-                            <Cell fill="#00C49F" />
-                          </Pie>
-                          <Tooltip content={<CustomTooltip />} />
-                          <Legend content={renderCustomLegend} />
-                        </PieChart>
-                      </ResponsiveContainer>
+                      {userTypeDistribution.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={userTypeDistribution}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {userTypeDistribution.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={COLORS[index % COLORS.length]}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip content={<CustomTooltip />} />
+                            <Legend content={renderCustomLegend} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="text-gray-400">
+                          No user type data available
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1336,7 +1446,9 @@ const AnalyticsDashboard = () => {
                         <h4 className="text-white">SRM Students</h4>
                         <SchoolIcon className="w-4 h-4 text-yellow-400" />
                       </div>
-                      <p className="text-2xl font-bold text-white">65%</p>
+                      <p className="text-2xl font-bold text-white">
+                        {srmStudentPercentage}%
+                      </p>
                       <p className="text-sm text-gray-400">
                         of registered students
                       </p>
