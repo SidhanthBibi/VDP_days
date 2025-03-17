@@ -413,7 +413,7 @@ const LandingPage = () => {
       window.target = "_blank"
     } else {
       // User is not logged in, redirect to login page
-      navigate('/login', { 
+      navigate('/signup', { 
         state: { 
           returnUrl: location.pathname,
           registerLink: registerLink 
