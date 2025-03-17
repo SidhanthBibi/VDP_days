@@ -160,7 +160,7 @@ const Navbar = () => {
             `}
             >
               <NavLink href="/">Home</NavLink>
-              <NavLink href="/events">Events</NavLink>
+              <NavLink href="/main-events">Events</NavLink>
               <NavLink href="/clubs">Clubs</NavLink>
               <NavLink href="/about">About</NavLink>
             </div>

@@ -1,29 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import {
-  Users,
-  Trophy,
-  Calendar,
-  User,
-  UserPlus,
-  Clock,
-  MapPin,
-  Mail,
-  ArrowLeft,
-  Share2,
-  Heart,
-  Plus,
-  Globe,
-  Instagram,
-  Linkedin,
-  CircleDollarSign,
-  Check,
-  CircleCheck,
-  Settings,
-  Upload,
-  Star,
-} from "lucide-react";
+import { Users, Trophy, Calendar, User, UserPlus, Clock, MapPin, Mail, ArrowLeft, Share2, Heart, Plus, Globe, Instagram, Linkedin, CircleDollarSign, Check, CircleCheck, Settings, Upload, Star, Edit, Trash2 } from 'lucide-react';
 
 const ClubDetail = () => {
   const navigate = useNavigate();
@@ -51,6 +29,30 @@ const ClubDetail = () => {
     instagram_url: "",
     linkedin_url: "",
     access: [],
+  });
+  // New state for editing events
+  const [isEditingEvent, setIsEditingEvent] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [eventFormData, setEventFormData] = useState({
+    event_name: "",
+    description: "",
+    start_date: "",
+    start_time: "",
+    location: "",
+    price: "",
+    poster: "",
+  });
+  const [eventPosterFile, setEventPosterFile] = useState(null);
+  const [eventPosterPreview, setEventPosterPreview] = useState(null);
+  const [isEditingSubEvent, setIsEditingSubEvent] = useState(false);
+  const [subEventAttachments, setSubEventAttachments] = useState([]);
+  const [selectedAttachment, setSelectedAttachment] = useState(null);
+  const [attachmentFile, setAttachmentFile] = useState(null);
+  const [attachmentPreview, setAttachmentPreview] = useState(null);
+  const [attachmentFormData, setAttachmentFormData] = useState({
+    title: "",
+    description: "",
+    file_url: "",
   });
 
   // Authentication check
@@ -510,6 +512,311 @@ const ClubDetail = () => {
     }
   }, [id, currentUserEmail]);
 
+  // New function to handle editing an event
+  const handleEditEvent = (event) => {
+    setSelectedEvent(event);
+    setEventFormData({
+      event_name: event.event_name,
+      description: event.description || "",
+      start_date: event.start_date || "",
+      start_time: event.start_time || "",
+      location: event.location || "",
+      price: event.price || "",
+      poster: event.poster || "",
+    });
+    setEventPosterPreview(event.poster);
+    setIsEditingEvent(true);
+  };
+
+  // Handle event form input changes
+  const handleEventInputChange = (e) => {
+    const { name, value } = e.target;
+    setEventFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle event poster file change
+  const handleEventPosterChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // File size validation (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB");
+        return;
+      }
+
+      // File type validation
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image file");
+        return;
+      }
+
+      setEventPosterFile(file);
+
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setEventPosterPreview(previewUrl);
+    }
+  };
+
+  // Update event details
+  const handleUpdateEvent = async () => {
+    if (!selectedEvent) return;
+
+    try {
+      setLoading(true);
+
+      // First update the poster if there's a new one
+      let posterUrl = selectedEvent.poster;
+      if (eventPosterFile) {
+        const fileExt = eventPosterFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 7)}.${fileExt}`;
+        const filePath = `events/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("assets")
+          .upload(filePath, eventPosterFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
+
+        posterUrl = data.publicUrl;
+      }
+
+      // Update event details
+      const { error: updateError } = await supabase
+        .from("Events")
+        .update({
+          event_name: eventFormData.event_name,
+          description: eventFormData.description,
+          start_date: eventFormData.start_date,
+          start_time: eventFormData.start_time,
+          location: eventFormData.location,
+          price: eventFormData.price || "Free",
+          poster: posterUrl,
+        })
+        .eq("id", selectedEvent.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      const updatedEvents = clubEvents.map((event) => {
+        if (event.id === selectedEvent.id) {
+          return {
+            ...event,
+            event_name: eventFormData.event_name,
+            description: eventFormData.description,
+            start_date: eventFormData.start_date,
+            start_time: eventFormData.start_time,
+            location: eventFormData.location,
+            price: eventFormData.price || "Free",
+            poster: posterUrl,
+          };
+        }
+        return event;
+      });
+
+      setClubEvents(updatedEvents);
+      setIsEditingEvent(false);
+      setSelectedEvent(null);
+      setEventPosterFile(null);
+      setEventPosterPreview(null);
+      
+      // Show success message
+      alert("Event updated successfully!");
+    } catch (error) {
+      console.error("Error updating event:", error);
+      alert("Failed to update event: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch sub-event attachments
+  const fetchSubEventAttachments = async (eventId) => {
+    try {
+      const { data, error } = await supabase
+        .from("SubEventAttachments")
+        .select("*")
+        .eq("event_id", eventId);
+
+      if (error) throw error;
+
+      setSubEventAttachments(data || []);
+    } catch (err) {
+      console.error("Error fetching sub-event attachments:", err);
+      alert("Failed to fetch attachments: " + err.message);
+    }
+  };
+
+  // Handle editing sub-event attachments
+  const handleEditSubEvent = async (event) => {
+    setSelectedEvent(event);
+    await fetchSubEventAttachments(event.id);
+    setIsEditingSubEvent(true);
+  };
+
+  // Handle adding a new attachment
+  const handleAddAttachment = () => {
+    setSelectedAttachment(null);
+    setAttachmentFormData({
+      title: "",
+      description: "",
+      file_url: "",
+    });
+    setAttachmentFile(null);
+    setAttachmentPreview(null);
+  };
+
+  // Handle editing an existing attachment
+  const handleEditAttachment = (attachment) => {
+    setSelectedAttachment(attachment);
+    setAttachmentFormData({
+      title: attachment.title || "",
+      description: attachment.description || "",
+      file_url: attachment.file_url || "",
+    });
+    setAttachmentPreview(attachment.file_url);
+  };
+
+  // Handle attachment form input changes
+  const handleAttachmentInputChange = (e) => {
+    const { name, value } = e.target;
+    setAttachmentFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle attachment file change
+  const handleAttachmentFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // File size validation (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File size must be less than 10MB");
+        return;
+      }
+
+      setAttachmentFile(file);
+
+      // Create preview URL for images
+      if (file.type.startsWith("image/")) {
+        const previewUrl = URL.createObjectURL(file);
+        setAttachmentPreview(previewUrl);
+      } else {
+        // For non-image files, just show the file name
+        setAttachmentPreview(null);
+      }
+    }
+  };
+
+  // Save attachment (create or update)
+  const handleSaveAttachment = async () => {
+    try {
+      setLoading(true);
+
+      // Upload file if there's a new one
+      let fileUrl = selectedAttachment?.file_url || "";
+      if (attachmentFile) {
+        const fileExt = attachmentFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 7)}.${fileExt}`;
+        const filePath = `attachments/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("assets")
+          .upload(filePath, attachmentFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
+
+        fileUrl = data.publicUrl;
+      }
+
+      if (selectedAttachment) {
+        // Update existing attachment
+        const { error: updateError } = await supabase
+          .from("SubEventAttachments")
+          .update({
+            title: attachmentFormData.title,
+            description: attachmentFormData.description,
+            file_url: fileUrl || attachmentFormData.file_url,
+          })
+          .eq("id", selectedAttachment.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Create new attachment
+        const { error: insertError } = await supabase
+          .from("SubEventAttachments")
+          .insert({
+            event_id: selectedEvent.id,
+            title: attachmentFormData.title,
+            description: attachmentFormData.description,
+            file_url: fileUrl,
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      // Refresh attachments list
+      await fetchSubEventAttachments(selectedEvent.id);
+      
+      // Reset form
+      setSelectedAttachment(null);
+      setAttachmentFormData({
+        title: "",
+        description: "",
+        file_url: "",
+      });
+      setAttachmentFile(null);
+      setAttachmentPreview(null);
+      
+      // Show success message
+      alert(selectedAttachment ? "Attachment updated successfully!" : "Attachment added successfully!");
+    } catch (error) {
+      console.error("Error saving attachment:", error);
+      alert("Failed to save attachment: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete attachment
+  const handleDeleteAttachment = async (attachmentId) => {
+    if (!confirm("Are you sure you want to delete this attachment?")) return;
+
+    try {
+      setLoading(true);
+
+      const { error } = await supabase
+        .from("SubEventAttachments")
+        .delete()
+        .eq("id", attachmentId);
+
+      if (error) throw error;
+
+      // Refresh attachments list
+      await fetchSubEventAttachments(selectedEvent.id);
+      
+      // Show success message
+      alert("Attachment deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting attachment:", error);
+      alert("Failed to delete attachment: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -559,7 +866,7 @@ const ClubDetail = () => {
               <div className="w-32 h-32 rounded-2xl bg-blue-500 flex items-center justify-center text-4xl font-bold text-white overflow-hidden">
                 {club.image ? (
                   <img
-                    src={club.image}
+                    src={club.image || "/placeholder.svg"}
                     alt={`${club.name} logo`}
                     className="w-full h-full object-cover"
                   />
@@ -800,19 +1107,27 @@ const ClubDetail = () => {
                   <div className="aspect-[3/4] relative">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 opacity-60 z-10"></div>
                     <img
-                      src={event.poster}
+                      src={event.poster || "/placeholder.svg"}
                       alt={event.event_name}
                       className="w-full h-full object-cover"
                     />
 
                     {/* Edit Button - Only visible for coordinators/access users */}
                     {(isCoordinator || haveAccess) && (
-                      <a
-                        href={`/edit-event/${event.id}`}
-                        className="absolute top-4 right-4 z-30 bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                      >
-                        <Settings className="w-4 h-4 text-white" />
-                      </a>
+                      <div className="absolute top-4 right-4 z-30 flex gap-2">
+                        <button
+                          onClick={() => handleEditEvent(event)}
+                          className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                        >
+                          <Edit className="w-4 h-4 text-white" />
+                        </button>
+                        <button
+                          onClick={() => handleEditSubEvent(event)}
+                          className="bg-purple-600 hover:bg-purple-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                        >
+                          <Upload className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
                     )}
 
                     {/* Hover Overlay */}
@@ -1093,6 +1408,404 @@ const ClubDetail = () => {
                 ) : (
                   "Save Changes"
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Event Modal */}
+      {isEditingEvent && selectedEvent && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setIsEditingEvent(false);
+                setSelectedEvent(null);
+                setEventPosterFile(null);
+                setEventPosterPreview(null);
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <h2 className="text-2xl font-bold text-center mb-6">
+              Edit Event
+            </h2>
+
+            {/* Event Poster Update Section */}
+            <div className="flex flex-col items-center mb-6">
+              <label className="block text-sm font-medium mb-2">
+                Event Poster
+              </label>
+              <div className="relative w-full h-64 rounded-xl overflow-hidden bg-gray-700 mb-4">
+                {eventPosterPreview ? (
+                  <img
+                    src={eventPosterPreview || "/placeholder.svg"}
+                    alt="Poster preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
+                    No Image
+                  </div>
+                )}
+
+                {/* Upload overlay */}
+                <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
+                  <Upload className="w-8 h-8 text-white mb-2" />
+                  <span className="text-sm text-white">Upload new poster</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleEventPosterChange}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Event Details Form */}
+            <div className="space-y-4">
+              {/* Event Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Event Name
+                </label>
+                <input
+                  type="text"
+                  name="event_name"
+                  value={eventFormData.event_name}
+                  onChange={handleEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={eventFormData.description}
+                  onChange={handleEventInputChange}
+                  rows={4}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Date and Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    name="start_date"
+                    value={eventFormData.start_date}
+                    onChange={handleEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    name="start_time"
+                    value={eventFormData.start_time}
+                    onChange={handleEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={eventFormData.location}
+                  onChange={handleEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Price
+                </label>
+                <input
+                  type="text"
+                  name="price"
+                  value={eventFormData.price}
+                  onChange={handleEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="Free"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
+              <button
+                onClick={() => {
+                  setIsEditingEvent(false);
+                  setSelectedEvent(null);
+                  setEventPosterFile(null);
+                  setEventPosterPreview(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateEvent}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Updating...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Sub-Event Attachments Modal */}
+      {isEditingSubEvent && selectedEvent && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setIsEditingSubEvent(false);
+                setSelectedEvent(null);
+                setSubEventAttachments([]);
+                setSelectedAttachment(null);
+                setAttachmentFile(null);
+                setAttachmentPreview(null);
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <h2 className="text-2xl font-bold text-center mb-6">
+              Manage Event Attachments
+            </h2>
+
+            <h3 className="text-lg font-semibold mb-4">
+              {selectedEvent.event_name}
+            </h3>
+
+            {/* Attachments List */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-md font-medium">Current Attachments</h4>
+                <button
+                  onClick={handleAddAttachment}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add New
+                </button>
+              </div>
+
+              {subEventAttachments.length === 0 ? (
+                <p className="text-gray-400 text-center py-4">No attachments found</p>
+              ) : (
+                <div className="space-y-3">
+                  {subEventAttachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="bg-gray-700/50 rounded-lg p-3 flex justify-between items-center"
+                    >
+                      <div>
+                        <h5 className="font-medium">{attachment.title}</h5>
+                        <p className="text-sm text-gray-400">{attachment.description}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditAttachment(attachment)}
+                          className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors"
+                        >
+                          <Edit className="w-4 h-4 text-white" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAttachment(attachment.id)}
+                          className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Attachment Form */}
+            {(selectedAttachment || attachmentFile !== null) && (
+              <div className="border-t border-gray-700 pt-4 mt-4">
+                <h4 className="text-md font-medium mb-4">
+                  {selectedAttachment ? "Edit Attachment" : "Add New Attachment"}
+                </h4>
+
+                <div className="space-y-4">
+                  {/* Attachment Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={attachmentFormData.title}
+                      onChange={handleAttachmentInputChange}
+                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                      required
+                    />
+                  </div>
+
+                  {/* Attachment Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={attachmentFormData.description}
+                      onChange={handleAttachmentInputChange}
+                      rows={2}
+                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* File Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      File
+                    </label>
+                    <div className="flex items-center gap-3">
+                      {attachmentPreview ? (
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-700">
+                          <img
+                            src={attachmentPreview || "/placeholder.svg"}
+                            alt="Attachment preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-gray-700 flex items-center justify-center">
+                          <Upload className="w-6 h-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <label className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 flex items-center justify-center cursor-pointer hover:bg-gray-700 transition-colors">
+                          <Upload className="w-4 h-4 mr-2" />
+                          <span>{attachmentFile ? attachmentFile.name : "Choose file"}</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={handleAttachmentFileChange}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-4 mt-6">
+                  <button
+                    onClick={() => {
+                      setSelectedAttachment(null);
+                      setAttachmentFile(null);
+                      setAttachmentPreview(null);
+                      setAttachmentFormData({
+                        title: "",
+                        description: "",
+                        file_url: "",
+                      });
+                    }}
+                    className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveAttachment}
+                    disabled={loading || !attachmentFormData.title}
+                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Attachment"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Close Button */}
+            <div className="flex justify-center mt-6 pt-4 border-t border-gray-700">
+              <button
+                onClick={() => {
+                  setIsEditingSubEvent(false);
+                  setSelectedEvent(null);
+                  setSubEventAttachments([]);
+                  setSelectedAttachment(null);
+                  setAttachmentFile(null);
+                  setAttachmentPreview(null);
+                }}
+                className="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

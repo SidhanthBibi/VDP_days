@@ -77,7 +77,7 @@ const LoginSuccess = () => {
               }
             } else {
               // Default redirects based on user type
-              navigate(profileData.user_type === 'student' ? '/events' : '/clubs');
+              navigate(profileData.user_type === 'student' ? '/main-events' : '/clubs');
             }
           } else {
             // If for some reason user_type is missing, redirect to signup
