@@ -287,7 +287,7 @@ const Navbar = () => {
           <NavLink href="/" isMobile>
             Home
           </NavLink>
-          <NavLink href="/events" isMobile>
+          <NavLink href="/main-events" isMobile>
             Events
           </NavLink>
           <NavLink href="/clubs" isMobile>
