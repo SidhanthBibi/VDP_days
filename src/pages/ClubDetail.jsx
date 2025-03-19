@@ -1,27 +1,48 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
-import { Users, Trophy, Calendar, User, UserPlus, Clock, MapPin, Mail, ArrowLeft, Share2, Heart, Plus, Globe, Instagram, Linkedin, CircleDollarSign, Check, CircleCheck, Settings, Upload, Star, Edit, Trash2 } from 'lucide-react';
+"use client"
+
+import { useState, useEffect } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { supabase } from "../lib/supabaseClient"
+import {
+  Trophy,
+  Calendar,
+  User,
+  UserPlus,
+  Clock,
+  MapPin,
+  ArrowLeft,
+  Share2,
+  Plus,
+  Globe,
+  Instagram,
+  Linkedin,
+  CircleDollarSign,
+  CircleCheck,
+  Settings,
+  Upload,
+  Star,
+  Edit,
+  X,
+} from "lucide-react"
 
 const ClubDetail = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const [club, setClub] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isLiked, setIsLiked] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [clubEvents, setClubEvents] = useState([]);
-  const [isHiring, setIsHiring] = useState(false);
-  const [currentUserEmail, setCurrentUserEmail] = useState(null);
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [isCoordinator, setIsCoordinator] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [newLogoFile, setNewLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
-  const [haveAccess, setHaveAccess] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const [club, setClub] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [isLiked, setIsLiked] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [isHiring, setIsHiring] = useState(false)
+  const [currentUserEmail, setCurrentUserEmail] = useState(null)
+  const [currentUserId, setCurrentUserId] = useState(null)
+  const [isCoordinator, setIsCoordinator] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [newLogoFile, setNewLogoFile] = useState(null)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const [haveAccess, setHaveAccess] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
   const [editFormData, setEditFormData] = useState({
     name: "",
     description: "",
@@ -29,31 +50,51 @@ const ClubDetail = () => {
     instagram_url: "",
     linkedin_url: "",
     access: [],
-  });
-  // New state for editing events
-  const [isEditingEvent, setIsEditingEvent] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [eventFormData, setEventFormData] = useState({
+  })
+
+  // Add these new state variables for main events and sub-events
+  const [mainEvents, setMainEvents] = useState([])
+  const [showSubEventsPopup, setShowSubEventsPopup] = useState(false)
+  const [selectedMainEvent, setSelectedMainEvent] = useState(null)
+  const [subEvents, setSubEvents] = useState([])
+  const [loadingSubEvents, setLoadingSubEvents] = useState(false)
+
+  // State for editing main events
+  const [isEditingMainEvent, setIsEditingMainEvent] = useState(false)
+  const [selectedMainEventForEdit, setSelectedMainEventForEdit] = useState(null)
+  const [mainEventFormData, setMainEventFormData] = useState({
     event_name: "",
     description: "",
     start_date: "",
     start_time: "",
+    end_date: "",
+    end_time: "",
     location: "",
     price: "",
+    websiteLink: "",
     poster: "",
-  });
-  const [eventPosterFile, setEventPosterFile] = useState(null);
-  const [eventPosterPreview, setEventPosterPreview] = useState(null);
-  const [isEditingSubEvent, setIsEditingSubEvent] = useState(false);
-  const [subEventAttachments, setSubEventAttachments] = useState([]);
-  const [selectedAttachment, setSelectedAttachment] = useState(null);
-  const [attachmentFile, setAttachmentFile] = useState(null);
-  const [attachmentPreview, setAttachmentPreview] = useState(null);
-  const [attachmentFormData, setAttachmentFormData] = useState({
-    title: "",
+  })
+  const [mainEventPosterFile, setMainEventPosterFile] = useState(null)
+  const [mainEventPosterPreview, setMainEventPosterPreview] = useState(null)
+
+  // State for editing sub-events
+  const [isEditingSubEvent, setIsEditingSubEvent] = useState(false)
+  const [selectedSubEvent, setSelectedSubEvent] = useState(null)
+  const [subEventFormData, setSubEventFormData] = useState({
+    event_name: "",
     description: "",
-    file_url: "",
-  });
+    start_date: "",
+    start_time: "",
+    end_date: "",
+    end_time: "",
+    location: "",
+    price: "",
+    register_link: "",
+    websiteLink: "",
+    poster: "",
+  })
+  const [subEventPosterFile, setSubEventPosterFile] = useState(null)
+  const [subEventPosterPreview, setSubEventPosterPreview] = useState(null)
 
   // Authentication check
   useEffect(() => {
@@ -61,19 +102,19 @@ const ClubDetail = () => {
       const {
         data: { session },
         error,
-      } = await supabase.auth.getSession();
+      } = await supabase.auth.getSession()
 
       if (error || !session) {
         navigate("/login", {
           state: {
             returnUrl: `/clubs/${id}`, // Store the current URL to redirect back after login
           },
-        });
+        })
       }
-    };
+    }
 
-    checkAuth();
-  }, [navigate, id]);
+    checkAuth()
+  }, [navigate, id])
 
   // Fetch current user's email
   useEffect(() => {
@@ -82,135 +123,123 @@ const ClubDetail = () => {
         const {
           data: { session },
           error: authError,
-        } = await supabase.auth.getSession();
-        if (authError) throw authError;
+        } = await supabase.auth.getSession()
+        if (authError) throw authError
 
         if (session?.user?.email) {
-          setCurrentUserEmail(session.user.email);
-          setCurrentUserId(session.user.id);
+          setCurrentUserEmail(session.user.email)
+          setCurrentUserId(session.user.id)
         }
       } catch (err) {
-        console.error("Error fetching user email:", err);
+        console.error("Error fetching user email:", err)
       }
-    };
+    }
 
-    fetchUserEmail();
-  }, []);
+    fetchUserEmail()
+  }, [])
 
   // Check if user is following the club
   useEffect(() => {
     const checkIfFollowing = async () => {
-      if (!currentUserId || !id) return;
+      if (!currentUserId || !id) return
 
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("followed")
-          .eq("id", currentUserId)
-          .single();
+        const { data, error } = await supabase.from("profiles").select("followed").eq("id", currentUserId).single()
 
-        if (error) throw error;
+        if (error) throw error
 
         // Check if the club ID is in the followed array
-        const isFollowed = data.followed ? data.followed.includes(id) : false;
-        setIsFollowing(isFollowed);
+        const isFollowed = data.followed ? data.followed.includes(id) : false
+        setIsFollowing(isFollowed)
       } catch (err) {
-        console.error("Error checking follow status:", err);
+        console.error("Error checking follow status:", err)
       }
-    };
+    }
 
-    checkIfFollowing();
-  }, [currentUserId, id]);
+    checkIfFollowing()
+  }, [currentUserId, id])
 
   const checkUserAccess = (clubData, userEmail) => {
-    if (!userEmail) return false;
+    if (!userEmail) return false
 
     // Check if user is the coordinator
     if (clubData.Club_Coordinator === userEmail) {
-      return true;
+      return true
     }
 
     // Check if user's email is in the access array
     if (Array.isArray(clubData.access) && clubData.access.includes(userEmail)) {
-      return true;
+      return true
     }
 
-    return false;
-  };
+    return false
+  }
 
   const handleCopy = async () => {
     try {
       // Get the current URL
-      const currentUrl = window.location.href;
+      const currentUrl = window.location.href
 
       // Copy to clipboard
-      await navigator.clipboard.writeText(currentUrl);
+      await navigator.clipboard.writeText(currentUrl)
 
       // Show success state
-      setCopied(true);
+      setCopied(true)
 
       // Reset after 2 seconds
       setTimeout(() => {
-        setCopied(false);
-      }, 2000);
+        setCopied(false)
+      }, 2000)
     } catch (err) {
-      console.error("Failed to copy URL:", err);
+      console.error("Failed to copy URL:", err)
     }
-  };
+  }
 
   const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
 
   const handleAddEmail = () => {
-    const emailInput = document.getElementById("email-input");
-    if (!emailInput || !emailInput.value) return;
+    const emailInput = document.getElementById("email-input")
+    if (!emailInput || !emailInput.value) return
 
     // Process comma-separated emails
-    const emails = emailInput.value.split(",");
+    const emails = emailInput.value.split(",")
 
     emails.forEach((email) => {
-      const trimmedEmail = email.trim();
-      if (
-        trimmedEmail &&
-        isValidEmail(trimmedEmail) &&
-        !editFormData.access.includes(trimmedEmail)
-      ) {
+      const trimmedEmail = email.trim()
+      if (trimmedEmail && isValidEmail(trimmedEmail) && !editFormData.access.includes(trimmedEmail)) {
         setEditFormData((prev) => ({
           ...prev,
           access: [...prev.access, trimmedEmail],
-        }));
+        }))
       }
-    });
+    })
 
     // Clear the input
-    emailInput.value = "";
-  };
+    emailInput.value = ""
+  }
 
   // Add this function to handle logo file changes
   const handleUpdateClubDetails = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
 
       // First update the logo if there's a new one
-      let imageUrl = club.image;
+      let imageUrl = club.image
       if (newLogoFile) {
-        const fileExt = newLogoFile.name.split(".").pop();
-        const fileName = `${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 7)}.${fileExt}`;
-        const filePath = `clubs/${fileName}`;
+        const fileExt = newLogoFile.name.split(".").pop()
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`
+        const filePath = `clubs/${fileName}`
 
-        const { error: uploadError } = await supabase.storage
-          .from("assets")
-          .upload(filePath, newLogoFile);
+        const { error: uploadError } = await supabase.storage.from("assets").upload(filePath, newLogoFile)
 
-        if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError
 
-        const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
+        const { data } = supabase.storage.from("assets").getPublicUrl(filePath)
 
-        imageUrl = data.publicUrl;
+        imageUrl = data.publicUrl
       }
 
       // Update club details
@@ -225,9 +254,9 @@ const ClubDetail = () => {
           image: imageUrl,
           access: editFormData.access, // Use the array directly
         })
-        .eq("id", club.id);
+        .eq("id", club.id)
 
-      if (updateError) throw updateError;
+      if (updateError) throw updateError
 
       // Update local state
       setClub((prev) => ({
@@ -239,29 +268,29 @@ const ClubDetail = () => {
         linkedin_url: editFormData.linkedin_url,
         image: imageUrl,
         access: editFormData.access,
-      }));
+      }))
 
-      setIsSettingsOpen(false);
-      setNewLogoFile(null);
-      setLogoPreview(null);
+      setIsSettingsOpen(false)
+      setNewLogoFile(null)
+      setLogoPreview(null)
 
       // Reload the page to reflect all changes
-      window.location.reload();
+      window.location.reload()
     } catch (error) {
-      console.error("Error updating club details:", error);
-      alert("Failed to update club details: " + error.message);
+      console.error("Error updating club details:", error)
+      alert("Failed to update club details: " + error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setEditFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   useEffect(() => {
     if (isSettingsOpen && club) {
@@ -272,32 +301,32 @@ const ClubDetail = () => {
         instagram_url: club.instagram_url || "",
         linkedin_url: club.linkedin_url || "",
         access: club.access || [], // Initialize from club data
-      });
+      })
     }
-  }, [isSettingsOpen, club]);
+  }, [isSettingsOpen, club])
 
   const handleLogoChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]
     if (file) {
       // File size validation (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
-        return;
+        alert("File size must be less than 5MB")
+        return
       }
 
       // File type validation
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file");
-        return;
+        alert("Please upload an image file")
+        return
       }
 
-      setNewLogoFile(file);
+      setNewLogoFile(file)
 
       // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setLogoPreview(previewUrl);
+      const previewUrl = URL.createObjectURL(file)
+      setLogoPreview(previewUrl)
     }
-  };
+  }
 
   // Handle follow/unfollow club
   const handleFollowToggle = async () => {
@@ -307,11 +336,11 @@ const ClubDetail = () => {
         state: {
           returnUrl: `/clubs/${id}`,
         },
-      });
-      return;
+      })
+      return
     }
 
-    setFollowLoading(true);
+    setFollowLoading(true)
 
     try {
       // Get current user's followed clubs
@@ -319,73 +348,64 @@ const ClubDetail = () => {
         .from("profiles")
         .select("followed")
         .eq("id", currentUserId)
-        .single();
+        .single()
 
-      if (userError) throw userError;
+      if (userError) throw userError
 
       // Initialize followed array if it doesn't exist
-      const currentFollowed = userData.followed || [];
-      let newFollowed;
-      let followersDelta;
+      const currentFollowed = userData.followed || []
+      let newFollowed
+      let followersDelta
 
       if (isFollowing) {
         // Unfollow logic - remove club ID from followed array
-        newFollowed = currentFollowed.filter((clubId) => clubId !== id);
-        followersDelta = -1;
+        newFollowed = currentFollowed.filter((clubId) => clubId !== id)
+        followersDelta = -1
       } else {
         // Follow logic - add club ID to followed array
-        newFollowed = [...currentFollowed, id];
-        followersDelta = 1;
+        newFollowed = [...currentFollowed, id]
+        followersDelta = 1
       }
 
       // Update profiles table
       const { error: updateProfileError } = await supabase
         .from("profiles")
         .update({ followed: newFollowed })
-        .eq("id", currentUserId);
+        .eq("id", currentUserId)
 
-      if (updateProfileError) throw updateProfileError;
+      if (updateProfileError) throw updateProfileError
 
       // Get current followers count - this needs to be done with admin privileges
       // We'll use a special RPC (Remote Procedure Call) function that has higher privileges
       // This function uses Supabase's built-in RPC feature to bypass RLS
-      const { data: updatedClub, error: rpcError } = await supabase.rpc(
-        "update_follower_count",
-        {
-          club_id: id,
-          delta: followersDelta,
-        }
-      );
+      const { data: updatedClub, error: rpcError } = await supabase.rpc("update_follower_count", {
+        club_id: id,
+        delta: followersDelta,
+      })
 
       if (rpcError) {
-        console.error("Error updating follower count:", rpcError);
+        console.error("Error updating follower count:", rpcError)
 
         // Fallback approach - use a direct SQL function call
         // This uses a stored function in the database that has SECURITY DEFINER privileges
-        const { data: directUpdateResult, error: directUpdateError } =
-          await supabase
-            .from("Clubs")
-            .update({
-              followers: supabase.raw(
-                `GREATEST(0, COALESCE(followers, 0) ${
-                  followersDelta > 0 ? "+" : "-"
-                } 1)`
-              ),
-            })
-            .eq("id", id)
-            .select("followers");
+        const { data: directUpdateResult, error: directUpdateError } = await supabase
+          .from("Clubs")
+          .update({
+            followers: supabase.raw(`GREATEST(0, COALESCE(followers, 0) ${followersDelta > 0 ? "+" : "-"} 1)`),
+          })
+          .eq("id", id)
+          .select("followers")
 
         if (directUpdateError) {
-          throw directUpdateError;
+          throw directUpdateError
         }
 
         // Update local state
-        setIsFollowing(!isFollowing);
+        setIsFollowing(!isFollowing)
 
         // Update club state with new followers count from direct update
         const newFollowerCount =
-          directUpdateResult?.[0]?.followers ||
-          (parseInt(club.stats.followers) + followersDelta).toString();
+          directUpdateResult?.[0]?.followers || (Number.parseInt(club.stats.followers) + followersDelta).toString()
 
         setClub((prevClub) => ({
           ...prevClub,
@@ -393,15 +413,14 @@ const ClubDetail = () => {
             ...prevClub.stats,
             followers: newFollowerCount,
           },
-        }));
+        }))
       } else {
         // RPC call succeeded, update local state
-        setIsFollowing(!isFollowing);
+        setIsFollowing(!isFollowing)
 
         // Get the new follower count from the RPC response or calculate it
         const newFollowerCount =
-          updatedClub?.followers ||
-          (parseInt(club.stats.followers) + followersDelta).toString();
+          updatedClub?.followers || (Number.parseInt(club.stats.followers) + followersDelta).toString()
 
         // Update club state with new followers count
         setClub((prevClub) => ({
@@ -410,61 +429,41 @@ const ClubDetail = () => {
             ...prevClub.stats,
             followers: newFollowerCount,
           },
-        }));
+        }))
       }
     } catch (err) {
-      console.error("Error following/unfollowing club:", err);
+      console.error("Error following/unfollowing club:", err)
 
       // Even if updating the database failed, we should still update the local state
       // This ensures the UI remains responsive even if the server update failed
       const optimisticFollowerCount = isFollowing
-        ? Math.max(0, parseInt(club.stats.followers) - 1)
-        : parseInt(club.stats.followers) + 1;
+        ? Math.max(0, Number.parseInt(club.stats.followers) - 1)
+        : Number.parseInt(club.stats.followers) + 1
 
-      setIsFollowing(!isFollowing);
+      setIsFollowing(!isFollowing)
       setClub((prevClub) => ({
         ...prevClub,
         stats: {
           ...prevClub.stats,
           followers: optimisticFollowerCount.toString(),
         },
-      }));
+      }))
 
       // Notify the user that there might be a sync issue
-      console.log(
-        "Local state updated but server sync may have failed. Changes might not persist on reload."
-      );
+      console.log("Local state updated but server sync may have failed. Changes might not persist on reload.")
     } finally {
-      setFollowLoading(false);
+      setFollowLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     const fetchClubDetails = async () => {
       try {
-        const { data: clubData, error: clubError } = await supabase
-          .from("Clubs")
-          .select("*")
-          .eq("id", id)
-          .single();
+        const { data: clubData, error: clubError } = await supabase.from("Clubs").select("*").eq("id", id).single()
 
-        if (clubError) throw clubError;
+        if (clubError) throw clubError
 
-        // Fetch events for this club
-        const { data: eventsData, error: eventsError } = await supabase
-          .from("Events")
-          .select("*")
-          .eq("club_name", clubData.name);
-
-        if (eventsError) throw eventsError;
-
-        // Set clubEvents state
-        setClubEvents(eventsData || []);
-
-        // Get the dynamic count of events
-        const eventCount = eventsData ? eventsData.length : 0;
-
-        // Transform club data with dynamic event count
+        // Transform club data
         const transformedClub = {
           id: clubData.id,
           name: clubData.name,
@@ -474,7 +473,7 @@ const ClubDetail = () => {
           achievements: clubData.achievements || "No achievements yet",
           memberCount: clubData.member || 0,
           stats: {
-            events: eventCount.toString(), // Use the actual count from eventsData
+            events: "0", // Will be updated with main events count
             members: clubData.member?.toString() || "0",
             followers: clubData.followers?.toString() || "0",
           },
@@ -484,334 +483,363 @@ const ClubDetail = () => {
           website: clubData.website,
           Club_Coordinator: clubData.Club_Coordinator,
           access: clubData.access || [], // Ensure access is always an array
-        };
+        }
 
-        setClub(transformedClub);
+        setClub(transformedClub)
 
         // Check access based on coordinator email AND access array
         if (currentUserEmail) {
           // Check if current user is the coordinator
-          const isUserCoordinator =
-            clubData.Club_Coordinator === currentUserEmail;
-          setIsCoordinator(isUserCoordinator);
+          const isUserCoordinator = clubData.Club_Coordinator === currentUserEmail
+          setIsCoordinator(isUserCoordinator)
 
           // Set haveAccess flag - this will be true for both coordinators and users in access array
-          const hasAccess = checkUserAccess(clubData, currentUserEmail);
-          setHaveAccess(hasAccess);
+          const hasAccess = checkUserAccess(clubData, currentUserEmail)
+          setHaveAccess(hasAccess)
         }
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err.message);
+        console.error("Error fetching data:", err)
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
     if (id && currentUserEmail) {
-      fetchClubDetails();
+      fetchClubDetails()
     }
-  }, [id, currentUserEmail]);
+  }, [id, currentUserEmail])
 
-  // New function to handle editing an event
-  const handleEditEvent = (event) => {
-    setSelectedEvent(event);
-    setEventFormData({
-      event_name: event.event_name,
+  // Add this function after the existing useEffect hooks
+  useEffect(() => {
+    const fetchMainEvents = async () => {
+      if (!club) return
+
+      try {
+        const { data, error } = await supabase.from("MainEvents").select("*").eq("club_name", club.name)
+
+        if (error) throw error
+
+        setMainEvents(data || [])
+
+        // Update the events count in club stats
+        if (club && data) {
+          setClub((prev) => ({
+            ...prev,
+            stats: {
+              ...prev.stats,
+              events: data.length.toString(),
+            },
+          }))
+        }
+      } catch (err) {
+        console.error("Error fetching main events:", err)
+      }
+    }
+
+    if (club) {
+      fetchMainEvents()
+    }
+  }, [club])
+
+  // Add this function to handle main event click
+  const handleMainEventClick = async (event) => {
+    setSelectedMainEvent(event)
+    setLoadingSubEvents(true)
+
+    try {
+      const { data, error } = await supabase.from("SubEvents").select("*").eq("main_event_id", event.id)
+
+      if (error) throw error
+
+      setSubEvents(data || [])
+      setShowSubEventsPopup(true)
+    } catch (err) {
+      console.error("Error fetching sub-events:", err)
+    } finally {
+      setLoadingSubEvents(false)
+    }
+  }
+
+  // Handle editing a main event
+  const handleEditMainEvent = (event, e) => {
+    e.stopPropagation(); // Prevent triggering the main event click
+    setSelectedMainEventForEdit(event);
+    
+    // Initialize form with all event properties, handling null/undefined values
+    setMainEventFormData({
+      event_name: event.event_name || "",
       description: event.description || "",
       start_date: event.start_date || "",
       start_time: event.start_time || "",
+      end_date: event.end_date || "",
+      end_time: event.end_time || "",
       location: event.location || "",
       price: event.price || "",
-      poster: event.poster || "",
+      websiteLink: event.websiteLink || "",
+      poster: event.poster || ""
     });
-    setEventPosterPreview(event.poster);
-    setIsEditingEvent(true);
+    
+    // Set poster preview if exists
+    if (event.poster) {
+      setMainEventPosterPreview(event.poster);
+    } else {
+      setMainEventPosterPreview(null);
+    }
+    
+    setIsEditingMainEvent(true);
   };
 
-  // Handle event form input changes
-  const handleEventInputChange = (e) => {
-    const { name, value } = e.target;
-    setEventFormData((prev) => ({
+  // Handle main event form input changes
+  const handleMainEventInputChange = (e) => {
+    const { name, value } = e.target
+    setMainEventFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
-  // Handle event poster file change
-  const handleEventPosterChange = (e) => {
-    const file = e.target.files[0];
+  // Handle main event poster file change
+  const handleMainEventPosterChange = (e) => {
+    const file = e.target.files[0]
     if (file) {
       // File size validation (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
-        return;
+        alert("File size must be less than 5MB")
+        return
       }
 
       // File type validation
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file");
-        return;
+        alert("Please upload an image file")
+        return
       }
 
-      setEventPosterFile(file);
+      setMainEventPosterFile(file)
 
       // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setEventPosterPreview(previewUrl);
+      const previewUrl = URL.createObjectURL(file)
+      setMainEventPosterPreview(previewUrl)
     }
-  };
+  }
 
-  // Update event details
-  const handleUpdateEvent = async () => {
-    if (!selectedEvent) return;
-
+  // Update main event details
+  const handleUpdateMainEvent = async () => {
+    if (!selectedMainEventForEdit) return;
+  
     try {
       setLoading(true);
-
+  
       // First update the poster if there's a new one
-      let posterUrl = selectedEvent.poster;
-      if (eventPosterFile) {
-        const fileExt = eventPosterFile.name.split(".").pop();
-        const fileName = `${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 7)}.${fileExt}`;
-        const filePath = `events/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("assets")
-          .upload(filePath, eventPosterFile);
-
+      let posterUrl = selectedMainEventForEdit.poster;
+      if (mainEventPosterFile) {
+        const fileExt = mainEventPosterFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const filePath = `main-events/${fileName}`;
+  
+        const { error: uploadError } = await supabase.storage.from("assets").upload(filePath, mainEventPosterFile);
+  
         if (uploadError) throw uploadError;
-
+  
         const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
-
+  
         posterUrl = data.publicUrl;
       }
-
-      // Update event details
-      const { error: updateError } = await supabase
-        .from("Events")
-        .update({
-          event_name: eventFormData.event_name,
-          description: eventFormData.description,
-          start_date: eventFormData.start_date,
-          start_time: eventFormData.start_time,
-          location: eventFormData.location,
-          price: eventFormData.price || "Free",
-          poster: posterUrl,
-        })
-        .eq("id", selectedEvent.id);
-
+  
+      // Prepare update data with proper handling of empty values
+      const updateData = {
+        event_name: mainEventFormData.event_name,
+        description: mainEventFormData.description || "",
+        // Ensure date/time fields use proper format
+        start_date: mainEventFormData.start_date || null,
+        start_time: mainEventFormData.start_time || null,
+        end_date: mainEventFormData.end_date || null,
+        end_time: mainEventFormData.end_time || null,
+        location: mainEventFormData.location || "",
+        price: mainEventFormData.price || "Free",
+        websiteLink: mainEventFormData.websiteLink || "",
+        poster: posterUrl
+      };
+  
+      console.log("Updating main event with data:", updateData);
+  
+      // Update main event details
+      const { data: updatedEvent, error: updateError } = await supabase
+        .from("MainEvents")
+        .update(updateData)
+        .eq("id", selectedMainEventForEdit.id)
+        .select();
+  
       if (updateError) throw updateError;
-
+  
+      console.log("Update response:", updatedEvent);
+  
       // Update local state
-      const updatedEvents = clubEvents.map((event) => {
-        if (event.id === selectedEvent.id) {
+      const updatedMainEvents = mainEvents.map((event) => {
+        if (event.id === selectedMainEventForEdit.id) {
           return {
             ...event,
-            event_name: eventFormData.event_name,
-            description: eventFormData.description,
-            start_date: eventFormData.start_date,
-            start_time: eventFormData.start_time,
-            location: eventFormData.location,
-            price: eventFormData.price || "Free",
-            poster: posterUrl,
+            ...updateData
           };
         }
         return event;
       });
-
-      setClubEvents(updatedEvents);
-      setIsEditingEvent(false);
-      setSelectedEvent(null);
-      setEventPosterFile(null);
-      setEventPosterPreview(null);
-      
+  
+      setMainEvents(updatedMainEvents);
+      setIsEditingMainEvent(false);
+      setSelectedMainEventForEdit(null);
+      setMainEventPosterFile(null);
+      setMainEventPosterPreview(null);
+  
       // Show success message
-      alert("Event updated successfully!");
+      alert("Main event updated successfully!");
     } catch (error) {
-      console.error("Error updating event:", error);
-      alert("Failed to update event: " + error.message);
+      console.error("Error updating main event:", error);
+      alert("Failed to update main event: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch sub-event attachments
-  const fetchSubEventAttachments = async (eventId) => {
-    try {
-      const { data, error } = await supabase
-        .from("SubEventAttachments")
-        .select("*")
-        .eq("event_id", eventId);
-
-      if (error) throw error;
-
-      setSubEventAttachments(data || []);
-    } catch (err) {
-      console.error("Error fetching sub-event attachments:", err);
-      alert("Failed to fetch attachments: " + err.message);
+  // Handle editing a sub-event
+  const handleEditSubEvent = (event, e) => {
+    e.stopPropagation(); // Prevent triggering any parent click events
+    setSelectedSubEvent(event);
+    
+    // Initialize form with all event properties, handling null/undefined values
+    setSubEventFormData({
+      event_name: event.event_name || "",
+      description: event.description || "",
+      start_date: event.start_date || "",
+      start_time: event.start_time || "",
+      end_date: event.end_date || "",
+      end_time: event.end_time || "",
+      location: event.location || "",
+      price: event.price || "",
+      register_link: event.register_link || "",
+      websiteLink: event.websiteLink || "",
+      poster: event.poster || ""
+    });
+    
+    // Set poster preview if exists
+    if (event.poster) {
+      setSubEventPosterPreview(event.poster);
+    } else {
+      setSubEventPosterPreview(null);
     }
-  };
-
-  // Handle editing sub-event attachments
-  const handleEditSubEvent = async (event) => {
-    setSelectedEvent(event);
-    await fetchSubEventAttachments(event.id);
+    
     setIsEditingSubEvent(true);
   };
 
-  // Handle adding a new attachment
-  const handleAddAttachment = () => {
-    setSelectedAttachment(null);
-    setAttachmentFormData({
-      title: "",
-      description: "",
-      file_url: "",
-    });
-    setAttachmentFile(null);
-    setAttachmentPreview(null);
-  };
-
-  // Handle editing an existing attachment
-  const handleEditAttachment = (attachment) => {
-    setSelectedAttachment(attachment);
-    setAttachmentFormData({
-      title: attachment.title || "",
-      description: attachment.description || "",
-      file_url: attachment.file_url || "",
-    });
-    setAttachmentPreview(attachment.file_url);
-  };
-
-  // Handle attachment form input changes
-  const handleAttachmentInputChange = (e) => {
-    const { name, value } = e.target;
-    setAttachmentFormData((prev) => ({
+  // Handle sub-event form input changes
+  const handleSubEventInputChange = (e) => {
+    const { name, value } = e.target
+    setSubEventFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
-  // Handle attachment file change
-  const handleAttachmentFileChange = (e) => {
-    const file = e.target.files[0];
+  // Handle sub-event poster file change
+  const handleSubEventPosterChange = (e) => {
+    const file = e.target.files[0]
     if (file) {
-      // File size validation (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File size must be less than 10MB");
-        return;
+      // File size validation (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB")
+        return
       }
 
-      setAttachmentFile(file);
-
-      // Create preview URL for images
-      if (file.type.startsWith("image/")) {
-        const previewUrl = URL.createObjectURL(file);
-        setAttachmentPreview(previewUrl);
-      } else {
-        // For non-image files, just show the file name
-        setAttachmentPreview(null);
+      // File type validation
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image file")
+        return
       }
+
+      setSubEventPosterFile(file)
+
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file)
+      setSubEventPosterPreview(previewUrl)
     }
-  };
+  }
 
-  // Save attachment (create or update)
-  const handleSaveAttachment = async () => {
+  // Update sub-event details
+  const handleUpdateSubEvent = async () => {
+    if (!selectedSubEvent) return;
+  
     try {
       setLoading(true);
-
-      // Upload file if there's a new one
-      let fileUrl = selectedAttachment?.file_url || "";
-      if (attachmentFile) {
-        const fileExt = attachmentFile.name.split(".").pop();
-        const fileName = `${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 7)}.${fileExt}`;
-        const filePath = `attachments/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("assets")
-          .upload(filePath, attachmentFile);
-
+  
+      // First update the poster if there's a new one
+      let posterUrl = selectedSubEvent.poster;
+      if (subEventPosterFile) {
+        const fileExt = subEventPosterFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const filePath = `sub-events/${fileName}`;
+  
+        const { error: uploadError } = await supabase.storage.from("assets").upload(filePath, subEventPosterFile);
+  
         if (uploadError) throw uploadError;
-
+  
         const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
-
-        fileUrl = data.publicUrl;
+  
+        posterUrl = data.publicUrl;
       }
-
-      if (selectedAttachment) {
-        // Update existing attachment
-        const { error: updateError } = await supabase
-          .from("SubEventAttachments")
-          .update({
-            title: attachmentFormData.title,
-            description: attachmentFormData.description,
-            file_url: fileUrl || attachmentFormData.file_url,
-          })
-          .eq("id", selectedAttachment.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Create new attachment
-        const { error: insertError } = await supabase
-          .from("SubEventAttachments")
-          .insert({
-            event_id: selectedEvent.id,
-            title: attachmentFormData.title,
-            description: attachmentFormData.description,
-            file_url: fileUrl,
-          });
-
-        if (insertError) throw insertError;
-      }
-
-      // Refresh attachments list
-      await fetchSubEventAttachments(selectedEvent.id);
-      
-      // Reset form
-      setSelectedAttachment(null);
-      setAttachmentFormData({
-        title: "",
-        description: "",
-        file_url: "",
+  
+      // Prepare update data with proper handling of empty values
+      const updateData = {
+        event_name: subEventFormData.event_name,
+        description: subEventFormData.description || "",
+        // Ensure date/time fields use proper format
+        start_date: subEventFormData.start_date || null,
+        start_time: subEventFormData.start_time || null,
+        end_date: subEventFormData.end_date || null,
+        end_time: subEventFormData.end_time || null,
+        location: subEventFormData.location || "",
+        price: subEventFormData.price || "Free",
+        register_link: subEventFormData.register_link || "",
+        websiteLink: subEventFormData.websiteLink || "",
+        poster: posterUrl,
+        // IMPORTANT: Ensure main_event_id is preserved
+        main_event_id: selectedSubEvent.main_event_id
+      };
+  
+      console.log("Updating sub-event with data:", updateData);
+  
+      // Update sub-event details
+      const { data: updatedEvent, error: updateError } = await supabase
+        .from("SubEvents")
+        .update(updateData)
+        .eq("id", selectedSubEvent.id)
+        .select();
+  
+      if (updateError) throw updateError;
+  
+      console.log("Update response:", updatedEvent);
+  
+      // Update local state
+      const updatedSubEvents = subEvents.map((event) => {
+        if (event.id === selectedSubEvent.id) {
+          return {
+            ...event,
+            ...updateData
+          };
+        }
+        return event;
       });
-      setAttachmentFile(null);
-      setAttachmentPreview(null);
-      
+  
+      setSubEvents(updatedSubEvents);
+      setIsEditingSubEvent(false);
+      setSelectedSubEvent(null);
+      setSubEventPosterFile(null);
+      setSubEventPosterPreview(null);
+  
       // Show success message
-      alert(selectedAttachment ? "Attachment updated successfully!" : "Attachment added successfully!");
+      alert("Sub-event updated successfully!");
     } catch (error) {
-      console.error("Error saving attachment:", error);
-      alert("Failed to save attachment: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Delete attachment
-  const handleDeleteAttachment = async (attachmentId) => {
-    if (!confirm("Are you sure you want to delete this attachment?")) return;
-
-    try {
-      setLoading(true);
-
-      const { error } = await supabase
-        .from("SubEventAttachments")
-        .delete()
-        .eq("id", attachmentId);
-
-      if (error) throw error;
-
-      // Refresh attachments list
-      await fetchSubEventAttachments(selectedEvent.id);
-      
-      // Show success message
-      alert("Attachment deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting attachment:", error);
-      alert("Failed to delete attachment: " + error.message);
+      console.error("Error updating sub-event:", error);
+      alert("Failed to update sub-event: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -825,7 +853,7 @@ const ClubDetail = () => {
           <p className="text-xl">Loading club details...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error || !club) {
@@ -841,7 +869,7 @@ const ClubDetail = () => {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -878,9 +906,7 @@ const ClubDetail = () => {
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                   <h1 className="text-3xl font-bold text-white">{club.name}</h1>
-                  <span className="px-4 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm">
-                    {club.category}
-                  </span>
+                  <span className="px-4 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm">{club.category}</span>
                 </div>
                 <p className="text-gray-400 mb-4">{club.description}</p>
                 <div className="flex flex-wrap gap-4">
@@ -914,9 +940,7 @@ const ClubDetail = () => {
                   <button
                     onClick={handleFollowToggle}
                     className={`${
-                      isFollowing
-                        ? "bg-purple-600 hover:bg-purple-700"
-                        : "bg-gray-700 hover:bg-gray-600"
+                      isFollowing ? "bg-purple-600 hover:bg-purple-700" : "bg-gray-700 hover:bg-gray-600"
                     } text-white px-4 py-2 rounded-xl transition-colors flex items-center gap-2 relative`}
                     disabled={followLoading}
                   >
@@ -927,11 +951,7 @@ const ClubDetail = () => {
                       </>
                     ) : (
                       <>
-                        <Star
-                          className={`w-5 h-5 ${
-                            isFollowing ? "fill-white" : ""
-                          }`}
-                        />
+                        <Star className={`w-5 h-5 ${isFollowing ? "fill-white" : ""}`} />
                         <span>{isFollowing ? "Following" : "Follow"}</span>
                       </>
                     )}
@@ -961,11 +981,11 @@ const ClubDetail = () => {
                   {/* Create event button - only for coordinators/admins */}
                   {(isCoordinator || haveAccess) && (
                     <a
-                      href="/create_event"
+                      href="/create-main-event"
                       className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-xl transition-colors flex items-center gap-2 text-sm"
                     >
                       <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Add Event</span>
+                      <span className="hidden sm:inline">Add Main Event</span>
                     </a>
                   )}
 
@@ -1007,23 +1027,17 @@ const ClubDetail = () => {
             <div className="grid grid-cols-3 divide-x divide-gray-700">
               <div className="p-6 text-center">
                 <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-400">
-                  {club.stats.events}+
-                </p>
+                <p className="text-2xl font-bold text-blue-400">{club.stats.events}+</p>
                 <p className="text-sm text-gray-400">Events</p>
               </div>
               <div className="p-6 text-center">
                 <User className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-green-400">
-                  {club.stats.members}+
-                </p>
+                <p className="text-2xl font-bold text-green-400">{club.stats.members}+</p>
                 <p className="text-sm text-gray-400">Members</p>
               </div>
               <div className="p-6 text-center">
                 <UserPlus className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-yellow-400">
-                  {club.stats.followers}
-                </p>
+                <p className="text-2xl font-bold text-yellow-400">{club.stats.followers}</p>
                 <p className="text-sm text-gray-400">Followers</p>
               </div>
             </div>
@@ -1078,30 +1092,31 @@ const ClubDetail = () => {
           </div>
         </div>
 
-        {/* Events Section with Edit Button */}
+        {/* Main Events Section */}
         <div className="bg-gray-800 rounded-2xl p-6 mt-6 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-white">Events Hosted</h2>
+            <h2 className="text-xl font-bold text-white">Main Events</h2>
             {(isCoordinator || haveAccess) && (
-              <a href="/create_event">
+              <a href="/create-main-event">
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
                   <Plus className="w-5 h-5" />
-                  <span>Add Event</span>
+                  <span>Add Main Event</span>
                 </button>
               </a>
             )}
           </div>
 
-          {clubEvents.length === 0 ? (
+          {mainEvents.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-400">No events hosted yet</p>
+              <p className="text-gray-400">No main events hosted yet</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {clubEvents.map((event) => (
+              {mainEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="group relative bg-gray-700/50 rounded-xl overflow-hidden"
+                  className="group relative bg-gray-700/50 rounded-xl overflow-hidden cursor-pointer"
+                  onClick={() => handleMainEventClick(event)}
                 >
                   {/* Event Image */}
                   <div className="aspect-[3/4] relative">
@@ -1116,64 +1131,46 @@ const ClubDetail = () => {
                     {(isCoordinator || haveAccess) && (
                       <div className="absolute top-4 right-4 z-30 flex gap-2">
                         <button
-                          onClick={() => handleEditEvent(event)}
+                          onClick={(e) => handleEditMainEvent(event, e)}
                           className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
                         >
                           <Edit className="w-4 h-4 text-white" />
-                        </button>
-                        <button
-                          onClick={() => handleEditSubEvent(event)}
-                          className="bg-purple-600 hover:bg-purple-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                        >
-                          <Upload className="w-4 h-4 text-white" />
                         </button>
                       </div>
                     )}
 
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between pointer-events-none">
+                    <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between">
                       <div>
-                        <h3 className="text-xl font-bold mb-2">
-                          {event.event_name}
-                        </h3>
-                        <p className="text-gray-300 line-clamp-3 mb-4">
-                          {event.description}
-                        </p>
+                        <h3 className="text-xl font-bold mb-2">{event.event_name}</h3>
+                        <p className="text-gray-300 line-clamp-3 mb-4">{event.description}</p>
 
                         <div className="space-y-2">
                           <div className="flex items-center text-gray-300">
                             <Calendar className="w-4 h-4 mr-2" />
                             <span>
-                              {event.start_date
-                                ? new Date(
-                                    event.start_date
-                                  ).toLocaleDateString()
-                                : "Date TBA"}
+                              {event.start_date ? new Date(event.start_date).toLocaleDateString() : "Date TBA"}
                             </span>
                           </div>
                           <div className="flex items-center text-gray-300">
-                            <Clock className="w-4 h-4 mr-2" />
-                            <span>{event.start_time || "Time TBA"}</span>
-                          </div>
-                          <div className="flex items-center text-gray-300">
                             <MapPin className="w-4 h-4 mr-2" />
-                            <span>{event.location}</span>
-                          </div>
-                          <div className="flex items-center text-gray-300">
-                            <CircleDollarSign className="w-4 h-4 mr-2" />
-                            <span>{event.price || "Free"}</span>
+                            <span>{event.location || "Location TBA"}</span>
                           </div>
                         </div>
+                      </div>
+
+                      <div className="bg-blue-500/30 text-blue-300 px-2 py-1 rounded text-sm self-end">
+                        Click to view sub-events
                       </div>
                     </div>
                   </div>
 
                   {/* Title visible without hover */}
                   <div className="flex flex-col justify-end absolute h-30 bottom-0 left-0 right-0 p-4 z-30 bg-gradient-to-t from-black to-transparent">
-                    <h3 className="text-lg font-semibold text-white truncate">
-                      {event.event_name}
-                    </h3>
-                    <p className="text-gray-300 text-sm">{event.date}</p>
+                    <h3 className="text-lg font-semibold text-white truncate">{event.event_name}</h3>
+                    <p className="text-gray-300 text-sm">
+                      {event.start_date ? new Date(event.start_date).toLocaleDateString() : "Date TBA"}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -1191,37 +1188,19 @@ const ClubDetail = () => {
               onClick={() => setIsSettingsOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h2 className="text-2xl font-bold text-center mb-6">
-              Club Settings
-            </h2>
+            <h2 className="text-2xl font-bold text-center mb-6">Club Settings</h2>
 
             {/* Logo Update Section */}
             <div className="flex flex-col items-center mb-6">
-              <label className="block text-sm font-medium mb-2">
-                Update Club Logo
-              </label>
+              <label className="block text-sm font-medium mb-2">Update Club Logo</label>
               <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-700 mb-4">
                 {logoPreview || club.image ? (
-                  <img
-                    src={logoPreview || club.image}
-                    alt="Logo preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={logoPreview || club.image} alt="Logo preview" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
                     {club.name.charAt(0)}
@@ -1232,12 +1211,7 @@ const ClubDetail = () => {
                 <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
                   <Upload className="w-8 h-8 text-white mb-2" />
                   <span className="text-sm text-white">Upload new logo</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleLogoChange}
-                  />
+                  <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
                 </label>
               </div>
             </div>
@@ -1246,9 +1220,7 @@ const ClubDetail = () => {
             <div className="space-y-4">
               {/* Club Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Club Name
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Club Name</label>
                 <input
                   type="text"
                   name="name"
@@ -1261,9 +1233,7 @@ const ClubDetail = () => {
 
               {/* About */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  About Club
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">About Club</label>
                 <textarea
                   name="description"
                   value={editFormData.description}
@@ -1276,9 +1246,7 @@ const ClubDetail = () => {
 
               {/* Website URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Website URL
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Website URL</label>
                 <input
                   type="url"
                   name="website"
@@ -1291,9 +1259,7 @@ const ClubDetail = () => {
 
               {/* Instagram URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Instagram URL
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Instagram URL</label>
                 <input
                   type="url"
                   name="instagram_url"
@@ -1306,9 +1272,7 @@ const ClubDetail = () => {
 
               {/* LinkedIn URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  LinkedIn URL
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
                 <input
                   type="url"
                   name="linkedin_url"
@@ -1319,9 +1283,7 @@ const ClubDetail = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Share Access
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Share Access</label>
                 <div className="flex space-x-2">
                   <input
                     type="email"
@@ -1341,9 +1303,7 @@ const ClubDetail = () => {
                 {/* Display the email chips here */}
                 {editFormData.access && editFormData.access.length > 0 && (
                   <div className="mt-3">
-                    <p className="text-sm text-gray-300 mb-2">
-                      Access shared with:
-                    </p>
+                    <p className="text-sm text-gray-300 mb-2">Access shared with:</p>
                     <div className="flex flex-wrap gap-2">
                       {editFormData.access.map((email, index) => (
                         <div
@@ -1354,12 +1314,12 @@ const ClubDetail = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              const newAccess = [...editFormData.access];
-                              newAccess.splice(index, 1);
+                              const newAccess = [...editFormData.access]
+                              newAccess.splice(index, 1)
                               setEditFormData((prev) => ({
                                 ...prev,
                                 access: newAccess,
-                              }));
+                              }))
                             }}
                             className="text-blue-300 hover:text-red-400"
                           >
@@ -1414,48 +1374,34 @@ const ClubDetail = () => {
         </div>
       )}
 
-      {/* Edit Event Modal */}
-      {isEditingEvent && selectedEvent && (
+      {/* Edit Main Event Modal */}
+      {isEditingMainEvent && selectedMainEventForEdit && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
             {/* Close button */}
             <button
               onClick={() => {
-                setIsEditingEvent(false);
-                setSelectedEvent(null);
-                setEventPosterFile(null);
-                setEventPosterPreview(null);
+                setIsEditingMainEvent(false)
+                setSelectedMainEventForEdit(null)
+                setMainEventPosterFile(null)
+                setMainEventPosterPreview(null)
               }}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h2 className="text-2xl font-bold text-center mb-6">
-              Edit Event
-            </h2>
+            <h2 className="text-2xl font-bold text-center mb-6">Edit Main Event</h2>
 
-            {/* Event Poster Update Section */}
+            {/* Main Event Poster Update Section */}
             <div className="flex flex-col items-center mb-6">
-              <label className="block text-sm font-medium mb-2">
-                Event Poster
-              </label>
+              <label className="block text-sm font-medium mb-2">Event Poster</label>
               <div className="relative w-full h-64 rounded-xl overflow-hidden bg-gray-700 mb-4">
-                {eventPosterPreview ? (
+                {mainEventPosterPreview ? (
                   <img
-                    src={eventPosterPreview || "/placeholder.svg"}
+                    src={mainEventPosterPreview || "/placeholder.svg"}
                     alt="Poster preview"
                     className="w-full h-full object-cover"
                   />
@@ -1469,28 +1415,21 @@ const ClubDetail = () => {
                 <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
                   <Upload className="w-8 h-8 text-white mb-2" />
                   <span className="text-sm text-white">Upload new poster</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleEventPosterChange}
-                  />
+                  <input type="file" className="hidden" accept="image/*" onChange={handleMainEventPosterChange} />
                 </label>
               </div>
             </div>
 
-            {/* Event Details Form */}
+            {/* Main Event Details Form */}
             <div className="space-y-4">
               {/* Event Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Event Name
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Event Name</label>
                 <input
                   type="text"
                   name="event_name"
-                  value={eventFormData.event_name}
-                  onChange={handleEventInputChange}
+                  value={mainEventFormData.event_name}
+                  onChange={handleMainEventInputChange}
                   className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                   required
                 />
@@ -1498,42 +1437,60 @@ const ClubDetail = () => {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
                 <textarea
                   name="description"
-                  value={eventFormData.description}
-                  onChange={handleEventInputChange}
+                  value={mainEventFormData.description}
+                  onChange={handleMainEventInputChange}
                   rows={4}
                   className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
-              {/* Date and Time */}
+              {/* Start Date and Time */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Date
-                  </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
                   <input
                     type="date"
                     name="start_date"
-                    value={eventFormData.start_date}
-                    onChange={handleEventInputChange}
+                    value={mainEventFormData.start_date}
+                    onChange={handleMainEventInputChange}
                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Time
-                  </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Start Time</label>
                   <input
                     type="time"
                     name="start_time"
-                    value={eventFormData.start_time}
-                    onChange={handleEventInputChange}
+                    value={mainEventFormData.start_time}
+                    onChange={handleMainEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* End Date and Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">End Date</label>
+                  <input
+                    type="date"
+                    name="end_date"
+                    value={mainEventFormData.end_date}
+                    onChange={handleMainEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">End Time</label>
+                  <input
+                    type="time"
+                    name="end_time"
+                    value={mainEventFormData.end_time}
+                    onChange={handleMainEventInputChange}
                     className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -1541,30 +1498,39 @@ const ClubDetail = () => {
 
               {/* Location */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Location
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Location</label>
                 <input
                   type="text"
                   name="location"
-                  value={eventFormData.location}
-                  onChange={handleEventInputChange}
+                  value={mainEventFormData.location}
+                  onChange={handleMainEventInputChange}
                   className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Price
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Price</label>
                 <input
                   type="text"
                   name="price"
-                  value={eventFormData.price}
-                  onChange={handleEventInputChange}
+                  value={mainEventFormData.price}
+                  onChange={handleMainEventInputChange}
                   className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                   placeholder="Free"
+                />
+              </div>
+
+              {/* Website Link */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Website Link</label>
+                <input
+                  type="url"
+                  name="websiteLink"
+                  value={mainEventFormData.websiteLink}
+                  onChange={handleMainEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="https://..."
                 />
               </div>
             </div>
@@ -1573,17 +1539,17 @@ const ClubDetail = () => {
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
               <button
                 onClick={() => {
-                  setIsEditingEvent(false);
-                  setSelectedEvent(null);
-                  setEventPosterFile(null);
-                  setEventPosterPreview(null);
+                  setIsEditingMainEvent(false)
+                  setSelectedMainEventForEdit(null)
+                  setMainEventPosterFile(null)
+                  setMainEventPosterPreview(null)
                 }}
                 className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleUpdateEvent}
+                onClick={handleUpdateMainEvent}
                 disabled={loading}
                 className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
@@ -1601,84 +1567,344 @@ const ClubDetail = () => {
         </div>
       )}
 
-      {/* Edit Sub-Event Attachments Modal */}
-      {isEditingSubEvent && selectedEvent && (
+      {/* Edit Sub-Event Modal */}
+      {isEditingSubEvent && selectedSubEvent && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
             {/* Close button */}
             <button
               onClick={() => {
-                setIsEditingSubEvent(false);
-                setSelectedEvent(null);
-                setSubEventAttachments([]);
-                setSelectedAttachment(null);
-                setAttachmentFile(null);
-                setAttachmentPreview(null);
+                setIsEditingSubEvent(false)
+                setSelectedSubEvent(null)
+                setSubEventPosterFile(null)
+                setSubEventPosterPreview(null)
               }}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h2 className="text-2xl font-bold text-center mb-6">
-              Manage Event Attachments
-            </h2>
+            <h2 className="text-2xl font-bold text-center mb-6">Edit Sub-Event</h2>
 
-            <h3 className="text-lg font-semibold mb-4">
-              {selectedEvent.event_name}
-            </h3>
+            {/* Sub-Event Poster Update Section */}
+            <div className="flex flex-col items-center mb-6">
+              <label className="block text-sm font-medium mb-2">Event Poster</label>
+              <div className="relative w-full h-64 rounded-xl overflow-hidden bg-gray-700 mb-4">
+                {subEventPosterPreview ? (
+                  <img
+                    src={subEventPosterPreview || "/placeholder.svg"}
+                    alt="Poster preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
+                    No Image
+                  </div>
+                )}
 
-            {/* Attachments List */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="text-md font-medium">Current Attachments</h4>
-                <button
-                  onClick={handleAddAttachment}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1 text-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add New
-                </button>
+                {/* Upload overlay */}
+                <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
+                  <Upload className="w-8 h-8 text-white mb-2" />
+                  <span className="text-sm text-white">Upload new poster</span>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleSubEventPosterChange} />
+                </label>
+              </div>
+            </div>
+
+            {/* Sub-Event Details Form */}
+            <div className="space-y-4">
+              {/* Event Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Event Name</label>
+                <input
+                  type="text"
+                  name="event_name"
+                  value={subEventFormData.event_name}
+                  onChange={handleSubEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  required
+                />
               </div>
 
-              {subEventAttachments.length === 0 ? (
-                <p className="text-gray-400 text-center py-4">No attachments found</p>
-              ) : (
-                <div className="space-y-3">
-                  {subEventAttachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="bg-gray-700/50 rounded-lg p-3 flex justify-between items-center"
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                <textarea
+                  name="description"
+                  value={subEventFormData.description}
+                  onChange={handleSubEventInputChange}
+                  rows={4}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Start Date and Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                  <input
+                    type="date"
+                    name="start_date"
+                    value={subEventFormData.start_date}
+                    onChange={handleSubEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Start Time</label>
+                  <input
+                    type="time"
+                    name="start_time"
+                    value={subEventFormData.start_time}
+                    onChange={handleSubEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* End Date and Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">End Date</label>
+                  <input
+                    type="date"
+                    name="end_date"
+                    value={subEventFormData.end_date}
+                    onChange={handleSubEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">End Time</label>
+                  <input
+                    type="time"
+                    name="end_time"
+                    value={subEventFormData.end_time}
+                    onChange={handleSubEventInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Location</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={subEventFormData.location}
+                  onChange={handleSubEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Price</label>
+                <input
+                  type="text"
+                  name="price"
+                  value={subEventFormData.price}
+                  onChange={handleSubEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="Free"
+                />
+              </div>
+
+              {/* Register Link */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Register Link</label>
+                <input
+                  type="url"
+                  name="register_link"
+                  value={subEventFormData.register_link}
+                  onChange={handleSubEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+
+              {/* Website Link */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Website Link</label>
+                <input
+                  type="url"
+                  name="websiteLink"
+                  value={subEventFormData.websiteLink}
+                  onChange={handleSubEventInputChange}
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
+              <button
+                onClick={() => {
+                  setIsEditingSubEvent(false)
+                  setSelectedSubEvent(null)
+                  setSubEventPosterFile(null)
+                  setSubEventPosterPreview(null)
+                }}
+                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateSubEvent}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Updating...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sub-Events Popup */}
+      {showSubEventsPopup && selectedMainEvent && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-gray-800 p-6 border-b border-gray-700 flex justify-between items-center z-10">
+              <div>
+                <h2 className="text-2xl font-bold">{selectedMainEvent.event_name}</h2>
+                <p className="text-blue-400">Sub-Events</p>
+              </div>
+              <button
+                onClick={() => setShowSubEventsPopup(false)}
+                className="bg-gray-700 hover:bg-gray-600 p-2 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              {loadingSubEvents ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : subEvents.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">No sub-events found for this main event</p>
+                  {(isCoordinator || haveAccess) && (
+                    <a
+                      href={`/create-sub-event/${selectedMainEvent.id}`}
+                      className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                     >
-                      <div>
-                        <h5 className="font-medium">{attachment.title}</h5>
-                        <p className="text-sm text-gray-400">{attachment.description}</p>
+                      Create Sub-Event
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {subEvents.map((event) => (
+                    <div key={event.id} className="group relative bg-gray-700/50 rounded-xl overflow-hidden">
+                      {/* Event Image */}
+                      <div className="aspect-[3/4] relative">
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 opacity-60 z-10"></div>
+                        <img
+                          src={event.poster || "/placeholder.svg"}
+                          alt={event.event_name}
+                          className="w-full h-full object-cover"
+                        />
+
+                        {/* Edit Button - Only visible for coordinators/access users */}
+                        {(isCoordinator || haveAccess) && (
+                          <div className="absolute top-4 right-4 z-30 flex gap-2">
+                            <button
+                              onClick={(e) => handleEditSubEvent(event, e)}
+                              className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                            >
+                              <Edit className="w-4 h-4 text-white" />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between">
+                          <div>
+                            <h3 className="text-xl font-bold mb-2">{event.event_name}</h3>
+                            <p className="text-gray-300 line-clamp-3 mb-4">{event.description}</p>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center text-gray-300">
+                                <Calendar className="w-4 h-4 mr-2" />
+                                <span>
+                                  {event.start_date ? new Date(event.start_date).toLocaleDateString() : "Date TBA"}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-gray-300">
+                                <Clock className="w-4 h-4 mr-2" />
+                                <span>{event.start_time || "Time TBA"}</span>
+                              </div>
+                              {event.end_date && (
+                                <div className="flex items-center text-gray-300">
+                                  <Calendar className="w-4 h-4 mr-2" />
+                                  <span>End: {new Date(event.end_date).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                              {event.end_time && (
+                                <div className="flex items-center text-gray-300">
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  <span>End: {event.end_time}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center text-gray-300">
+                                <MapPin className="w-4 h-4 mr-2" />
+                                <span>{event.location || "Location TBA"}</span>
+                              </div>
+                              <div className="flex items-center text-gray-300">
+                                <CircleDollarSign className="w-4 h-4 mr-2" />
+                                <span>{event.price || "Free"}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2 mt-4">
+                            {event.register_link && (
+                              <a
+                                href={event.register_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-center"
+                              >
+                                Register
+                              </a>
+                            )}
+                            {event.websiteLink && (
+                              <a
+                                href={event.websiteLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-center"
+                              >
+                                Visit Website
+                              </a>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditAttachment(attachment)}
-                          className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors"
-                        >
-                          <Edit className="w-4 h-4 text-white" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAttachment(attachment.id)}
-                          className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-white" />
-                        </button>
+
+                      {/* Title visible without hover */}
+                      <div className="flex flex-col justify-end absolute h-30 bottom-0 left-0 right-0 p-4 z-30 bg-gradient-to-t from-black to-transparent">
+                        <h3 className="text-lg font-semibold text-white truncate">{event.event_name}</h3>
+                        <p className="text-gray-300 text-sm">
+                          {event.start_date ? new Date(event.start_date).toLocaleDateString() : "Date TBA"}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -1686,124 +1912,20 @@ const ClubDetail = () => {
               )}
             </div>
 
-            {/* Attachment Form */}
-            {(selectedAttachment || attachmentFile !== null) && (
-              <div className="border-t border-gray-700 pt-4 mt-4">
-                <h4 className="text-md font-medium mb-4">
-                  {selectedAttachment ? "Edit Attachment" : "Add New Attachment"}
-                </h4>
-
-                <div className="space-y-4">
-                  {/* Attachment Title */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={attachmentFormData.title}
-                      onChange={handleAttachmentInputChange}
-                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  {/* Attachment Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      name="description"
-                      value={attachmentFormData.description}
-                      onChange={handleAttachmentInputChange}
-                      rows={2}
-                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
-                  {/* File Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      File
-                    </label>
-                    <div className="flex items-center gap-3">
-                      {attachmentPreview ? (
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-700">
-                          <img
-                            src={attachmentPreview || "/placeholder.svg"}
-                            alt="Attachment preview"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gray-700 flex items-center justify-center">
-                          <Upload className="w-6 h-6 text-gray-400" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <label className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 flex items-center justify-center cursor-pointer hover:bg-gray-700 transition-colors">
-                          <Upload className="w-4 h-4 mr-2" />
-                          <span>{attachmentFile ? attachmentFile.name : "Choose file"}</span>
-                          <input
-                            type="file"
-                            className="hidden"
-                            onChange={handleAttachmentFileChange}
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-4 mt-6">
-                  <button
-                    onClick={() => {
-                      setSelectedAttachment(null);
-                      setAttachmentFile(null);
-                      setAttachmentPreview(null);
-                      setAttachmentFormData({
-                        title: "",
-                        description: "",
-                        file_url: "",
-                      });
-                    }}
-                    className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveAttachment}
-                    disabled={loading || !attachmentFormData.title}
-                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      "Save Attachment"
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Close Button */}
-            <div className="flex justify-center mt-6 pt-4 border-t border-gray-700">
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-800 p-6 border-t border-gray-700 flex justify-between items-center z-10">
+              {(isCoordinator || haveAccess) && (
+                <a
+                  href={`/create-sub-event/${selectedMainEvent.id}`}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Add Sub-Event</span>
+                </a>
+              )}
               <button
-                onClick={() => {
-                  setIsEditingSubEvent(false);
-                  setSelectedEvent(null);
-                  setSubEventAttachments([]);
-                  setSelectedAttachment(null);
-                  setAttachmentFile(null);
-                  setAttachmentPreview(null);
-                }}
-                className="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                onClick={() => setShowSubEventsPopup(false)}
+                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Close
               </button>
@@ -1812,7 +1934,8 @@ const ClubDetail = () => {
         </div>
       )}
     </main>
-  );
-};
+  )
+}
 
-export default ClubDetail;
+export default ClubDetail
+
