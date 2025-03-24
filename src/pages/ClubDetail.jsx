@@ -95,6 +95,7 @@ const ClubDetail = () => {
     fetchUserEmail();
   }, []);
 
+  console.log("Hello World")
   // Check if user is following the club
   useEffect(() => {
     const checkIfFollowing = async () => {
