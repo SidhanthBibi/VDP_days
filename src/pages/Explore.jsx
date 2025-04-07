@@ -55,15 +55,15 @@ const Explore = () => {
           <div 
             className={`transform transition-all duration-700 ${
               isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'
-            } ${activeSection === 'main-events' ? 'scale-105' : ''}`}
-            onMouseEnter={() => setActiveSection('main-events')}
+            } ${activeSection === 'events' ? 'scale-105' : ''}`}
+            onMouseEnter={() => setActiveSection('events')}
             onMouseLeave={() => setActiveSection(null)}
           >
             <div 
               className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 cursor-pointer 
                          group hover:border-purple-500/50 transition-all duration-300 
                          relative overflow-hidden"
-              onClick={() => handleSectionClick('main-events')}
+              onClick={() => handleSectionClick('events')}
             >
               {/* Animated Glow Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 

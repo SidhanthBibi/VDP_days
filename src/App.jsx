@@ -23,12 +23,6 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AnalyticsDashboard from './pages/Analytics';
 
-// Import main events and sub-events components
-import MainEventsPage from './pages/MainEvents.jsx';
-import SubEventsPage from './pages/SubEvents.jsx';
-import CreateMainEvent from './pages/CreateMainEvent .jsx';
-import CreateSubEvent from './pages/CreateSubEvent .jsx';
-
 function App() {
   return (
     <>
@@ -63,14 +57,6 @@ function App() {
           {/* Club-related routes */}
           <Route path="/clubDetailform" element={<ClubDetailForm />} />
           <Route path="/clubDetail/:id" element={<ClubDetail />} />
-
-          {/* Main Events routes */}
-          <Route path="/main-events" element={<MainEventsPage />} />
-          <Route path="/create-main-event" element={<ProtectedRoute><CreateMainEvent /></ProtectedRoute>} />
-          
-          {/* Sub-Events routes */}
-          <Route path="/events/:mainEventId/subevents" element={<SubEventsPage />} />
-          <Route path="/create-sub-event/:mainEventId" element={<ProtectedRoute><CreateSubEvent /></ProtectedRoute>} />
 
           {/*Animation router */}
           <Route path="/signupsuccess" element={<SignupTick />} />
