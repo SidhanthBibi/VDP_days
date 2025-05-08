@@ -231,7 +231,7 @@ const About = () => {
       image: Arindam,
       bio: "Building the future of student communities",
       socials: {
-        github: "https://github.com/Mr-Jaiman09",
+        github: "https://github.com/ArindamJaiman",
         linkedin: "https://www.linkedin.com/in/arindam-jaiman-6149a82ab/",
         twitter: "https://www.instagram.com/thearindamjaiman",
       },
