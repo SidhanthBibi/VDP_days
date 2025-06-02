@@ -296,9 +296,18 @@ const About = () => {
     {
       icon: <Globe className="w-6 h-6" />,
       title: "Follow Us",
-      content: "@VdpClubSphere",
-      color: "from-green-400 to-green-600",
-    },
+      content: (
+    <a
+      href="https://www.instagram.com/vdpclubsphere/?hl=en"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-500 underline hover:text-blue-700"
+    >
+      @VdpClubSphere
+    </a>
+  ),
+  color: "from-green-400 to-green-600",
+},
   ];
 
   return (
