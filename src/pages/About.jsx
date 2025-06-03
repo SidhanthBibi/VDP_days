@@ -296,18 +296,9 @@ const About = () => {
     {
       icon: <Globe className="w-6 h-6" />,
       title: "Follow Us",
-      content: (
-    <a
-      href="https://www.instagram.com/vdpclubsphere/?hl=en"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-blue-500 underline hover:text-blue-700"
-    >
-      @VdpClubSphere
-    </a>
-  ),
-  color: "from-green-400 to-green-600",
-},
+      content: "@VdpClubSphere",
+      color: "from-green-400 to-green-600",
+    },
   ];
 
   return (
@@ -488,27 +479,55 @@ const About = () => {
           Get in Touch
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {contactInfo.map((info, index) => (
-            <motion.div
-              key={index}
-              className="group backdrop-blur-md bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div
-                  className={`w-12 h-12 rounded-full bg-gradient-to-r ${info.color} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}
-                >
-                  {info.icon}
+          {contactInfo.map((info, index) =>
+            info.content == "@VdpClubSphere" ? (
+              <a
+                href="https://www.instagram.com/vdpclubsphere/?hl=en"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <motion.div
+                key={index}
+                className="group backdrop-blur-md h-52 bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-r ${info.color} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    {info.icon}
+                  </div>
+                  <h3 className="text-lg font-bold">{info.title}</h3>
+                  <p className="text-gray-400">{info.content}</p>
                 </div>
-                <h3 className="text-lg font-bold">{info.title}</h3>
-                <p className="text-gray-400">{info.content}</p>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+              </a>
+            ) : (
+              <motion.div
+                key={index}
+                className="group backdrop-blur-md bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-r ${info.color} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    {info.icon}
+                  </div>
+                  <h3 className="text-lg font-bold">{info.title}</h3>
+                  <p className="text-gray-400">{info.content}</p>
+                </div>
+              </motion.div>
+            )
+          )}
         </div>
       </div>
     </div>
