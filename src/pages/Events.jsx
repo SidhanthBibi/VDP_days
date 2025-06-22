@@ -218,7 +218,7 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
                     className="mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[10px] 
                         transition-all duration-300 w-1/2
                         shadow-[0_0_15px_rgba(147,51,234,0.3)]"
-                    onClick={(e) => handleRegisterClick(e, event.register_link)}
+                    onClick={(e) => handleRegisterClick(e, `/events/${event.id}/register`)}
                   >
                     Register
                   </motion.button>

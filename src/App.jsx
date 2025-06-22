@@ -22,6 +22,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AnalyticsDashboard from './pages/Analytics';
+import EventRegistrationPage from './pages/EventRegistrationPage.jsx';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
           {/* Dynamic Event Registration Route */}
           <Route path="/event-register/:eventId" element={<DynamicRegistrationForm />} />
           <Route path="/edit-event/:id" element={<EditEventForm />} />
+          <Route path="/events/:eventId/register" element={<EventRegistrationPage  />} />
           
           {/* Authentication routes */}
           <Route path="/analytics" element={<AnalyticsDashboard />} />
