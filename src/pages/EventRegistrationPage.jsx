@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Upload, Users, Calendar, MapPin, DollarSign } from 'lucide-react';
+import { Plus, Minus, Upload, Users, Calendar, MapPin, DollarSign, Clock, Globe } from 'lucide-react';
 import { useParams } from "react-router-dom";
 import { supabase } from '../lib/supabaseClient';
 
@@ -29,6 +29,8 @@ const EventRegistrationPage = () => {
     fetchEventData();
   }, [eventId]);
 
+
+
   const fetchEventData = async () => {
     try {
       const { data, error } = await supabase
@@ -37,7 +39,6 @@ const EventRegistrationPage = () => {
         .eq('id', eventId)
         .single();
       
-        
       if (error) throw error;
       setEvent(data);
     } catch (err) {
@@ -46,6 +47,8 @@ const EventRegistrationPage = () => {
       setLoading(false);
     }
   };
+
+
 
   // Generate UPI QR Code URL
   const generateUPIQR = () => {
@@ -171,26 +174,34 @@ const EventRegistrationPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-4">
+        {/* Neon Circle Accents */}
+        <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        
+        <div className="backdrop-blur-md bg-gray-900/50 p-8 rounded-xl border border-gray-700/50 text-center max-w-md relative z-10">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Registration Successful!</h2>
-          <p className="text-gray-600 mb-6">Your registration has been submitted and is pending approval.</p>
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 mb-2">
+            Registration Successful!
+          </h2>
+          <p className="text-gray-300 mb-6">Your registration has been submitted and is pending approval.</p>
           <button 
             onClick={() => window.history.back()}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[20px] 
+              hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
+              shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
           >
             Back to Events
           </button>
@@ -200,33 +211,90 @@ const EventRegistrationPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-900 text-white px-4 py-8">
+      {/* Neon Circle Accents */}
+      <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+      <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Event Header */}
         {event && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+          <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              {/* Event Poster */}
+              {event.poster && (
+                <div className="w-48 h-64 rounded-xl overflow-hidden shadow-lg">
+                  <img 
+                    src={event.poster} 
+                    alt={event.event_name}
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+              )}
+              
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">{event.event_name}</h1>
-                <p className="text-gray-600 mb-4">{event.description}</p>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    {event.start_date && new Date(event.start_date).toLocaleDateString()}
-                    {event.start_time && ` at ${event.start_time}`}
+                <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                  {event.event_name}
+                </h1>
+                <p className="text-gray-300 mb-6 text-lg">{event.description}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 text-gray-300">
+                    <Calendar className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="text-sm text-gray-400">Start Date</p>
+                      <p>{event.start_date && new Date(event.start_date).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <MapPin className="w-4 h-4" />
-                    {event.location}
+                  
+                  <div className="flex items-center gap-3 text-gray-300">
+                    <Clock className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <p className="text-sm text-gray-400">Time</p>
+                      <p>{event.start_time} - {event.end_time}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <DollarSign className="w-4 h-4" />
-                    ₹{event.price || 0}
+                  
+                  <div className="flex items-center gap-3 text-gray-300">
+                    <MapPin className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="text-sm text-gray-400">Location</p>
+                      <p>{event.location}</p>
+                    </div>
                   </div>
+                  
+                  <div className="flex items-center gap-3 text-gray-300">
+                    <DollarSign className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <p className="text-sm text-gray-400">Price</p>
+                      <p>₹{event.price || 0}</p>
+                    </div>
+                  </div>
+                  
                   {event.club_name && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Users className="w-4 h-4" />
-                      {event.club_name}
+                    <div className="flex items-center gap-3 text-gray-300">
+                      <Users className="w-5 h-5 text-blue-400" />
+                      <div>
+                        <p className="text-sm text-gray-400">Organized by</p>
+                        <p>{event.club_name}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {event.websiteLink && (
+                    <div className="flex items-center gap-3 text-gray-300">
+                      <Globe className="w-5 h-5 text-purple-400" />
+                      <div>
+                        <p className="text-sm text-gray-400">Website</p>
+                        <a 
+                          href={event.websiteLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 underline"
+                        >
+                          Visit Website
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -237,23 +305,23 @@ const EventRegistrationPage = () => {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Registration Form */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <Users className="w-6 h-6 text-indigo-600" />
+          <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+              <Users className="w-6 h-6 text-blue-400" />
               Team Registration
             </h2>
 
-            <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Team Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Team Name *
                 </label>
                 <input
                   type="text"
                   value={formData.teamName}
                   onChange={(e) => setFormData(prev => ({ ...prev, teamName: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder-black"
+                  className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   placeholder="Enter your team name"
                   required
                 />
@@ -262,13 +330,13 @@ const EventRegistrationPage = () => {
               {/* Participants */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-300">
                     Participants *
                   </label>
                   <button
                     type="button"
                     onClick={addParticipant}
-                    className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                     Add Participant
@@ -276,16 +344,16 @@ const EventRegistrationPage = () => {
                 </div>
 
                 {formData.participants.map((participant, index) => (
-                  <div key={index} className="mb-6 p-4 border border-gray-200 rounded-lg">
+                  <div key={index} className="mb-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-medium text-gray-800">
+                      <h4 className="font-medium text-gray-200">
                         Participant {index + 1}
                       </h4>
                       {formData.participants.length > 1 && (
                         <button
                           type="button"
                           onClick={() => removeParticipant(index)}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-red-400 hover:text-red-300 transition-colors"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
@@ -293,49 +361,40 @@ const EventRegistrationPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <input
-                          type="text"
-                          value={participant.name}
-                          onChange={(e) => updateParticipant(index, 'name', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-black"
-                          placeholder="Full Name"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          value={participant.className}
-                          onChange={(e) => updateParticipant(index, 'className', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-black"
-                          placeholder="Class Name"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          value={participant.college}
-                          onChange={(e) => updateParticipant(index, 'college', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-black"
-                          placeholder="College Name"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <select
-                          value={participant.year}
-                          onChange={(e) => updateParticipant(index, 'year', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-black"
-                          placeholder="Select Year"
-                        >
-                          <option value="1st year">1st Year</option>
-                          <option value="2nd year">2nd Year</option>
-                          <option value="3rd year">3rd Year</option>
-                          <option value="4th year">4th Year</option>
-                        </select>
-                      </div>
+                      <input
+                        type="text"
+                        value={participant.name}
+                        onChange={(e) => updateParticipant(index, 'name', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Full Name"
+                        required
+                      />
+                      <input
+                        type="text"
+                        value={participant.className}
+                        onChange={(e) => updateParticipant(index, 'className', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Class Name"
+                        required
+                      />
+                      <input
+                        type="text"
+                        value={participant.college}
+                        onChange={(e) => updateParticipant(index, 'college', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="College Name"
+                        required
+                      />
+                      <select
+                        value={participant.year}
+                        onChange={(e) => updateParticipant(index, 'year', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="1st year">1st Year</option>
+                        <option value="2nd year">2nd Year</option>
+                        <option value="3rd year">3rd Year</option>
+                        <option value="4th year">4th Year</option>
+                      </select>
                     </div>
                   </div>
                 ))}
@@ -343,12 +402,15 @@ const EventRegistrationPage = () => {
 
               {/* Payment Screenshot Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Payment Screenshot *
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                <div 
+                  className="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                  onClick={() => document.getElementById('payment-upload').click()}
+                >
                   <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-gray-400 mb-2">
                     Upload payment screenshot (Max 5MB)
                   </p>
                   <input
@@ -359,14 +421,11 @@ const EventRegistrationPage = () => {
                     id="payment-upload"
                     required
                   />
-                  <label
-                    htmlFor="payment-upload"
-                    className="inline-block bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-100 transition-colors"
-                  >
+                  <div className="inline-block bg-gray-800 text-gray-300 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700">
                     Choose File
-                  </label>
+                  </div>
                   {paymentScreenshot && (
-                    <p className="text-sm text-green-600 mt-2">
+                    <p className="text-sm text-blue-400 mt-2">
                       ✓ {paymentScreenshot.name}
                     </p>
                   )}
@@ -374,7 +433,7 @@ const EventRegistrationPage = () => {
               </div>
 
               {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                <div className="bg-red-900/30 border border-red-700 text-red-400 p-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -382,45 +441,65 @@ const EventRegistrationPage = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-[20px] 
+                  hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
+                  shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]
+                  disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {submitting ? 'Registering...' : 'Register Now'}
               </button>
-            </div>
+            </form>
           </div>
 
           {/* Payment Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Payment Details</h2>
+          <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50">
+            <h2 className="text-2xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+              Payment Details
+            </h2>
             
             <div className="text-center mb-6">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-lg mb-4">
-                <p className="text-sm opacity-90">Registration Fee</p>
-                <p className="text-2xl font-bold">₹{event?.price || 0}</p>
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-xl mb-6 shadow-[0_0_15px_rgba(147,51,234,0.3)]">
+                <p className="text-sm opacity-90 mb-2">Registration Fee</p>
+                <p className="text-3xl font-bold">₹{event?.price || 0}</p>
               </div>
               
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">Scan QR Code to Pay</p>
-                <div className="inline-block p-2 bg-white rounded-lg shadow-sm">
+              <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                <p className="text-sm text-gray-300 mb-4">Scan QR Code to Pay</p>
+                <div className="inline-block p-4 bg-white rounded-xl shadow-lg">
                   <img
                     src={generateUPIQR()}
                     alt="UPI QR Code"
                     className="w-48 h-48 mx-auto"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-400 mt-3">
                   UPI ID: georgeadorn58@oksbi
                 </p>
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-medium text-blue-800 mb-2">Payment Instructions:</h3>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Scan the QR code using any UPI app</li>
-                <li>• Complete the payment</li>
-                <li>• Take a screenshot of the payment confirmation</li>
-                <li>• Upload the screenshot in the form</li>
+            <div className="bg-blue-900/20 border border-blue-700/50 p-6 rounded-xl">
+              <h3 className="font-medium text-blue-300 mb-3 flex items-center gap-2">
+                <DollarSign className="w-5 h-5" />
+                Payment Instructions:
+              </h3>
+              <ul className="text-sm text-gray-300 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-1">•</span>
+                  Scan the QR code using any UPI app
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-1">•</span>
+                  Complete the payment
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-1">•</span>
+                  Take a screenshot of the payment confirmation
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-1">•</span>
+                  Upload the screenshot in the form
+                </li>
               </ul>
             </div>
           </div>
