@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Upload, Users, Calendar, MapPin, DollarSign, Clock, Globe } from 'lucide-react';
+import { Plus, Minus, Upload, Users, Calendar, MapPin, DollarSign, Clock, Globe, CreditCard } from 'lucide-react';
 import { useParams } from "react-router-dom";
 import { supabase } from '../lib/supabaseClient';
 
@@ -12,12 +12,14 @@ const EventRegistrationPage = () => {
   const { eventId } = useParams();
   const [formData, setFormData] = useState({
     teamName: '',
+    transactionId: '',
     participants: [
       {
         name: '',
         className: '',
         college: '',
-        year: '1st year'
+        year: '1st year',
+        registerNumber: ''
       }
     ]
   });
@@ -28,8 +30,6 @@ const EventRegistrationPage = () => {
   useEffect(() => {
     fetchEventData();
   }, [eventId]);
-
-
 
   const fetchEventData = async () => {
     try {
@@ -47,8 +47,6 @@ const EventRegistrationPage = () => {
       setLoading(false);
     }
   };
-
-
 
   // Generate UPI QR Code URL
   const generateUPIQR = () => {
@@ -69,7 +67,8 @@ const EventRegistrationPage = () => {
           name: '',
           className: '',
           college: '',
-          year: '1st year'
+          year: '1st year',
+          registerNumber: ''
         }
       ]
     }));
@@ -134,14 +133,34 @@ const EventRegistrationPage = () => {
         throw new Error('Team name is required');
       }
       
+      if (!formData.transactionId.trim()) {
+        throw new Error('Transaction ID is required');
+      }
+      
       for (let participant of formData.participants) {
-        if (!participant.name.trim() || !participant.className.trim() || !participant.college.trim()) {
+        if (!participant.name.trim() || !participant.className.trim() || 
+            !participant.college.trim() || !participant.registerNumber.trim()) {
           throw new Error('All participant fields are required');
         }
       }
       
       if (!paymentScreenshot) {
         throw new Error('Payment screenshot is required');
+      }
+
+      // Check if transaction ID already exists
+      const { data: existingTransaction, error: checkError } = await supabase
+        .from('registrations')
+        .select('id')
+        .eq('transaction_id', formData.transactionId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existingTransaction) {
+        throw new Error('This transaction ID has already been used. Please enter a unique transaction ID.');
       }
 
       // Upload payment screenshot
@@ -158,6 +177,7 @@ const EventRegistrationPage = () => {
         .insert({
           event_id: eventId,
           team_name: formData.teamName,
+          transaction_id: formData.transactionId,
           participants: formData.participants,
           payment_screenshot_url: urlData.publicUrl
         });
@@ -371,6 +391,14 @@ const EventRegistrationPage = () => {
                       />
                       <input
                         type="text"
+                        value={participant.registerNumber}
+                        onChange={(e) => updateParticipant(index, 'registerNumber', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Register Number"
+                        required
+                      />
+                      <input
+                        type="text"
                         value={participant.className}
                         onChange={(e) => updateParticipant(index, 'className', e.target.value)}
                         className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -388,7 +416,7 @@ const EventRegistrationPage = () => {
                       <select
                         value={participant.year}
                         onChange={(e) => updateParticipant(index, 'year', e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2"
                       >
                         <option value="1st year">1st Year</option>
                         <option value="2nd year">2nd Year</option>
@@ -430,6 +458,25 @@ const EventRegistrationPage = () => {
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Transaction ID */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-purple-400" />
+                  Transaction ID *
+                </label>
+                <input
+                  type="text"
+                  value={formData.transactionId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, transactionId: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="Enter payment transaction ID"
+                  required
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Enter the transaction ID from your payment confirmation
+                </p>
               </div>
 
               {error && (
@@ -498,7 +545,11 @@ const EventRegistrationPage = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-400 mt-1">•</span>
-                  Upload the screenshot in the form
+                  Copy the transaction ID from the payment
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400 mt-1">•</span>
+                  Upload the screenshot and enter transaction ID in the form
                 </li>
               </ul>
             </div>
