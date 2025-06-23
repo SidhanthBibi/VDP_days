@@ -1,49 +1,48 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
+"use client"
+
+import { useState, useEffect } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { supabase } from "../lib/supabaseClient"
 import {
-  Users,
   Trophy,
   Calendar,
   User,
   UserPlus,
   Clock,
   MapPin,
-  Mail,
   ArrowLeft,
   Share2,
-  Heart,
   Plus,
   Globe,
   Instagram,
   Linkedin,
   CircleDollarSign,
-  Check,
   CircleCheck,
   Settings,
   Upload,
   Star,
-} from "lucide-react";
+  BarChart3,
+} from "lucide-react"
 
 const ClubDetail = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const [club, setClub] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isLiked, setIsLiked] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [clubEvents, setClubEvents] = useState([]);
-  const [isHiring, setIsHiring] = useState(false);
-  const [currentUserEmail, setCurrentUserEmail] = useState(null);
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [isCoordinator, setIsCoordinator] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [newLogoFile, setNewLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
-  const [haveAccess, setHaveAccess] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const [club, setClub] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [isLiked, setIsLiked] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [clubEvents, setClubEvents] = useState([])
+  const [isHiring, setIsHiring] = useState(false)
+  const [currentUserEmail, setCurrentUserEmail] = useState(null)
+  const [currentUserId, setCurrentUserId] = useState(null)
+  const [isCoordinator, setIsCoordinator] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [newLogoFile, setNewLogoFile] = useState(null)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const [haveAccess, setHaveAccess] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
   const [editFormData, setEditFormData] = useState({
     name: "",
     description: "",
@@ -51,7 +50,7 @@ const ClubDetail = () => {
     instagram_url: "",
     linkedin_url: "",
     access: [],
-  });
+  })
 
   // Authentication check
   useEffect(() => {
@@ -59,19 +58,19 @@ const ClubDetail = () => {
       const {
         data: { session },
         error,
-      } = await supabase.auth.getSession();
+      } = await supabase.auth.getSession()
 
       if (error || !session) {
         navigate("/login", {
           state: {
             returnUrl: `/clubs/${id}`, // Store the current URL to redirect back after login
           },
-        });
+        })
       }
-    };
+    }
 
-    checkAuth();
-  }, [navigate, id]);
+    checkAuth()
+  }, [navigate, id])
 
   // Fetch current user's email
   useEffect(() => {
@@ -80,136 +79,124 @@ const ClubDetail = () => {
         const {
           data: { session },
           error: authError,
-        } = await supabase.auth.getSession();
-        if (authError) throw authError;
+        } = await supabase.auth.getSession()
+        if (authError) throw authError
 
         if (session?.user?.email) {
-          setCurrentUserEmail(session.user.email);
-          setCurrentUserId(session.user.id);
+          setCurrentUserEmail(session.user.email)
+          setCurrentUserId(session.user.id)
         }
       } catch (err) {
-        console.error("Error fetching user email:", err);
+        console.error("Error fetching user email:", err)
       }
-    };
+    }
 
-    fetchUserEmail();
-  }, []);
+    fetchUserEmail()
+  }, [])
 
   console.log("Hello World")
   // Check if user is following the club
   useEffect(() => {
     const checkIfFollowing = async () => {
-      if (!currentUserId || !id) return;
+      if (!currentUserId || !id) return
 
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("followed")
-          .eq("id", currentUserId)
-          .single();
+        const { data, error } = await supabase.from("profiles").select("followed").eq("id", currentUserId).single()
 
-        if (error) throw error;
+        if (error) throw error
 
         // Check if the club ID is in the followed array
-        const isFollowed = data.followed ? data.followed.includes(id) : false;
-        setIsFollowing(isFollowed);
+        const isFollowed = data.followed ? data.followed.includes(id) : false
+        setIsFollowing(isFollowed)
       } catch (err) {
-        console.error("Error checking follow status:", err);
+        console.error("Error checking follow status:", err)
       }
-    };
+    }
 
-    checkIfFollowing();
-  }, [currentUserId, id]);
+    checkIfFollowing()
+  }, [currentUserId, id])
 
   const checkUserAccess = (clubData, userEmail) => {
-    if (!userEmail) return false;
+    if (!userEmail) return false
 
     // Check if user is the coordinator
     if (clubData.Club_Coordinator === userEmail) {
-      return true;
+      return true
     }
 
     // Check if user's email is in the access array
     if (Array.isArray(clubData.access) && clubData.access.includes(userEmail)) {
-      return true;
+      return true
     }
 
-    return false;
-  };
+    return false
+  }
 
   const handleCopy = async () => {
     try {
       // Get the current URL
-      const currentUrl = window.location.href;
+      const currentUrl = window.location.href
 
       // Copy to clipboard
-      await navigator.clipboard.writeText(currentUrl);
+      await navigator.clipboard.writeText(currentUrl)
 
       // Show success state
-      setCopied(true);
+      setCopied(true)
 
       // Reset after 2 seconds
       setTimeout(() => {
-        setCopied(false);
-      }, 2000);
+        setCopied(false)
+      }, 2000)
     } catch (err) {
-      console.error("Failed to copy URL:", err);
+      console.error("Failed to copy URL:", err)
     }
-  };
+  }
 
   const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
 
   const handleAddEmail = () => {
-    const emailInput = document.getElementById("email-input");
-    if (!emailInput || !emailInput.value) return;
+    const emailInput = document.getElementById("email-input")
+    if (!emailInput || !emailInput.value) return
 
     // Process comma-separated emails
-    const emails = emailInput.value.split(",");
+    const emails = emailInput.value.split(",")
 
     emails.forEach((email) => {
-      const trimmedEmail = email.trim();
-      if (
-        trimmedEmail &&
-        isValidEmail(trimmedEmail) &&
-        !editFormData.access.includes(trimmedEmail)
-      ) {
+      const trimmedEmail = email.trim()
+      if (trimmedEmail && isValidEmail(trimmedEmail) && !editFormData.access.includes(trimmedEmail)) {
         setEditFormData((prev) => ({
           ...prev,
           access: [...prev.access, trimmedEmail],
-        }));
+        }))
       }
-    });
+    })
 
     // Clear the input
-    emailInput.value = "";
-  };
+    emailInput.value = ""
+  }
 
   // Add this function to handle logo file changes
   const handleUpdateClubDetails = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
 
       // First update the logo if there's a new one
-      let imageUrl = club.image;
+      let imageUrl = club.image
       if (newLogoFile) {
-        const fileExt = newLogoFile.name.split(".").pop();
-        const fileName = `${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 7)}.${fileExt}`;
-        const filePath = `clubs/${fileName}`;
+        const fileExt = newLogoFile.name.split(".").pop()
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`
+        const filePath = `clubs/${fileName}`
 
-        const { error: uploadError } = await supabase.storage
-          .from("assets")
-          .upload(filePath, newLogoFile);
+        const { error: uploadError } = await supabase.storage.from("assets").upload(filePath, newLogoFile)
 
-        if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError
 
-        const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
+        const { data } = supabase.storage.from("assets").getPublicUrl(filePath)
 
-        imageUrl = data.publicUrl;
+        imageUrl = data.publicUrl
       }
 
       // Update club details
@@ -224,9 +211,9 @@ const ClubDetail = () => {
           image: imageUrl,
           access: editFormData.access, // Use the array directly
         })
-        .eq("id", club.id);
+        .eq("id", club.id)
 
-      if (updateError) throw updateError;
+      if (updateError) throw updateError
 
       // Update local state
       setClub((prev) => ({
@@ -238,29 +225,29 @@ const ClubDetail = () => {
         linkedin_url: editFormData.linkedin_url,
         image: imageUrl,
         access: editFormData.access,
-      }));
+      }))
 
-      setIsSettingsOpen(false);
-      setNewLogoFile(null);
-      setLogoPreview(null);
+      setIsSettingsOpen(false)
+      setNewLogoFile(null)
+      setLogoPreview(null)
 
       // Reload the page to reflect all changes
-      window.location.reload();
+      window.location.reload()
     } catch (error) {
-      console.error("Error updating club details:", error);
-      alert("Failed to update club details: " + error.message);
+      console.error("Error updating club details:", error)
+      alert("Failed to update club details: " + error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setEditFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   useEffect(() => {
     if (isSettingsOpen && club) {
@@ -271,32 +258,32 @@ const ClubDetail = () => {
         instagram_url: club.instagram_url || "",
         linkedin_url: club.linkedin_url || "",
         access: club.access || [], // Initialize from club data
-      });
+      })
     }
-  }, [isSettingsOpen, club]);
+  }, [isSettingsOpen, club])
 
   const handleLogoChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]
     if (file) {
       // File size validation (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
-        return;
+        alert("File size must be less than 5MB")
+        return
       }
 
       // File type validation
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file");
-        return;
+        alert("Please upload an image file")
+        return
       }
 
-      setNewLogoFile(file);
+      setNewLogoFile(file)
 
       // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setLogoPreview(previewUrl);
+      const previewUrl = URL.createObjectURL(file)
+      setLogoPreview(previewUrl)
     }
-  };
+  }
 
   // Handle follow/unfollow club
   const handleFollowToggle = async () => {
@@ -306,11 +293,11 @@ const ClubDetail = () => {
         state: {
           returnUrl: `/clubs/${id}`,
         },
-      });
-      return;
+      })
+      return
     }
 
-    setFollowLoading(true);
+    setFollowLoading(true)
 
     try {
       // Get current user's followed clubs
@@ -318,73 +305,64 @@ const ClubDetail = () => {
         .from("profiles")
         .select("followed")
         .eq("id", currentUserId)
-        .single();
+        .single()
 
-      if (userError) throw userError;
+      if (userError) throw userError
 
       // Initialize followed array if it doesn't exist
-      const currentFollowed = userData.followed || [];
-      let newFollowed;
-      let followersDelta;
+      const currentFollowed = userData.followed || []
+      let newFollowed
+      let followersDelta
 
       if (isFollowing) {
         // Unfollow logic - remove club ID from followed array
-        newFollowed = currentFollowed.filter((clubId) => clubId !== id);
-        followersDelta = -1;
+        newFollowed = currentFollowed.filter((clubId) => clubId !== id)
+        followersDelta = -1
       } else {
         // Follow logic - add club ID to followed array
-        newFollowed = [...currentFollowed, id];
-        followersDelta = 1;
+        newFollowed = [...currentFollowed, id]
+        followersDelta = 1
       }
 
       // Update profiles table
       const { error: updateProfileError } = await supabase
         .from("profiles")
         .update({ followed: newFollowed })
-        .eq("id", currentUserId);
+        .eq("id", currentUserId)
 
-      if (updateProfileError) throw updateProfileError;
+      if (updateProfileError) throw updateProfileError
 
       // Get current followers count - this needs to be done with admin privileges
       // We'll use a special RPC (Remote Procedure Call) function that has higher privileges
       // This function uses Supabase's built-in RPC feature to bypass RLS
-      const { data: updatedClub, error: rpcError } = await supabase.rpc(
-        "update_follower_count",
-        {
-          club_id: id,
-          delta: followersDelta,
-        }
-      );
+      const { data: updatedClub, error: rpcError } = await supabase.rpc("update_follower_count", {
+        club_id: id,
+        delta: followersDelta,
+      })
 
       if (rpcError) {
-        console.error("Error updating follower count:", rpcError);
+        console.error("Error updating follower count:", rpcError)
 
         // Fallback approach - use a direct SQL function call
         // This uses a stored function in the database that has SECURITY DEFINER privileges
-        const { data: directUpdateResult, error: directUpdateError } =
-          await supabase
-            .from("Clubs")
-            .update({
-              followers: supabase.raw(
-                `GREATEST(0, COALESCE(followers, 0) ${
-                  followersDelta > 0 ? "+" : "-"
-                } 1)`
-              ),
-            })
-            .eq("id", id)
-            .select("followers");
+        const { data: directUpdateResult, error: directUpdateError } = await supabase
+          .from("Clubs")
+          .update({
+            followers: supabase.raw(`GREATEST(0, COALESCE(followers, 0) ${followersDelta > 0 ? "+" : "-"} 1)`),
+          })
+          .eq("id", id)
+          .select("followers")
 
         if (directUpdateError) {
-          throw directUpdateError;
+          throw directUpdateError
         }
 
         // Update local state
-        setIsFollowing(!isFollowing);
+        setIsFollowing(!isFollowing)
 
         // Update club state with new followers count from direct update
         const newFollowerCount =
-          directUpdateResult?.[0]?.followers ||
-          (parseInt(club.stats.followers) + followersDelta).toString();
+          directUpdateResult?.[0]?.followers || (Number.parseInt(club.stats.followers) + followersDelta).toString()
 
         setClub((prevClub) => ({
           ...prevClub,
@@ -392,15 +370,14 @@ const ClubDetail = () => {
             ...prevClub.stats,
             followers: newFollowerCount,
           },
-        }));
+        }))
       } else {
         // RPC call succeeded, update local state
-        setIsFollowing(!isFollowing);
+        setIsFollowing(!isFollowing)
 
         // Get the new follower count from the RPC response or calculate it
         const newFollowerCount =
-          updatedClub?.followers ||
-          (parseInt(club.stats.followers) + followersDelta).toString();
+          updatedClub?.followers || (Number.parseInt(club.stats.followers) + followersDelta).toString()
 
         // Update club state with new followers count
         setClub((prevClub) => ({
@@ -409,59 +386,53 @@ const ClubDetail = () => {
             ...prevClub.stats,
             followers: newFollowerCount,
           },
-        }));
+        }))
       }
     } catch (err) {
-      console.error("Error following/unfollowing club:", err);
+      console.error("Error following/unfollowing club:", err)
 
       // Even if updating the database failed, we should still update the local state
       // This ensures the UI remains responsive even if the server update failed
       const optimisticFollowerCount = isFollowing
-        ? Math.max(0, parseInt(club.stats.followers) - 1)
-        : parseInt(club.stats.followers) + 1;
+        ? Math.max(0, Number.parseInt(club.stats.followers) - 1)
+        : Number.parseInt(club.stats.followers) + 1
 
-      setIsFollowing(!isFollowing);
+      setIsFollowing(!isFollowing)
       setClub((prevClub) => ({
         ...prevClub,
         stats: {
           ...prevClub.stats,
           followers: optimisticFollowerCount.toString(),
         },
-      }));
+      }))
 
       // Notify the user that there might be a sync issue
-      console.log(
-        "Local state updated but server sync may have failed. Changes might not persist on reload."
-      );
+      console.log("Local state updated but server sync may have failed. Changes might not persist on reload.")
     } finally {
-      setFollowLoading(false);
+      setFollowLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     const fetchClubDetails = async () => {
       try {
-        const { data: clubData, error: clubError } = await supabase
-          .from("Clubs")
-          .select("*")
-          .eq("id", id)
-          .single();
+        const { data: clubData, error: clubError } = await supabase.from("Clubs").select("*").eq("id", id).single()
 
-        if (clubError) throw clubError;
+        if (clubError) throw clubError
 
         // Fetch events for this club
         const { data: eventsData, error: eventsError } = await supabase
           .from("Events")
           .select("*")
-          .eq("club_name", clubData.name);
+          .eq("club_name", clubData.name)
 
-        if (eventsError) throw eventsError;
+        if (eventsError) throw eventsError
 
         // Set clubEvents state
-        setClubEvents(eventsData || []);
+        setClubEvents(eventsData || [])
 
         // Get the dynamic count of events
-        const eventCount = eventsData ? eventsData.length : 0;
+        const eventCount = eventsData ? eventsData.length : 0
 
         // Transform club data with dynamic event count
         const transformedClub = {
@@ -483,33 +454,32 @@ const ClubDetail = () => {
           website: clubData.website,
           Club_Coordinator: clubData.Club_Coordinator,
           access: clubData.access || [], // Ensure access is always an array
-        };
+        }
 
-        setClub(transformedClub);
+        setClub(transformedClub)
 
         // Check access based on coordinator email AND access array
         if (currentUserEmail) {
           // Check if current user is the coordinator
-          const isUserCoordinator =
-            clubData.Club_Coordinator === currentUserEmail;
-          setIsCoordinator(isUserCoordinator);
+          const isUserCoordinator = clubData.Club_Coordinator === currentUserEmail
+          setIsCoordinator(isUserCoordinator)
 
           // Set haveAccess flag - this will be true for both coordinators and users in access array
-          const hasAccess = checkUserAccess(clubData, currentUserEmail);
-          setHaveAccess(hasAccess);
+          const hasAccess = checkUserAccess(clubData, currentUserEmail)
+          setHaveAccess(hasAccess)
         }
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err.message);
+        console.error("Error fetching data:", err)
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
     if (id && currentUserEmail) {
-      fetchClubDetails();
+      fetchClubDetails()
     }
-  }, [id, currentUserEmail]);
+  }, [id, currentUserEmail])
 
   if (loading) {
     return (
@@ -519,7 +489,7 @@ const ClubDetail = () => {
           <p className="text-xl">Loading club details...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error || !club) {
@@ -535,7 +505,7 @@ const ClubDetail = () => {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -560,7 +530,7 @@ const ClubDetail = () => {
               <div className="w-32 h-32 rounded-2xl bg-blue-500 flex items-center justify-center text-4xl font-bold text-white overflow-hidden">
                 {club.image ? (
                   <img
-                    src={club.image}
+                    src={club.image || "/placeholder.svg"}
                     alt={`${club.name} logo`}
                     className="w-full h-full object-cover"
                   />
@@ -572,9 +542,7 @@ const ClubDetail = () => {
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                   <h1 className="text-3xl font-bold text-white">{club.name}</h1>
-                  <span className="px-4 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm">
-                    {club.category}
-                  </span>
+                  <span className="px-4 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm">{club.category}</span>
                 </div>
                 <p className="text-gray-400 mb-4">{club.description}</p>
                 <div className="flex flex-wrap gap-4">
@@ -608,9 +576,7 @@ const ClubDetail = () => {
                   <button
                     onClick={handleFollowToggle}
                     className={`${
-                      isFollowing
-                        ? "bg-purple-600 hover:bg-purple-700"
-                        : "bg-gray-700 hover:bg-gray-600"
+                      isFollowing ? "bg-purple-600 hover:bg-purple-700" : "bg-gray-700 hover:bg-gray-600"
                     } text-white px-4 py-2 rounded-xl transition-colors flex items-center gap-2 relative`}
                     disabled={followLoading}
                   >
@@ -621,11 +587,7 @@ const ClubDetail = () => {
                       </>
                     ) : (
                       <>
-                        <Star
-                          className={`w-5 h-5 ${
-                            isFollowing ? "fill-white" : ""
-                          }`}
-                        />
+                        <Star className={`w-5 h-5 ${isFollowing ? "fill-white" : ""}`} />
                         <span>{isFollowing ? "Following" : "Follow"}</span>
                       </>
                     )}
@@ -701,23 +663,17 @@ const ClubDetail = () => {
             <div className="grid grid-cols-3 divide-x divide-gray-700">
               <div className="p-6 text-center">
                 <Calendar className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-400">
-                  {club.stats.events}+
-                </p>
+                <p className="text-2xl font-bold text-blue-400">{club.stats.events}+</p>
                 <p className="text-sm text-gray-400">Events</p>
               </div>
               <div className="p-6 text-center">
                 <User className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-green-400">
-                  {club.stats.members}+
-                </p>
+                <p className="text-2xl font-bold text-green-400">{club.stats.members}+</p>
                 <p className="text-sm text-gray-400">Members</p>
               </div>
               <div className="p-6 text-center">
                 <UserPlus className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-yellow-400">
-                  {club.stats.followers}
-                </p>
+                <p className="text-2xl font-bold text-yellow-400">{club.stats.followers}</p>
                 <p className="text-sm text-gray-400">Followers</p>
               </div>
             </div>
@@ -793,48 +749,45 @@ const ClubDetail = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {clubEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="group relative bg-gray-700/50 rounded-xl overflow-hidden"
-                >
+                <div key={event.id} className="group relative bg-gray-700/50 rounded-xl overflow-hidden">
                   {/* Event Image */}
                   <div className="aspect-[3/4] relative">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 opacity-60 z-10"></div>
                     <img
-                      src={event.poster}
+                      src={event.poster || "/placeholder.svg"}
                       alt={event.event_name}
                       className="w-full h-full object-cover"
                     />
 
-                    {/* Edit Button - Only visible for coordinators/access users */}
+                    {/* Edit and Analytics Buttons - Only visible for coordinators/access users */}
                     {(isCoordinator || haveAccess) && (
-                      <a
-                        href={`/edit-event/${event.id}`}
-                        className="absolute top-4 right-4 z-30 bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                      >
-                        <Settings className="w-4 h-4 text-white" />
-                      </a>
+                      <div className="absolute top-4 right-4 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button
+                          onClick={() => navigate(`/event-registrations/${event.id}`)}
+                          className="bg-green-600 hover:bg-green-700 p-2 rounded-lg shadow-lg transition-all duration-200"
+                        >
+                          <BarChart3 className="w-4 h-4 text-white" />
+                        </button>
+                        <a
+                          href={`/edit-event/${event.id}`}
+                          className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200"
+                        >
+                          <Settings className="w-4 h-4 text-white" />
+                        </a>
+                      </div>
                     )}
 
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between pointer-events-none">
                       <div>
-                        <h3 className="text-xl font-bold mb-2">
-                          {event.event_name}
-                        </h3>
-                        <p className="text-gray-300 line-clamp-3 mb-4">
-                          {event.description}
-                        </p>
+                        <h3 className="text-xl font-bold mb-2">{event.event_name}</h3>
+                        <p className="text-gray-300 line-clamp-3 mb-4">{event.description}</p>
 
                         <div className="space-y-2">
                           <div className="flex items-center text-gray-300">
                             <Calendar className="w-4 h-4 mr-2" />
                             <span>
-                              {event.start_date
-                                ? new Date(
-                                    event.start_date
-                                  ).toLocaleDateString()
-                                : "Date TBA"}
+                              {event.start_date ? new Date(event.start_date).toLocaleDateString() : "Date TBA"}
                             </span>
                           </div>
                           <div className="flex items-center text-gray-300">
@@ -856,9 +809,7 @@ const ClubDetail = () => {
 
                   {/* Title visible without hover */}
                   <div className="flex flex-col justify-end absolute h-30 bottom-0 left-0 right-0 p-4 z-30 bg-gradient-to-t from-black to-transparent">
-                    <h3 className="text-lg font-semibold text-white truncate">
-                      {event.event_name}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-white truncate">{event.event_name}</h3>
                     <p className="text-gray-300 text-sm">{event.date}</p>
                   </div>
                 </div>
@@ -877,37 +828,19 @@ const ClubDetail = () => {
               onClick={() => setIsSettingsOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h2 className="text-2xl font-bold text-center mb-6">
-              Club Settings
-            </h2>
+            <h2 className="text-2xl font-bold text-center mb-6">Club Settings</h2>
 
             {/* Logo Update Section */}
             <div className="flex flex-col items-center mb-6">
-              <label className="block text-sm font-medium mb-2">
-                Update Club Logo
-              </label>
+              <label className="block text-sm font-medium mb-2">Update Club Logo</label>
               <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-700 mb-4">
                 {logoPreview || club.image ? (
-                  <img
-                    src={logoPreview || club.image}
-                    alt="Logo preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={logoPreview || club.image} alt="Logo preview" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
                     {club.name.charAt(0)}
@@ -918,12 +851,7 @@ const ClubDetail = () => {
                 <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
                   <Upload className="w-8 h-8 text-white mb-2" />
                   <span className="text-sm text-white">Upload new logo</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleLogoChange}
-                  />
+                  <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
                 </label>
               </div>
             </div>
@@ -932,9 +860,7 @@ const ClubDetail = () => {
             <div className="space-y-4">
               {/* Club Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Club Name
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Club Name</label>
                 <input
                   type="text"
                   name="name"
@@ -947,9 +873,7 @@ const ClubDetail = () => {
 
               {/* About */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  About Club
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">About Club</label>
                 <textarea
                   name="description"
                   value={editFormData.description}
@@ -962,9 +886,7 @@ const ClubDetail = () => {
 
               {/* Website URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Website URL
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Website URL</label>
                 <input
                   type="url"
                   name="website"
@@ -977,9 +899,7 @@ const ClubDetail = () => {
 
               {/* Instagram URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Instagram URL
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Instagram URL</label>
                 <input
                   type="url"
                   name="instagram_url"
@@ -992,9 +912,7 @@ const ClubDetail = () => {
 
               {/* LinkedIn URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  LinkedIn URL
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
                 <input
                   type="url"
                   name="linkedin_url"
@@ -1005,9 +923,7 @@ const ClubDetail = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Share Access
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Share Access</label>
                 <div className="flex space-x-2">
                   <input
                     type="email"
@@ -1027,9 +943,7 @@ const ClubDetail = () => {
                 {/* Display the email chips here */}
                 {editFormData.access && editFormData.access.length > 0 && (
                   <div className="mt-3">
-                    <p className="text-sm text-gray-300 mb-2">
-                      Access shared with:
-                    </p>
+                    <p className="text-sm text-gray-300 mb-2">Access shared with:</p>
                     <div className="flex flex-wrap gap-2">
                       {editFormData.access.map((email, index) => (
                         <div
@@ -1040,12 +954,12 @@ const ClubDetail = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              const newAccess = [...editFormData.access];
-                              newAccess.splice(index, 1);
+                              const newAccess = [...editFormData.access]
+                              newAccess.splice(index, 1)
                               setEditFormData((prev) => ({
                                 ...prev,
                                 access: newAccess,
-                              }));
+                              }))
                             }}
                             className="text-blue-300 hover:text-red-400"
                           >
@@ -1100,7 +1014,7 @@ const ClubDetail = () => {
         </div>
       )}
     </main>
-  );
-};
+  )
+}
 
-export default ClubDetail;
+export default ClubDetail
