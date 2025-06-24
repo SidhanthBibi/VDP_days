@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { supabase } from "../lib/supabaseClient"
+import { formatVariablePricing } from "../utils/pricingUtils"
 import {
   Trophy,
   Calendar,
@@ -209,7 +210,6 @@ const ClubDetail = () => {
           description: editFormData.description,
           website: editFormData.website || null,
           instagram_url: editFormData.instagram_url || null,
-          linkedin_url: editFormData.linkedin_url || null,
           image: imageUrl,
           access: editFormData.access, // Use the array directly
         })
@@ -868,7 +868,7 @@ const ClubDetail = () => {
                                   className="flex items-center text-gray-300"
                                 >
                                   <CircleDollarSign className="w-4 h-4 mr-2" />
-                                  <span>{event.price || "Free"}</span>
+                                  <span className="text-sm">{formatVariablePricing(event)}</span>
                                 </motion.div>
                               </div>
                             </div>
