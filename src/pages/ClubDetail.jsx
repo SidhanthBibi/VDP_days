@@ -23,6 +23,7 @@ import {
   Star,
   BarChart3,
 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 const ClubDetail = () => {
   const navigate = useNavigate()
@@ -51,6 +52,7 @@ const ClubDetail = () => {
     linkedin_url: "",
     access: [],
   })
+  const [expandedEventId, setExpandedEventId] = useState(null)
 
   // Authentication check
   useEffect(() => {
@@ -748,8 +750,18 @@ const ClubDetail = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {clubEvents.map((event) => (
-                <div key={event.id} className="group relative bg-gray-700/50 rounded-xl overflow-hidden">
+              {clubEvents.map((event, index) => (
+                <motion.div
+                  key={event.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="group relative bg-gray-700/50 rounded-xl overflow-hidden cursor-pointer"
+                  onClick={() => setExpandedEventId(expandedEventId === event.id ? null : event.id)}
+                >
                   {/* Event Image */}
                   <div className="aspect-[3/4] relative">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 opacity-60 z-10"></div>
@@ -761,258 +773,320 @@ const ClubDetail = () => {
 
                     {/* Edit and Analytics Buttons - Only visible for coordinators/access users */}
                     {(isCoordinator || haveAccess) && (
-                      <div className="absolute top-4 right-4 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button
-                          onClick={() => navigate(`/event-registrations/${event.id}`)}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-4 right-4 z-30 flex gap-2"
+                      >
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/event-registrations/${event.id}`)
+                          }}
                           className="bg-green-600 hover:bg-green-700 p-2 rounded-lg shadow-lg transition-all duration-200"
                         >
                           <BarChart3 className="w-4 h-4 text-white" />
-                        </button>
-                        <a
+                        </motion.button>
+                        <motion.a
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                           href={`/edit-event/${event.id}`}
+                          onClick={(e) => e.stopPropagation()}
                           className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg shadow-lg transition-all duration-200"
                         >
                           <Settings className="w-4 h-4 text-white" />
-                        </a>
-                      </div>
+                        </motion.a>
+                      </motion.div>
                     )}
 
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 p-4 flex flex-col justify-between pointer-events-none">
-                      <div>
-                        <h3 className="text-xl font-bold mb-2">{event.event_name}</h3>
-                        <p className="text-gray-300 line-clamp-3 mb-4">{event.description}</p>
+                    {/* Click-based Overlay */}
+                    <AnimatePresence>
+                      {expandedEventId === event.id && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          transition={{ duration: 0.3 }}
+                          className="absolute inset-0 backdrop-blur-md bg-gray-900/70 rounded-xl p-4 border border-gray-700/50 z-20"
+                        >
+                          <div className="h-full flex flex-col justify-between">
+                            <div>
+                              <motion.h3
+                                initial={{ x: -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ duration: 0.3 }}
+                                className="text-xl font-bold mb-2"
+                              >
+                                {event.event_name}
+                              </motion.h3>
+                              <motion.p
+                                initial={{ x: -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className="text-gray-300 line-clamp-3 mb-4"
+                              >
+                                {event.description}
+                              </motion.p>
 
-                        <div className="space-y-2">
-                          <div className="flex items-center text-gray-300">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            <span>
-                              {event.start_date ? new Date(event.start_date).toLocaleDateString() : "Date TBA"}
-                            </span>
+                              <div className="space-y-2">
+                                <motion.div
+                                  initial={{ x: -20, opacity: 0 }}
+                                  animate={{ x: 0, opacity: 1 }}
+                                  transition={{ duration: 0.3, delay: 0.2 }}
+                                  className="flex items-center text-gray-300"
+                                >
+                                  <Calendar className="w-4 h-4 mr-2" />
+                                  <span>
+                                    {event.start_date ? new Date(event.start_date).toLocaleDateString() : "Date TBA"}
+                                  </span>
+                                </motion.div>
+                                <motion.div
+                                  initial={{ x: -20, opacity: 0 }}
+                                  animate={{ x: 0, opacity: 1 }}
+                                  transition={{ duration: 0.3, delay: 0.3 }}
+                                  className="flex items-center text-gray-300"
+                                >
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  <span>{event.start_time || "Time TBA"}</span>
+                                </motion.div>
+                                <motion.div
+                                  initial={{ x: -20, opacity: 0 }}
+                                  animate={{ x: 0, opacity: 1 }}
+                                  transition={{ duration: 0.3, delay: 0.4 }}
+                                  className="flex items-center text-gray-300"
+                                >
+                                  <MapPin className="w-4 h-4 mr-2" />
+                                  <span>{event.location}</span>
+                                </motion.div>
+                                <motion.div
+                                  initial={{ x: -20, opacity: 0 }}
+                                  animate={{ x: 0, opacity: 1 }}
+                                  transition={{ duration: 0.3, delay: 0.5 }}
+                                  className="flex items-center text-gray-300"
+                                >
+                                  <CircleDollarSign className="w-4 h-4 mr-2" />
+                                  <span>{event.price || "Free"}</span>
+                                </motion.div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center text-gray-300">
-                            <Clock className="w-4 h-4 mr-2" />
-                            <span>{event.start_time || "Time TBA"}</span>
-                          </div>
-                          <div className="flex items-center text-gray-300">
-                            <MapPin className="w-4 h-4 mr-2" />
-                            <span>{event.location}</span>
-                          </div>
-                          <div className="flex items-center text-gray-300">
-                            <CircleDollarSign className="w-4 h-4 mr-2" />
-                            <span>{event.price || "Free"}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
-                  {/* Title visible without hover */}
+                  {/* Title visible without click */}
                   <div className="flex flex-col justify-end absolute h-30 bottom-0 left-0 right-0 p-4 z-30 bg-gradient-to-t from-black to-transparent">
                     <h3 className="text-lg font-semibold text-white truncate">{event.event_name}</h3>
                     <p className="text-gray-300 text-sm">{event.date}</p>
+                    {expandedEventId !== event.id && (
+                      <p className="text-gray-400 text-xs mt-1">Click to view details</p>
+                    )}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
         </div>
-      </div>
 
-      {/* Settings Modal */}
-      {isSettingsOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
-            {/* Close button */}
-            <button
-              onClick={() => setIsSettingsOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <h2 className="text-2xl font-bold text-center mb-6">Club Settings</h2>
-
-            {/* Logo Update Section */}
-            <div className="flex flex-col items-center mb-6">
-              <label className="block text-sm font-medium mb-2">Update Club Logo</label>
-              <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-700 mb-4">
-                {logoPreview || club.image ? (
-                  <img src={logoPreview || club.image} alt="Logo preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
-                    {club.name.charAt(0)}
-                  </div>
-                )}
-
-                {/* Upload overlay */}
-                <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
-                  <Upload className="w-8 h-8 text-white mb-2" />
-                  <span className="text-sm text-white">Upload new logo</span>
-                  <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
-                </label>
-              </div>
-            </div>
-
-            {/* Club Details Form */}
-            <div className="space-y-4">
-              {/* Club Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Club Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={editFormData.name}
-                  onChange={handleEditInputChange}
-                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              {/* About */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">About Club</label>
-                <textarea
-                  name="description"
-                  value={editFormData.description}
-                  onChange={handleEditInputChange}
-                  rows={4}
-                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              {/* Website URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Website URL</label>
-                <input
-                  type="url"
-                  name="website"
-                  value={editFormData.website}
-                  onChange={handleEditInputChange}
-                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                  placeholder="https://..."
-                />
-              </div>
-
-              {/* Instagram URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Instagram URL</label>
-                <input
-                  type="url"
-                  name="instagram_url"
-                  value={editFormData.instagram_url}
-                  onChange={handleEditInputChange}
-                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                  placeholder="https://instagram.com/..."
-                />
-              </div>
-
-              {/* LinkedIn URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
-                <input
-                  type="url"
-                  name="linkedin_url"
-                  value={editFormData.linkedin_url}
-                  onChange={handleEditInputChange}
-                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                  placeholder="https://linkedin.com/..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Share Access</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="email"
-                    id="email-input"
-                    className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                    placeholder="Enter email address"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddEmail}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Add
-                  </button>
-                </div>
-
-                {/* Display the email chips here */}
-                {editFormData.access && editFormData.access.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-300 mb-2">Access shared with:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {editFormData.access.map((email, index) => (
-                        <div
-                          key={index}
-                          className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm flex items-center"
-                        >
-                          <span className="mr-2">{email}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newAccess = [...editFormData.access]
-                              newAccess.splice(index, 1)
-                              setEditFormData((prev) => ({
-                                ...prev,
-                                access: newAccess,
-                              }))
-                            }}
-                            className="text-blue-300 hover:text-red-400"
-                          >
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M18 6L6 18M6 6l12 12"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
+        {/* Settings Modal */}
+        {isSettingsOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-2xl w-full max-w-lg mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+              {/* Close button */}
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                className="absolute top-4 right-4 text-gray-400 hover:text-white"
               >
-                Cancel
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <button
-                onClick={handleUpdateClubDetails}
-                disabled={loading}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Updating...
-                  </>
-                ) : (
-                  "Save Changes"
-                )}
-              </button>
+
+              <h2 className="text-2xl font-bold text-center mb-6">Club Settings</h2>
+
+              {/* Logo Update Section */}
+              <div className="flex flex-col items-center mb-6">
+                <label className="block text-sm font-medium mb-2">Update Club Logo</label>
+                <div className="relative w-32 h-32 rounded-2xl overflow-hidden bg-gray-700 mb-4">
+                  {logoPreview || club.image ? (
+                    <img src={logoPreview || club.image} alt="Logo preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400">
+                      {club.name.charAt(0)}
+                    </div>
+                  )}
+
+                  {/* Upload overlay */}
+                  <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity">
+                    <Upload className="w-8 h-8 text-white mb-2" />
+                    <span className="text-sm text-white">Upload new logo</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Club Details Form */}
+              <div className="space-y-4">
+                {/* Club Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Club Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editFormData.name}
+                    onChange={handleEditInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                </div>
+
+                {/* About */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">About Club</label>
+                  <textarea
+                    name="description"
+                    value={editFormData.description}
+                    onChange={handleEditInputChange}
+                    rows={4}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                </div>
+
+                {/* Website URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Website URL</label>
+                  <input
+                    type="url"
+                    name="website"
+                    value={editFormData.website}
+                    onChange={handleEditInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    placeholder="https://..."
+                  />
+                </div>
+
+                {/* Instagram URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Instagram URL</label>
+                  <input
+                    type="url"
+                    name="instagram_url"
+                    value={editFormData.instagram_url}
+                    onChange={handleEditInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    placeholder="https://instagram.com/..."
+                  />
+                </div>
+
+                {/* LinkedIn URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
+                  <input
+                    type="url"
+                    name="linkedin_url"
+                    value={editFormData.linkedin_url}
+                    onChange={handleEditInputChange}
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    placeholder="https://linkedin.com/..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Share Access</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="email"
+                      id="email-input"
+                      className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                      placeholder="Enter email address"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddEmail}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  {/* Display the email chips here */}
+                  {editFormData.access && editFormData.access.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-300 mb-2">Access shared with:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {editFormData.access.map((email, index) => (
+                          <div
+                            key={index}
+                            className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm flex items-center"
+                          >
+                            <span className="mr-2">{email}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newAccess = [...editFormData.access]
+                                newAccess.splice(index, 1)
+                                setEditFormData((prev) => ({
+                                  ...prev,
+                                  access: newAccess,
+                                }))
+                              }}
+                              className="text-blue-300 hover:text-red-400"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M18 6L6 18M6 6l12 12"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-700">
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateClubDetails}
+                  disabled={loading}
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </main>
   )
 }
