@@ -1,82 +1,174 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Upload, User, Globe } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
-import { v4 as uuidv4 } from 'uuid';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+"use client"
+
+import { useState, useEffect } from "react"
+import { Calendar, Clock, MapPin, Upload, Globe, Users, DollarSign } from "lucide-react"
+import { supabase } from "../lib/supabaseClient"
+import { v4 as uuidv4 } from "uuid"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 const EventForm = () => {
   const [formData, setFormData] = useState({
-    event_name: '',
-    club_name: '',
-    start_date: '',
-    start_time: '',
-    end_date: '',
-    end_time: '',
-    location: '',
-    description: '',
-    price_individual: 0,
-    register_link: '',
-    websiteLink: ''
-  });
+    event_name: "",
+    club_name: "",
+    start_date: "",
+    start_time: "",
+    end_date: "",
+    end_time: "",
+    location: "",
+    description: "",
+    price: "",
+    websiteLink: "",
+    variable_pricing: false,
+    max_participants: 1,
+    pricing_tiers: [],
+  })
 
-  const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [clubs, setClubs] = useState([])
+  const [imageFile, setImageFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  // Fetch clubs from database
+  useEffect(() => {
+    fetchClubs()
+  }, [])
+
+  const fetchClubs = async () => {
+    try {
+      const { data, error } = await supabase.from("Clubs").select("id, name").order("name")
+
+      if (error) throw error
+      setClubs(data || [])
+    } catch (err) {
+      console.error("Error fetching clubs:", err)
+      toast.error("Failed to load clubs")
+    }
+  }
+
+  // Handle variable pricing toggle
+  const handleVariablePricingToggle = (checked) => {
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        variable_pricing: checked,
+      }
+
+      if (checked) {
+        // Initialize pricing tiers when variable pricing is enabled
+        newData.pricing_tiers = Array.from({ length: prev.max_participants }, (_, i) => ({
+          participant_count: i + 1,
+          price: "",
+        }))
+      } else {
+        // Clear pricing tiers when disabled
+        newData.pricing_tiers = []
+      }
+
+      return newData
+    })
+  }
+
+  // Handle max participants change
+  const handleMaxParticipantsChange = (value) => {
+    // Allow empty string during typing
+    if (value === "") {
+      setFormData((prev) => ({
+        ...prev,
+        max_participants: "",
+        pricing_tiers: [],
+      }))
+      return
+    }
+
+    const maxParticipants = Number.parseInt(value)
+
+    // Only update if it's a valid number
+    if (!isNaN(maxParticipants) && maxParticipants > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        max_participants: maxParticipants,
+        pricing_tiers: Array.from({ length: maxParticipants }, (_, i) => ({
+          participant_count: i + 1,
+          price: prev.pricing_tiers[i]?.price || "",
+        })),
+      }))
+    }
+  }
+
+  // Handle pricing tier change
+  const handlePricingTierChange = (index, price) => {
+    setFormData((prev) => ({
+      ...prev,
+      pricing_tiers: prev.pricing_tiers.map((tier, i) => (i === index ? { ...tier, price } : tier)),
+    }))
+  }
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+    const { name, value, type, checked } = e.target
+
+    if (name === "variable_pricing") {
+      handleVariablePricingToggle(checked)
+    } else if (name === "max_participants") {
+      handleMaxParticipantsChange(value)
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }))
+    }
+  }
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]
     if (file) {
-      setImageFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      setImageFile(file)
+      setPreviewUrl(URL.createObjectURL(file))
     }
-  };
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
 
     try {
-      let posterUrl = null;
+      let posterUrl = null
 
       // Handle image upload if an image is selected
       if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `events/${fileName}`;
+        const fileExt = imageFile.name.split(".").pop()
+        const fileName = `${uuidv4()}.${fileExt}`
+        const filePath = `events/${fileName}`
 
         // Upload image to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from('assets')
-          .upload(filePath, imageFile, {
-            cacheControl: '3600',
-            upsert: false
-          });
+        const { error: uploadError } = await supabase.storage.from("assets").upload(filePath, imageFile, {
+          cacheControl: "3600",
+          upsert: false,
+        })
 
-        if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError
 
         // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('assets')
-          .getPublicUrl(filePath);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("assets").getPublicUrl(filePath)
 
-        posterUrl = publicUrl;
+        posterUrl = publicUrl
+      }
+
+      // Prepare price data based on variable pricing
+      let priceData
+      if (formData.variable_pricing) {
+        priceData = JSON.stringify(formData.pricing_tiers)
+      } else {
+        priceData = formData.price
       }
 
       // Insert event data into the events table
-      const { error: insertError, data } = await supabase
-        .from('Events')
-        .insert([{
+      const { error: insertError, data } = await supabase.from("Events").insert([
+        {
           event_name: formData.event_name,
           club_name: formData.club_name,
           description: formData.description,
@@ -85,53 +177,56 @@ const EventForm = () => {
           end_date: formData.end_date,
           end_time: formData.end_time,
           location: formData.location,
-          price: formData.price_individual || 0,
-          register_link: formData.register_link,
+          price: priceData,
           websiteLink: formData.websiteLink,
-          poster: posterUrl
-        }]);
+          poster: posterUrl,
+          variable_pricing: formData.variable_pricing,
+          max_participants: formData.variable_pricing ? formData.max_participants : null,
+        },
+      ])
 
       if (insertError) {
-        console.error('Insert Error:', insertError);
-        throw insertError;
+        console.error("Insert Error:", insertError)
+        throw insertError
       }
 
-      console.log('Insert successful:', data);
+      console.log("Insert successful:", data)
 
       // Reset form after successful submission
       setFormData({
-        event_name: '',
-        club_name: '',
-        start_date: '',
-        start_time: '',
-        end_date: '',
-        end_time: '',
-        location: '',
-        description: '',
-        price_individual: 0,
-        register_link: '',
-        websiteLink: ''
-      });
-      setImageFile(null);
-      setPreviewUrl(null);
+        event_name: "",
+        club_name: "",
+        start_date: "",
+        start_time: "",
+        end_date: "",
+        end_time: "",
+        location: "",
+        description: "",
+        price: "",
+        websiteLink: "",
+        variable_pricing: false,
+        max_participants: 1,
+        pricing_tiers: [],
+      })
+      setImageFile(null)
+      setPreviewUrl(null)
 
       // Show success toast notification
-      toast.success('Event created successfully!', {
+      toast.success("Event created successfully!", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
-        draggable: true
-      });
-
+        draggable: true,
+      })
     } catch (err) {
-      setError(err.message);
-      toast.error(err.message || 'An error occurred while creating the event');
+      setError(err.message)
+      toast.error(err.message || "An error occurred while creating the event")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 py-8">
@@ -148,7 +243,7 @@ const EventForm = () => {
         pauseOnHover
         theme="dark"
       />
-      
+
       {/* Neon Circle Accents */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
@@ -162,12 +257,12 @@ const EventForm = () => {
           <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50">
             {/* Image Upload */}
             <div className="mb-8">
-              <div 
+              <div
                 className="w-80 h-100 mx-auto rounded-xl border-2 border-dashed border-gray-700 flex flex-col items-center justify-center cursor-pointer overflow-hidden"
-                onClick={() => document.getElementById('image-upload').click()}
+                onClick={() => document.getElementById("image-upload").click()}
               >
                 {previewUrl ? (
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={previewUrl || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center p-4">
                     <Upload className="w-10 h-10 mx-auto mb-2 text-gray-400" />
@@ -175,13 +270,7 @@ const EventForm = () => {
                     <p className="text-xs text-gray-500 mt-1">3:4 ratio</p>
                   </div>
                 )}
-                <input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
+                <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
               </div>
             </div>
 
@@ -198,17 +287,22 @@ const EventForm = () => {
               />
             </div>
 
-            {/* Club */}
+            {/* Club Dropdown */}
             <div className="mb-6">
-              <input
-                type="text"
+              <select
                 name="club_name"
                 value={formData.club_name}
-                placeholder="Organizing Club"
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
-              />
+              >
+                <option value="">Select Organizing Club</option>
+                {clubs.map((club) => (
+                  <option key={club.id} value={club.name}>
+                    {club.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Start Date and Time */}
@@ -283,25 +377,78 @@ const EventForm = () => {
               />
             </div>
 
-            {/* Price Section */}
+            {/* Pricing Section */}
             <div className="mb-6 space-y-4">
               <h3 className="text-lg font-medium text-gray-300">Pricing</h3>
-              
-              {/* Individual Price */}
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+
+              {/* Variable Pricing Toggle */}
+              <div className="flex items-center space-x-3">
                 <input
-                  type="text"
-                  name="price_individual"
-                  value={formData.price_individual}
+                  type="checkbox"
+                  id="variable_pricing"
+                  name="variable_pricing"
+                  checked={formData.variable_pricing}
                   onChange={handleChange}
-                  placeholder="Price(s) for the event"
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
+                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
                 />
-              </div>              
+                <label htmlFor="variable_pricing" className="text-sm font-medium text-gray-300">
+                  Variable Pricing
+                </label>
+              </div>
+
+              {formData.variable_pricing ? (
+                <div className="space-y-4">
+                  {/* Max Participants */}
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="number"
+                      name="max_participants"
+                      value={formData.max_participants}
+                      onChange={handleChange}
+                      placeholder="Maximum Participants"
+                      min="1"
+                      max="50"
+                      className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+
+                  {/* Dynamic Pricing Fields */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-gray-300">Pricing Tiers</label>
+                    {formData.pricing_tiers.map((tier, index) => (
+                      <div key={index} className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={tier.price}
+                          onChange={(e) => handlePricingTierChange(index, e.target.value)}
+                          placeholder={`Pricing for ${tier.participant_count} participant${tier.participant_count > 1 ? "s" : ""}`}
+                          className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Single Price */
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    placeholder="Price for the event"
+                    className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              )}
             </div>
-            
+
             {/* Website Link */}
             <div className="mb-6 relative">
               <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -312,20 +459,6 @@ const EventForm = () => {
                 onChange={handleChange}
                 placeholder="Website link"
                 className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            {/* Register Link */}
-            <div className="mb-6">
-              <input
-                type="url"
-                name="register_link"
-                value={formData.register_link}
-                onChange={handleChange}
-                placeholder="Registration Link"
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
               />
             </div>
 
@@ -342,11 +475,7 @@ const EventForm = () => {
               />
             </div>
 
-            {error && (
-              <div className="mb-4 text-red-500 text-sm">
-                {error}
-              </div>
-            )}
+            {error && <div className="mb-4 text-red-500 text-sm">{error}</div>}
 
             {/* Submit Button */}
             <button
@@ -357,13 +486,13 @@ const EventForm = () => {
                 shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]
                 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating Event...' : 'Create Event'}
+              {loading ? "Creating Event..." : "Create Event"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default EventForm;
+export default EventForm
