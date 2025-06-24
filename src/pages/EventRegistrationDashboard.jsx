@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabaseClient"
-import { ArrowLeft, Users, DollarSign, Eye, X, ChevronDown } from "lucide-react"
+import { ArrowLeft, Users, DollarSign, Eye, X, ChevronDown, UserCheck } from "lucide-react"
+import { formatVariablePricing } from "../utils/pricingUtils"
 
 const EventRegistrationDashboard = () => {
   const { eventId } = useParams()
@@ -65,18 +66,14 @@ const EventRegistrationDashboard = () => {
       if (error) throw error
 
       // Update local state only if database update was successful
-      setRegistrations((prev) => 
-        prev.map((reg) => 
-          reg.id === registrationId ? { ...reg, status: newStatus } : reg
-        )
-      )
+      setRegistrations((prev) => prev.map((reg) => (reg.id === registrationId ? { ...reg, status: newStatus } : reg)))
 
       // Optional: Show success message
       console.log("Payment status updated successfully")
     } catch (err) {
       console.error("Error updating status:", err)
       alert(`Failed to update payment status: ${err.message}`)
-      
+
       // Revert the dropdown to previous state by refetching data
       fetchEventAndRegistrations()
     } finally {
@@ -121,10 +118,101 @@ const EventRegistrationDashboard = () => {
     })
   }
 
-  const totalRegistrations = registrations.length
-  const totalAmount = totalRegistrations * (Number.parseFloat(event?.price) || 0)
-  const successfulRegistrations = registrations.filter((reg) => reg.status === "successful").length
-  const confirmedAmount = successfulRegistrations * (Number.parseFloat(event?.price) || 0)
+  // Calculate totals based on actual registration data
+  const calculateTotals = () => {
+    const totalRegistrations = registrations.length
+    const totalParticipants = registrations.reduce((sum, reg) => {
+      return sum + (reg.participant_count || reg.participants?.length || 0)
+    }, 0)
+
+    // Calculate total amount from actual registration amounts
+    const totalAmount = registrations.reduce((sum, reg) => {
+      // Use total_amount if available, otherwise fall back to calculating from event price
+      if (reg.total_amount) {
+        return sum + Number.parseFloat(reg.total_amount)
+      }
+
+      // Fallback for older registrations without total_amount
+      const participantCount = reg.participant_count || reg.participants?.length || 1
+      if (event?.variable_pricing) {
+        try {
+          const pricingTiers = JSON.parse(event.price)
+          const tier = pricingTiers.find((t) => t.participant_count === participantCount)
+          const price = tier
+            ? Number.parseFloat(tier.price)
+            : Number.parseFloat(pricingTiers[pricingTiers.length - 1]?.price || 0)
+          return sum + price
+        } catch {
+          return sum + Number.parseFloat(event?.price || 0)
+        }
+      } else {
+        return sum + Number.parseFloat(event?.price || 0)
+      }
+    }, 0)
+
+    // Calculate confirmed amounts (only successful registrations)
+    const successfulRegistrations = registrations.filter((reg) => reg.status === "successful")
+    const confirmedAmount = successfulRegistrations.reduce((sum, reg) => {
+      if (reg.total_amount) {
+        return sum + Number.parseFloat(reg.total_amount)
+      }
+
+      // Fallback calculation for older registrations
+      const participantCount = reg.participant_count || reg.participants?.length || 1
+      if (event?.variable_pricing) {
+        try {
+          const pricingTiers = JSON.parse(event.price)
+          const tier = pricingTiers.find((t) => t.participant_count === participantCount)
+          const price = tier
+            ? Number.parseFloat(tier.price)
+            : Number.parseFloat(pricingTiers[pricingTiers.length - 1]?.price || 0)
+          return sum + price
+        } catch {
+          return sum + Number.parseFloat(event?.price || 0)
+        }
+      } else {
+        return sum + Number.parseFloat(event?.price || 0)
+      }
+    }, 0)
+
+    const confirmedParticipants = successfulRegistrations.reduce((sum, reg) => {
+      return sum + (reg.participant_count || reg.participants?.length || 0)
+    }, 0)
+
+    return {
+      totalRegistrations,
+      totalParticipants,
+      totalAmount,
+      confirmedAmount,
+      successfulRegistrations: successfulRegistrations.length,
+      confirmedParticipants,
+    }
+  }
+
+  const totals = calculateTotals()
+
+  // Get registration amount for display
+  const getRegistrationAmount = (registration) => {
+    if (registration.total_amount) {
+      return Number.parseFloat(registration.total_amount)
+    }
+
+    // Fallback calculation
+    const participantCount = registration.participant_count || registration.participants?.length || 1
+    if (event?.variable_pricing) {
+      try {
+        const pricingTiers = JSON.parse(event.price)
+        const tier = pricingTiers.find((t) => t.participant_count === participantCount)
+        return tier
+          ? Number.parseFloat(tier.price)
+          : Number.parseFloat(pricingTiers[pricingTiers.length - 1]?.price || 0)
+      } catch {
+        return Number.parseFloat(event?.price || 0)
+      }
+    } else {
+      return Number.parseFloat(event?.price || 0)
+    }
+  }
 
   if (loading) {
     return (
@@ -168,11 +256,14 @@ const EventRegistrationDashboard = () => {
           <div>
             <h1 className="text-3xl font-bold text-white">{event.event_name}</h1>
             <p className="text-gray-400">Registration Dashboard</p>
+            {event.variable_pricing && (
+              <p className="text-sm text-blue-400 mt-1">Variable Pricing: {formatVariablePricing(event)}</p>
+            )}
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Total Registrations Card */}
           <div className="bg-gray-800 rounded-2xl p-6">
             <div className="flex items-center gap-4">
@@ -181,8 +272,22 @@ const EventRegistrationDashboard = () => {
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Total Registrations</p>
-                <p className="text-3xl font-bold text-white">{totalRegistrations}</p>
-                <p className="text-sm text-gray-400">{successfulRegistrations} confirmed</p>
+                <p className="text-3xl font-bold text-white">{totals.totalRegistrations}</p>
+                <p className="text-sm text-gray-400">{totals.successfulRegistrations} confirmed</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Participants Card */}
+          <div className="bg-gray-800 rounded-2xl p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                <UserCheck className="w-6 h-6 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Total Participants</p>
+                <p className="text-3xl font-bold text-white">{totals.totalParticipants}</p>
+                <p className="text-sm text-gray-400">{totals.confirmedParticipants} confirmed</p>
               </div>
             </div>
           </div>
@@ -195,8 +300,8 @@ const EventRegistrationDashboard = () => {
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Total Amount</p>
-                <p className="text-3xl font-bold text-white">₹{totalAmount.toLocaleString()}</p>
-                <p className="text-sm text-gray-400">₹{confirmedAmount.toLocaleString()} confirmed</p>
+                <p className="text-3xl font-bold text-white">₹{totals.totalAmount.toLocaleString()}</p>
+                <p className="text-sm text-gray-400">₹{totals.confirmedAmount.toLocaleString()} confirmed</p>
               </div>
             </div>
           </div>
@@ -217,12 +322,27 @@ const EventRegistrationDashboard = () => {
               <table className="w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-gray-750/30">
-                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 first:border-l-0 border-l border-gray-700/20">Team Name</th>
-                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">Registration Date</th>
-                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">Participants</th>
-                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">Transaction ID</th>
-                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">Status</th>
-                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">Actions</th>
+                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 first:border-l-0 border-l border-gray-700/20">
+                      Team Name
+                    </th>
+                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">
+                      Registration Date
+                    </th>
+                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">
+                      Participants
+                    </th>
+                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">
+                      Amount
+                    </th>
+                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">
+                      Transaction ID
+                    </th>
+                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">
+                      Status
+                    </th>
+                    <th className="text-left p-4 text-gray-300 font-medium border-b border-gray-700/20 border-l border-gray-700/20">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -232,11 +352,14 @@ const EventRegistrationDashboard = () => {
                         <p className="font-medium text-white">{registration.team_name}</p>
                       </td>
                       <td className="p-4 border-b border-gray-700/10 border-l border-gray-700/10">
-                        <p className="text-gray-300">{formatDate(registration.registration_date)}</p>
+                        <p className="text-gray-300">{formatDate(registration.created_at)}</p>
                       </td>
                       <td className="p-4 border-b border-gray-700/10 border-l border-gray-700/10">
                         <div className="space-y-1">
-                          {registration.participants.map((participant, index) => (
+                          <p className="text-sm text-blue-400 font-medium mb-2">
+                            {registration.participant_count || registration.participants?.length || 0} participants
+                          </p>
+                          {registration.participants?.map((participant, index) => (
                             <div key={index} className="text-sm">
                               <p className="text-white font-medium">{participant.name}</p>
                               <p className="text-gray-400">
@@ -247,6 +370,11 @@ const EventRegistrationDashboard = () => {
                         </div>
                       </td>
                       <td className="p-4 border-b border-gray-700/10 border-l border-gray-700/10">
+                        <p className="text-green-400 font-semibold">
+                          ₹{getRegistrationAmount(registration).toLocaleString()}
+                        </p>
+                      </td>
+                      <td className="p-4 border-b border-gray-700/10 border-l border-gray-700/10">
                         <p className="text-gray-300 font-mono text-sm">{registration.transaction_id}</p>
                       </td>
                       <td className="p-4 border-b border-gray-700/10 border-l border-gray-700/10">
@@ -255,7 +383,9 @@ const EventRegistrationDashboard = () => {
                             value={registration.status}
                             onChange={(e) => updatePaymentStatus(registration.id, e.target.value)}
                             disabled={updatingStatus === registration.id}
-                            className={`w-full appearance-none bg-gray-700 border border-gray-600/40 rounded-lg pl-6 pr-8 py-2 text-sm ${getStatusColor(registration.status)} focus:outline-none focus:border-blue-500/60 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed`}
+                            className={`w-full appearance-none bg-gray-700 border border-gray-600/40 rounded-lg pl-6 pr-8 py-2 text-sm ${getStatusColor(
+                              registration.status,
+                            )} focus:outline-none focus:border-blue-500/60 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed`}
                           >
                             <option value="pending">Pending</option>
                             <option value="successful">Successful</option>
@@ -287,11 +417,11 @@ const EventRegistrationDashboard = () => {
 
       {/* Screenshot Modal */}
       {showScreenshotModal && selectedScreenshot && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowScreenshotModal(false)}
         >
-          <div 
+          <div
             className="bg-gray-800 rounded-2xl max-w-4xl max-h-[90vh] overflow-auto relative border border-gray-700/40"
             onClick={(e) => e.stopPropagation()}
           >
