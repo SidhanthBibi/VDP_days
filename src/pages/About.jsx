@@ -162,7 +162,7 @@ const About = () => {
           clubsCount: clubsCount || 25,
           studentsCount: studentsCount || 350,
           eventsCount: eventsCount || 42,
-          partnersCount: 20,
+          partnersCount: 5,
         });
       } catch (error) {
         console.error("Error fetching counts:", error);
@@ -171,7 +171,7 @@ const About = () => {
           clubsCount: 25,
           studentsCount: 350,
           eventsCount: 42,
-          partnersCount: 20,
+          partnersCount: 5,
         });
       } finally {
         setStatsLoading(false); // End loading regardless of success/failure
