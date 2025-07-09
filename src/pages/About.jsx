@@ -190,8 +190,20 @@ const About = () => {
   const teamMembers = [
     {
       id: 1,
-      name: "Adorn S George",
+      name: "Sidhanth Bibi",
       role: "Team Lead",
+      image: Sidh,
+      bio: "Passionate about creating seamless user experiences",
+      socials: {
+        github: "https://github.com/sidhanthbibi",
+        linkedin: "https://www.linkedin.com/in/sidhanthbibi/",
+        twitter: "https://instagram.com/sidhanthbibi",
+      },
+    },
+    {
+      id: 2,
+      name: "Adorn S George",
+      role: "Lead Developer",
       image: Adron,
       bio: "Turning complex problems into elegant solutions",
       socials: {
@@ -201,7 +213,7 @@ const About = () => {
       },
     },
     {
-      id: 2,
+      id: 3,
       name: "Lenny Dany Derek",
       role: "Lead Developer",
       image: Lenny,
@@ -213,7 +225,7 @@ const About = () => {
       },
     },
     {
-      id: 3,
+      id: 4,
       name: "Arindam Jaiman",
       role: "Lead Developer",
       image: Arindam,
@@ -225,7 +237,7 @@ const About = () => {
       },
     },
     {
-      id: 4,
+      id: 5,
       name: "Ananya Jaiswal",
       role: "Developer",
       image: Ananya,
@@ -237,7 +249,7 @@ const About = () => {
       },
     },
     {
-      id: 5,
+      id: 6,
       name: "Ashish Ranjan",
       role: "Designer",
       image: Ashish,
@@ -249,7 +261,7 @@ const About = () => {
       },
     },
     {
-      id: 6,
+      id: 7,
       name: "Arpita Biswal",
       role: "Designer",
       image: Arpita,
