@@ -25,9 +25,15 @@ import AnalyticsDashboard from "./pages/Analytics"
 import EventRegistrationPage from "./pages/EventRegistrationPage.jsx"
 import EventRegistrationDashboard from "./pages/EventRegistrationDashboard.jsx"
 
+// Import dashboard components
+import ClubDashboardLayout from "./components/ClubDashboard/ClubDashboardLayout"
+import DashboardOverview from "./components/ClubDashboard/DashboardOverview"
+
 function App() {
+  console.log('testing...')
   return (
-    <>
+    <> 
+
       {/* Vercel Analytics */}
       <Analytics />
       <SpeedInsights />
@@ -68,6 +74,17 @@ function App() {
             {/* Club-related routes */}
             <Route path="/clubDetailform" element={<ClubDetailForm />} />
             <Route path="/clubDetail/:id" element={<ClubDetail />} />
+
+            {/* Club Dashboard Routes */}
+            <Route path="/dashboard/:clubId" element={<ClubDashboardLayout />}>
+              <Route index element={<DashboardOverview />} />
+              <Route path="events" element={<div className="text-white">Events Management - Coming Soon</div>} />
+              <Route path="registrations" element={<div className="text-white">Registrations - Coming Soon</div>} />
+              <Route path="members" element={<div className="text-white">Members Management - Coming Soon</div>} />
+              <Route path="recruitment" element={<div className="text-white">Recruitment - Coming Soon</div>} />
+              <Route path="analytics" element={<div className="text-white">Analytics - Coming Soon</div>} />
+              <Route path="manage" element={<div className="text-white">Club Management - Coming Soon</div>} />
+            </Route>
 
             {/*Animation router */}
             <Route path="/signupsuccess" element={<SignupTick />} />

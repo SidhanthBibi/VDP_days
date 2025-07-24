@@ -655,6 +655,16 @@ const ClubDetail = () => {
                       <span className="hidden sm:inline">Settings</span>
                     </button>
                   )}
+                  {/* {(isCoordinator || haveAccess) && (
+                    // Add this button in your ClubDetail component where appropriate
+                    <a href={`/dashboard/${club.id}`}>
+                    <button
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors"
+                    >
+                      Open Dashboard
+                    </button>
+                    </a>
+                  )} */}
                 </div>
               </div>
             </div>
