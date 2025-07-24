@@ -5,6 +5,7 @@ import { Plus, Minus, Upload, Users, Calendar, MapPin, DollarSign, Clock, Globe,
 import { useParams } from "react-router-dom"
 import { supabase } from "../lib/supabaseClient"
 import { getPriceForParticipants } from "../utils/pricingUtils"
+
 const EventRegistrationPage = () => {
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -19,14 +20,17 @@ const EventRegistrationPage = () => {
     participants: [
       {
         name: "",
-        className: "",
         college: "",
         year: "1st year",
         registerNumber: "",
+        phone: "",
+        email: "",
+        department: "",
+        course: "",
+        section: "",
       },
     ],
   })
-
   const [paymentScreenshot, setPaymentScreenshot] = useState(null)
 
   // Fetch event data
@@ -45,10 +49,8 @@ const EventRegistrationPage = () => {
   const fetchEventData = async () => {
     try {
       const { data, error } = await supabase.from("Events").select("*").eq("id", eventId).single()
-
       if (error) throw error
       setEvent(data)
-
       // Set initial price
       const initialPrice = getPriceForParticipants(data, 1)
       setCurrentPrice(initialPrice)
@@ -76,10 +78,14 @@ const EventRegistrationPage = () => {
         ...prev.participants,
         {
           name: "",
-          className: "",
           college: "",
           year: "1st year",
           registerNumber: "",
+          phone: "",
+          email: "",
+          department: "",
+          course: "",
+          section: "",
         },
       ],
     }))
@@ -119,12 +125,9 @@ const EventRegistrationPage = () => {
 
   const uploadPaymentScreenshot = async () => {
     if (!paymentScreenshot) return null
-
     const fileExt = paymentScreenshot.name.split(".").pop()
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-
     const { data, error } = await supabase.storage.from("payment-screenshots").upload(fileName, paymentScreenshot)
-
     if (error) throw error
     return data.path
   }
@@ -133,28 +136,38 @@ const EventRegistrationPage = () => {
     e.preventDefault()
     setSubmitting(true)
     setError("")
-
     try {
       // Validate form
       if (!formData.teamName.trim()) {
         throw new Error("Team name is required")
       }
-
       if (!formData.transactionId.trim()) {
         throw new Error("Transaction ID is required")
       }
-
       for (const participant of formData.participants) {
         if (
           !participant.name.trim() ||
-          !participant.className.trim() ||
           !participant.college.trim() ||
-          !participant.registerNumber.trim()
+          !participant.registerNumber.trim() ||
+          !participant.phone.trim() ||
+          !participant.email.trim() ||
+          !participant.department.trim() ||
+          !participant.course.trim() ||
+          !participant.section.trim()
         ) {
           throw new Error("All participant fields are required")
         }
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(participant.email)) {
+          throw new Error("Please enter a valid email address")
+        }
+        // Validate phone number (basic validation)
+        const phoneRegex = /^[0-9]{10}$/
+        if (!phoneRegex.test(participant.phone.replace(/\D/g, ""))) {
+          throw new Error("Please enter a valid 10-digit phone number")
+        }
       }
-
       if (!paymentScreenshot) {
         throw new Error("Payment screenshot is required")
       }
@@ -165,11 +178,9 @@ const EventRegistrationPage = () => {
         .select("id")
         .eq("transaction_id", formData.transactionId)
         .single()
-
       if (checkError && checkError.code !== "PGRST116") {
         throw checkError
       }
-
       if (existingTransaction) {
         throw new Error("This transaction ID has already been used. Please enter a unique transaction ID.")
       }
@@ -190,7 +201,6 @@ const EventRegistrationPage = () => {
         participant_count: formData.participants.length,
         total_amount: currentPrice,
       })
-
       if (insertError) throw insertError
 
       setSuccess(true)
@@ -215,7 +225,6 @@ const EventRegistrationPage = () => {
         {/* Neon Circle Accents */}
         <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
         <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-
         <div className="backdrop-blur-md bg-gray-900/50 p-8 rounded-xl border border-gray-700/50 text-center max-w-md relative z-10">
           <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,9 +237,9 @@ const EventRegistrationPage = () => {
           <p className="text-gray-300 mb-6">Your registration has been submitted and is pending approval.</p>
           <button
             onClick={() => window.history.back()}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[20px] 
-              hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-              shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-[20px]
+               hover:from-blue-600 hover:to-purple-700 transition-all duration-300
+               shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]"
           >
             Back to Events
           </button>
@@ -244,7 +253,6 @@ const EventRegistrationPage = () => {
       {/* Neon Circle Accents */}
       <div className="fixed top-20 right-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="fixed bottom-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-
       <div className="max-w-6xl mx-auto relative z-10">
         {/* Event Header */}
         {event && (
@@ -260,13 +268,11 @@ const EventRegistrationPage = () => {
                   />
                 </div>
               )}
-
               <div className="flex-1">
                 <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
                   {event.event_name}
                 </h1>
                 <p className="text-gray-300 mb-6 text-lg">{event.description}</p>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-3 text-gray-300">
                     <Calendar className="w-5 h-5 text-blue-400" />
@@ -275,7 +281,6 @@ const EventRegistrationPage = () => {
                       <p>{event.start_date && new Date(event.start_date).toLocaleDateString()}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-3 text-gray-300">
                     <Clock className="w-5 h-5 text-purple-400" />
                     <div>
@@ -285,7 +290,6 @@ const EventRegistrationPage = () => {
                       </p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-3 text-gray-300">
                     <MapPin className="w-5 h-5 text-blue-400" />
                     <div>
@@ -293,7 +297,6 @@ const EventRegistrationPage = () => {
                       <p>{event.location}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-3 text-gray-300">
                     <DollarSign className="w-5 h-5 text-purple-400" />
                     <div>
@@ -304,7 +307,6 @@ const EventRegistrationPage = () => {
                       <p className="text-lg font-semibold text-green-400">₹{currentPrice || 0}</p>
                     </div>
                   </div>
-
                   {event.club_name && (
                     <div className="flex items-center gap-3 text-gray-300">
                       <Users className="w-5 h-5 text-blue-400" />
@@ -314,7 +316,6 @@ const EventRegistrationPage = () => {
                       </div>
                     </div>
                   )}
-
                   {event.websiteLink && (
                     <div className="flex items-center gap-3 text-gray-300">
                       <Globe className="w-5 h-5 text-purple-400" />
@@ -336,7 +337,6 @@ const EventRegistrationPage = () => {
             </div>
           </div>
         )}
-
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Registration Form */}
           <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50">
@@ -344,7 +344,6 @@ const EventRegistrationPage = () => {
               <Users className="w-6 h-6 text-blue-400" />
               Team Registration
             </h2>
-
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Team Name */}
               <div>
@@ -358,7 +357,6 @@ const EventRegistrationPage = () => {
                   required
                 />
               </div>
-
               {/* Participants */}
               <div>
                 <div className="flex items-center justify-between mb-4">
@@ -375,7 +373,6 @@ const EventRegistrationPage = () => {
                     Add Participant
                   </button>
                 </div>
-
                 {formData.participants.map((participant, index) => (
                   <div key={index} className="mb-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
                     <div className="flex items-center justify-between mb-4">
@@ -390,7 +387,6 @@ const EventRegistrationPage = () => {
                         </button>
                       )}
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <input
                         type="text"
@@ -410,18 +406,50 @@ const EventRegistrationPage = () => {
                       />
                       <input
                         type="text"
-                        value={participant.className}
-                        onChange={(e) => updateParticipant(index, "className", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Class Name"
-                        required
-                      />
-                      <input
-                        type="text"
                         value={participant.college}
                         onChange={(e) => updateParticipant(index, "college", e.target.value)}
                         className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="College Name"
+                        required
+                      />
+                      <input
+                        type="tel"
+                        value={participant.phone}
+                        onChange={(e) => updateParticipant(index, "phone", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Phone Number"
+                        required
+                      />
+                      <input
+                        type="email"
+                        value={participant.email}
+                        onChange={(e) => updateParticipant(index, "email", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Email Address"
+                        required
+                      />
+                      <input
+                        type="text"
+                        value={participant.department}
+                        onChange={(e) => updateParticipant(index, "department", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Department"
+                        required
+                      />
+                      <input
+                        type="text"
+                        value={participant.course}
+                        onChange={(e) => updateParticipant(index, "course", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Course"
+                        required
+                      />
+                      <input
+                        type="text"
+                        value={participant.section}
+                        onChange={(e) => updateParticipant(index, "section", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Section"
                         required
                       />
                       <select
@@ -438,7 +466,6 @@ const EventRegistrationPage = () => {
                   </div>
                 ))}
               </div>
-
               {/* Payment Screenshot Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Payment Screenshot *</label>
@@ -462,7 +489,6 @@ const EventRegistrationPage = () => {
                   {paymentScreenshot && <p className="text-sm text-blue-400 mt-2">✓ {paymentScreenshot.name}</p>}
                 </div>
               </div>
-
               {/* Transaction ID */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
@@ -479,30 +505,26 @@ const EventRegistrationPage = () => {
                 />
                 <p className="text-xs text-gray-400 mt-1">Enter the transaction ID from your payment confirmation</p>
               </div>
-
               {error && (
                 <div className="bg-red-900/30 border border-red-700 text-red-400 p-3 rounded-lg text-sm">{error}</div>
               )}
-
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-[20px] 
-                  hover:from-blue-600 hover:to-purple-700 transition-all duration-300 
-                  shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-[20px]
+                   hover:from-blue-600 hover:to-purple-700 transition-all duration-300
+                   shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)]
                   disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {submitting ? "Registering..." : "Register Now"}
               </button>
             </form>
           </div>
-
           {/* Payment Section */}
           <div className="backdrop-blur-md bg-gray-900/50 rounded-xl p-8 border border-gray-700/50">
             <h2 className="text-2xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
               Payment Details
             </h2>
-
             <div className="text-center mb-6">
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-xl mb-6 shadow-[0_0_15px_rgba(147,51,234,0.3)]">
                 <p className="text-sm opacity-90 mb-2">Registration Fee</p>
@@ -511,7 +533,6 @@ const EventRegistrationPage = () => {
                   For {formData.participants.length} participant{formData.participants.length > 1 ? "s" : ""}
                 </p>
               </div>
-
               <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
                 <p className="text-sm text-gray-300 mb-4">Scan QR Code to Pay</p>
                 <div className="inline-block p-4 bg-white rounded-xl shadow-lg">
@@ -520,7 +541,6 @@ const EventRegistrationPage = () => {
                 <p className="text-xs text-gray-400 mt-3">UPI ID: georgeadorn58@oksbi</p>
               </div>
             </div>
-
             <div className="bg-blue-900/20 border border-blue-700/50 p-6 rounded-xl">
               <h3 className="font-medium text-blue-300 mb-3 flex items-center gap-2">
                 <DollarSign className="w-5 h-5" />
