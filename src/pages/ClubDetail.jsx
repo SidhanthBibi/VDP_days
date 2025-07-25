@@ -483,6 +483,13 @@ const ClubDetail = () => {
     }
   }, [id, currentUserEmail])
 
+  const limitWords = (text, wordLimit) => {
+    if (!text) return '';
+      const words = text.split(' ');
+    if (words.length <= wordLimit) return text;
+      return words.slice(0, wordLimit).join(' ') + '...';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -546,7 +553,7 @@ const ClubDetail = () => {
                   <h1 className="text-3xl font-bold text-white">{club.name}</h1>
                   <span className="px-4 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm">{club.category}</span>
                 </div>
-                <p className="text-gray-400 mb-4">{club.description}</p>
+                <p className="text-gray-400 mb-4">{limitWords(club.description, 40)}</p>
                 <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2 text-purple-400">
                     <Trophy className="h-5 w-5" />
