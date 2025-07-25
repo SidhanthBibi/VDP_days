@@ -24,6 +24,9 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx"
 import AnalyticsDashboard from "./pages/Analytics"
 import EventRegistrationPage from "./pages/EventRegistrationPage.jsx"
 import EventRegistrationDashboard from "./pages/EventRegistrationDashboard.jsx"
+import MainEvent from "./pages/MainEvent"
+import SubEvent from "./pages/SubEvent"
+import MainEventDetail from "./pages/MainEventDetail"
 
 // Import dashboard components
 import ClubDashboardLayout from "./components/ClubDashboard/ClubDashboardLayout"
@@ -60,6 +63,12 @@ function App() {
             <Route path="/edit-profile" element={<Biodata />} />
             <Route path="*" element={<NotFound />} />
 
+            {/* Main Event Routes */}
+            <Route path="/main-event" element={<MainEvent />} />
+            <Route path="/main-event/:eventId" element={<MainEventDetail />} />
+
+            {/* Sub Event Routes */}
+            <Route path="/sub-event" element={<SubEvent />} />
             {/* Dynamic Event Registration Route */}
             <Route path="/event-register/:eventId" element={<DynamicRegistrationForm />} />
             <Route path="/edit-event/:id" element={<EditEventForm />} />
