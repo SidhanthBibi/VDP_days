@@ -160,7 +160,7 @@ const Navbar = () => {
             `}
             >
               <NavLink href="/">Home</NavLink>
-              <NavLink href="/events">Events</NavLink>
+              <NavLink href="/main-event">Events</NavLink>
               <NavLink href="/clubs">Clubs</NavLink>
               <NavLink href="/about">About</NavLink>
             </div>
@@ -287,7 +287,7 @@ const Navbar = () => {
           <NavLink href="/" isMobile>
             Home
           </NavLink>
-          <NavLink href="/events" isMobile>
+          <NavLink href="/main-event" isMobile>
             Events
           </NavLink>
           <NavLink href="/clubs" isMobile>
