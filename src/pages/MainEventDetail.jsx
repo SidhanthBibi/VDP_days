@@ -1,33 +1,42 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useState, useEffect, useCallback } from "react"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabaseClient"
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  ExternalLink,
-  MessageCircle,
-  Phone,
-  ArrowLeft,
-  Loader2,
-  Info,
-} from "lucide-react"
+import { Calendar, Clock, Users, ExternalLink, ArrowLeft, Loader2, Info } from "lucide-react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import EventCard from "../components/EventCard" // Import EventCard
 
 const MainEventDetail = () => {
   const { eventId } = useParams()
+  const navigate = useNavigate()
   const [mainEvent, setMainEvent] = useState(null)
   const [subEvents, setSubEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [user, setUser] = useState(null) // State for user authentication
+  const [activeCard, setActiveCard] = useState(null) // State for active EventCard
 
   useEffect(() => {
     fetchEventDetails()
+    checkUser()
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => {
+      authListener?.subscription.unsubscribe()
+    }
   }, [eventId])
+
+  const checkUser = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    setUser(session?.user || null)
+  }
 
   const fetchEventDetails = async () => {
     try {
@@ -91,21 +100,27 @@ const MainEventDetail = () => {
     })
   }
 
-  const renderPrice = (event) => {
-    if (event.variable_pricing && event.price) {
-      try {
-        const pricingTiers = JSON.parse(event.price)
-        if (Array.isArray(pricingTiers) && pricingTiers.length > 0) {
-          const minPrice = Math.min(...pricingTiers.map((tier) => Number.parseFloat(tier.price) || 0))
-          const maxPrice = Math.max(...pricingTiers.map((tier) => Number.parseFloat(tier.price) || 0))
-          return minPrice === maxPrice ? `₹${minPrice}` : `₹${minPrice} - ₹${maxPrice}`
-        }
-      } catch (e) {
-        return event.price || "Free"
+  const handleCardClick = useCallback((id) => {
+    setActiveCard((prevActiveCard) => (prevActiveCard === id ? null : id))
+  }, [])
+
+  const handleRegisterClick = useCallback(
+    (e, path) => {
+      e.stopPropagation() // Prevent card from closing
+      if (!user) {
+        toast.error("Please log in to register for events.")
+        navigate("/login")
+      } else {
+        navigate(path)
       }
-    }
-    return event.price || "Free"
-  }
+    },
+    [user, navigate],
+  )
+
+  const getIsPastEvent = useCallback((event) => {
+    const eventEndDateTime = new Date(`${event.end_date}T${event.end_time}`)
+    return eventEndDateTime < new Date()
+  }, [])
 
   if (loading) {
     return (
@@ -127,7 +142,7 @@ const MainEventDetail = () => {
         <h2 className="text-2xl font-bold mb-2">Error</h2>
         <p className="text-gray-400 text-center mb-6">{error}</p>
         <Link
-          to="/main-events"
+          to="/main-event"
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -146,7 +161,7 @@ const MainEventDetail = () => {
         <h2 className="text-2xl font-bold mb-2">Event Not Found</h2>
         <p className="text-gray-400 text-center mb-6">The main event you are looking for does not exist.</p>
         <Link
-          to="/main-events"
+          to="/main-event"
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -179,7 +194,7 @@ const MainEventDetail = () => {
         {/* Back Button */}
         <div className="mb-8">
           <Link
-            to="/main-events"
+            to="/main-event"
             className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -253,7 +268,7 @@ const MainEventDetail = () => {
 
         {/* Sub Events Section */}
         <h2 className="text-3xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-600">
-          Associated Sub Events ({subEvents.length})
+          Associated Sub Events
         </h2>
 
         {subEvents.length === 0 ? (
@@ -263,130 +278,14 @@ const MainEventDetail = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {subEvents.map((event) => (
-              <div
+              <EventCard
                 key={event.id}
-                className="backdrop-blur-md bg-gray-900/50 rounded-xl border border-gray-700/50 overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(147,51,234,0.3)] group"
-              >
-                {/* Event Image */}
-                <div className="relative h-48 overflow-hidden">
-                  {event.poster ? (
-                    <img
-                      src={event.poster || "/placeholder.svg"}
-                      alt={event.event_name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-purple-600/20 to-blue-600/20 flex items-center justify-center">
-                      <Calendar className="w-12 h-12 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="absolute top-3 left-3">
-                    <span className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                      Sub Event
-                    </span>
-                  </div>
-                  <div className="absolute top-3 right-3">
-                    <div className="bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs">
-                      {renderPrice(event)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Event Content */}
-                <div className="p-5 flex flex-col flex-grow">
-                  <h3 className="text-xl font-bold mb-2 text-white group-hover:text-purple-400 transition-colors">
-                    {event.event_name}
-                  </h3>
-                  <p className="text-purple-400 font-medium text-sm mb-3">Organized by {event.club_name}</p>
-                  <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">{event.description}</p>
-
-                  <div className="space-y-2 text-gray-300 text-sm mb-4">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-purple-400" />
-                      <span>
-                        {formatDate(event.start_date)} - {formatDate(event.end_date)}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-2 text-purple-400" />
-                      <span>
-                        {formatTime(event.start_time)} - {formatTime(event.end_time)}
-                      </span>
-                    </div>
-                    {event.location && (
-                      <div className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-2 text-purple-400" />
-                        <span>{event.location}</span>
-                      </div>
-                    )}
-                    {event.max_participants && event.variable_pricing && (
-                      <div className="flex items-center">
-                        <Users className="w-4 h-4 mr-2 text-purple-400" />
-                        <span>Max Participants: {event.max_participants}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {event.has_coordinators && event.event_coordinators && event.event_coordinators.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-300 mb-2">Coordinators:</h4>
-                      <div className="space-y-1">
-                        {event.event_coordinators.slice(0, 2).map((coordinator, index) => (
-                          <div key={index} className="flex items-center justify-between text-xs">
-                            <span className="text-gray-400">{coordinator.coordinator_name}</span>
-                            <a
-                              href={`tel:${coordinator.coordinator_number}`}
-                              className="text-purple-400 hover:text-purple-300 flex items-center gap-1"
-                            >
-                              <Phone className="w-3 h-3" />
-                              {coordinator.coordinator_number}
-                            </a>
-                          </div>
-                        ))}
-                        {event.event_coordinators.length > 2 && (
-                          <div className="text-xs text-gray-500">
-                            +{event.event_coordinators.length - 2} more coordinators
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 mt-auto">
-                    <Link
-                      to={`/events/${event.id}/register/`}
-                      className="flex-1 text-center bg-gradient-to-r from-purple-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-300 text-sm font-medium"
-                    >
-                      Register
-                    </Link>
-
-                    {event.websiteLink && (
-                      <a
-                        href={event.websiteLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors duration-300 flex items-center justify-center"
-                        title="Visit Website"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-
-                    {event.whatsapp_group_link && (
-                      <a
-                        href={event.whatsapp_group_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors duration-300 flex items-center justify-center"
-                        title="Join WhatsApp Group"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
+                event={event}
+                isActive={activeCard === event.id}
+                onCardClick={handleCardClick}
+                handleRegisterClick={handleRegisterClick}
+                isPastEvent={getIsPastEvent(event)}
+              />
             ))}
           </div>
         )}
