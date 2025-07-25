@@ -7,7 +7,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom" // Import Link
 import { RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import EventCard from "../components/EventCard";
+import EventCard from "../components/MainEventCard";
 
 // Check if device is mobile
 const isMobile = () => typeof window !== "undefined" && window.innerWidth < 768

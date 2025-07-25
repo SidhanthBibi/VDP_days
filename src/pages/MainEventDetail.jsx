@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabaseClient"
 import { Calendar, Clock, Users, ExternalLink, ArrowLeft, Loader2, Info } from "lucide-react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import EventCard from "../components/EventCard" // Import EventCard
+import EventCard from "../components/SubEventCard" // Import EventCard
 
 const MainEventDetail = () => {
   const { eventId } = useParams()

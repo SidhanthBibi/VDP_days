@@ -118,17 +118,6 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
                     <MapPin className="w-4 h-4 mr-2" />
                     <span>{event.location}</span>
                   </motion.div>
-
-                  {/* Price Display */}
-                  <motion.div
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.6 }}
-                    className="flex items-center text-gray-300"
-                  >
-                    <CircleDollarSign className="w-4 h-4 mr-2" />
-                    <span className="text-sm">{priceDisplay}</span>
-                  </motion.div>
                 </div>
               </div>
 
@@ -167,7 +156,7 @@ const EventCard = React.memo(({ event, isActive, onCardClick, handleRegisterClic
                   className="mt-4 bg-gray-700 text-white px-6 py-3 rounded-[10px] w-full
                     transition-all duration-300"
                 >
-                  <a href={`/main-event/${event.id}`}>View Details</a>
+                  <a href={`/main-event/${event.id}`}>Event Expired</a>
                 </motion.button>
               )}
             </div>
